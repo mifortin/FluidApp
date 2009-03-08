@@ -70,6 +70,10 @@
 		272D27670F62E15B004E794A /* FluidServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 272D27660F62E15B004E794A /* FluidServer.c */; };
 		272D277A0F62E4B5004E794A /* FluidApp_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 272D27790F62E4B5004E794A /* FluidApp_Delegate.m */; };
 		272D28060F62F18C004E794A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 272D28050F62F18C004E794A /* OpenGL.framework */; };
+		27A661E00F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
+		27A661E10F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
+		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
+		27A662FB0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		8D11072A0486CEB800E47090 /* FluidApp.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* FluidApp.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* FluidApp_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* FluidApp_main.m */; settings = {ATTRIBUTES = (); }; };
@@ -81,14 +85,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 272D26B70F62DF23004E794A /* FluidServer */;
+			remoteGlobalIDString = 272D26B70F62DF23004E794A;
 			remoteInfo = FluidServer;
 		};
 		272D26C20F62DF92004E794A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D1107260486CEB800E47090 /* FluidApp */;
+			remoteGlobalIDString = 8D1107260486CEB800E47090;
 			remoteInfo = FluidApp;
 		};
 /* End PBXContainerItemProxy section */
@@ -156,6 +160,11 @@
 		272D27790F62E4B5004E794A /* FluidApp_Delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_Delegate.m; sourceTree = "<group>"; };
 		272D27B20F62EB22004E794A /* FluidApp_Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Util.h; sourceTree = "<group>"; };
 		272D28050F62F18C004E794A /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		27A661DE0F64292E009AC619 /* netServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = netServer.h; sourceTree = "<group>"; };
+		27A661DF0F64292E009AC619 /* netServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netServer.c; sourceTree = "<group>"; };
+		27A661E40F642960009AC619 /* net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = net.h; sourceTree = "<group>"; };
+		27A662F80F645E8D009AC619 /* netClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = netClient.h; sourceTree = "<group>"; };
+		27A662F90F645E8D009AC619 /* netClient.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netClient.c; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* FluidApp_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_main.m; sourceTree = "<group>"; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidApp.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -262,9 +271,22 @@
 			path = lua;
 			sourceTree = "<group>";
 		};
+		27A661DD0F642221009AC619 /* net */ = {
+			isa = PBXGroup;
+			children = (
+				27A662F80F645E8D009AC619 /* netClient.h */,
+				27A662F90F645E8D009AC619 /* netClient.c */,
+				27A661DE0F64292E009AC619 /* netServer.h */,
+				27A661DF0F64292E009AC619 /* netServer.c */,
+				27A661E40F642960009AC619 /* net.h */,
+			);
+			path = net;
+			sourceTree = "<group>";
+		};
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				27A661DD0F642221009AC619 /* net */,
 				272D26E70F62E0D9004E794A /* lua */,
 				272D26D30F62DFE5004E794A /* FluidServer */,
 				29B97315FDCFA39411CA2CEA /* FluidApp */,
@@ -412,6 +434,8 @@
 				272D275F0F62E0DA004E794A /* lzio.c in Sources */,
 				272D27610F62E0DA004E794A /* print.c in Sources */,
 				272D27670F62E15B004E794A /* FluidServer.c in Sources */,
+				27A661E00F64292E009AC619 /* netServer.c in Sources */,
+				27A662FB0F645E8D009AC619 /* netClient.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,6 +475,8 @@
 				272D273E0F62E0DA004E794A /* lzio.c in Sources */,
 				272D27400F62E0DA004E794A /* print.c in Sources */,
 				272D277A0F62E4B5004E794A /* FluidApp_Delegate.m in Sources */,
+				27A661E10F64292E009AC619 /* netServer.c in Sources */,
+				27A662FA0F645E8D009AC619 /* netClient.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
