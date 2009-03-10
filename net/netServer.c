@@ -113,10 +113,15 @@ done:
 
 
 netServer *netServerCreate(char *port, int flags, void *in_d,
-									netServerFn_onConnect fn_oConn)
+									netServerFn_onConnect fn_oConn,
+									error **out_error)
 {
 	if (!(flags&NETS_UDP) && !(flags&NETS_TCP))
+	{
+		*out_error = errorCreate(NULL, error_flags,
+					"Need to specify either TCP or UDP when creating server");
 		return NULL;
+	}
 	
 	struct addrinfo hints;
 	struct addrinfo *servinfo;
@@ -135,6 +140,8 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 							servinfo->ai_protocol);
 	if (mySocket == -1)
 	{
+		*out_error = errorCreate(NULL, error_create,
+					"Unable to create socket for server");
 		freeaddrinfo(servinfo);
 		return NULL;
 	}
@@ -142,6 +149,8 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 	int one = 1;
 	if (setsockopt(mySocket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) == -1)
 	{
+		*out_error = errorCreate(NULL, error_create, 
+					"Unable to set address reuse on server");
 		close(socket);
 		freeaddrinfo(servinfo);
 		return NULL;
@@ -149,6 +158,8 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 	
 	if (bind(mySocket, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 	{
+		*out_error = errorCreate(NULL, error_create, 
+					"Serverfailed binding socket");
 		close(socket);
 		freeaddrinfo(servinfo);
 		return NULL;
@@ -158,6 +169,8 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 	
 	if (listen(mySocket, 5) == -1)
 	{
+		*out_error = errorCreate(NULL, error_create,
+					"Server failed listening on socket");
 		close(socket);
 		printf("Failed listening on port\n");
 		return NULL;
@@ -177,12 +190,16 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 		
 		if (pthread_mutex_init(&toRet->m_mutex, NULL) != 0)
 		{
+			*out_error = errorCreate(NULL, error_create,
+						"Failed creating server mutex");
 			netServerFree(toRet);
 			return NULL;
 		}
 		
 		if (pthread_create(&toRet->m_serverThread, NULL, netServerThread, toRet) != 0)
 		{
+			*out_error = errorCreate(NULL, error_create,
+						"Failed creating server thread");
 			pthread_mutex_destroy(&toRet->m_mutex);
 			netServerFree(toRet);
 			return NULL;

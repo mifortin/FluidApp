@@ -6,6 +6,8 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+typedef struct field field;
 
+field *fieldCreate(int m_width, int m_height, int m_components);
 
 #endif

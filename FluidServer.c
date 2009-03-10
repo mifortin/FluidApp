@@ -34,13 +34,14 @@ int main(int argc, char *argv[])
 	printf("Fluid Server Launching\n");
 	pthread_mutex_init(&m, NULL);
 	
-	netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect);
+	error *err = NULL;
+	netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect, &err);
 	if (server)
 	{
 		printf("Server Launched\n");
 		
 		//NOTE: client might get destroyed before the server in this eg.
-		netClient *client = netClientCreate("localhost","2048",NETS_TCP);
+		netClient *client = netClientCreate("localhost","2048",NETS_TCP, &err);
 		
 		if (client)
 		{
@@ -51,6 +52,9 @@ int main(int argc, char *argv[])
 		
 			netClientFree(client);
 		}
+		else
+			printf("Failed client: %s\n", errorMsg(err));
+		
 		netServerFree(server);
 		
 		pthread_mutex_lock(&m);
@@ -58,7 +62,7 @@ int main(int argc, char *argv[])
 		pthread_mutex_unlock(&m);
 	}
 	else
-		printf("Failed launching\n");
+		printf("Failed launching: %s\n", errorMsg(err));
 	
 	fflush(stdout);
 	return 0;

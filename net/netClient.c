@@ -79,10 +79,14 @@ netClient *netClientFromSocket(int socket)
 	return toRet;
 }
 
-netClient *netClientCreate(char *address, char *port, int flags)
+netClient *netClientCreate(char *address, char *port, int flags, error **out_e)
 {
 	if (!(flags&NETS_UDP) && !(flags&NETS_TCP))
+	{
+		*out_e = errorCreate(NULL, error_flags,
+					"Client needs at least UDP or TCP communication");
 		return NULL;
+	}
 	
 	struct addrinfo hints;
 	struct addrinfo *servinfo;
@@ -93,19 +97,27 @@ netClient *netClientCreate(char *address, char *port, int flags)
 	hints.ai_protocol = (flags&NETS_UDP)?IPPROTO_UDP:IPPROTO_TCP;
 	
 	if (getaddrinfo(address, port, &hints, &servinfo) != 0)
+	{
+		*out_e = errorCreate(NULL, error_net,
+					"Client unable to resolve remote host");
 		return NULL;
+	}
 	
 	int mySocket = socket(	servinfo->ai_family,
 							servinfo->ai_socktype,
 							servinfo->ai_protocol);
 	if (mySocket == -1)
 	{
+		*out_e = errorCreate(NULL, error_create,
+					"Client unable to create socket");
 		freeaddrinfo(servinfo);
 		return NULL;
 	}
 	
 	if (connect(mySocket, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 	{
+		*out_e = errorCreate(NULL, error_net,
+					"Client unable to connect to remote server");
 		freeaddrinfo(servinfo);
 		close(mySocket);
 		return NULL;
