@@ -15,6 +15,59 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+
+int netClientSendBinary(netClient *client, void *base, int cnt)
+{
+	int totalSent = 0;
+	
+	while (totalSent < cnt)
+	{
+		int sent = send(client->m_socket, (char*)base+totalSent, cnt-totalSent, 0);
+		
+		if (sent == -1)
+			return 0;
+		
+		totalSent += sent;
+	}
+	
+	return 1;
+}
+
+
+int netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
+{
+	fd_set selectSet;
+	fd_set copySet;
+	
+	FD_ZERO(&selectSet);
+	FD_SET(client->m_socket, &selectSet);
+	
+	int bufferSize = *cnt;
+	*cnt = 0;
+	
+	FD_COPY(&selectSet, &copySet);
+	
+	struct timeval to;
+	to.tv_sec = timeout;
+	to.tv_usec = 0;
+	
+	int sel = select(client->m_socket+1, &copySet, NULL, NULL, &to);
+	
+	if (sel == -1)
+		return 0;
+	
+	if (sel != 0)
+	{
+		*cnt = read(client->m_socket, base, bufferSize);
+	}
+	
+	if (*cnt == -1)
+		return 0;
+	
+	return 1;
+}
+
+
 netClient *netClientFromSocket(int socket)
 {
 	netClient *toRet = malloc(sizeof(netClient));
@@ -66,8 +119,10 @@ netClient *netClientCreate(char *address, char *port, int flags)
 
 void netClientFree(netClient *client)
 {
-	if (client->m_socket)
+	if (client->m_socket != -1)
 		close(client->m_socket);
 	
 	memset(client, 0, sizeof(netClient));
+	
+	free(client);
 }

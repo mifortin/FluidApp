@@ -7,6 +7,7 @@
 #include "netServer.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <string.h>
 
@@ -31,6 +32,8 @@ void *netServerConnection(void *eData)
 	sData->m_userFunction(sData->m_userData, sData, cur);
 	
 done:
+
+	netClientFree(cur);
 
 	pthread_mutex_lock(&sData->m_mutex);
 	sData->m_runningThreads--;
@@ -98,16 +101,13 @@ void *netServerThread(void *eData)
 				}
 			}
 			else
-				goto killMutex;
+				goto done;
 		}
 		
 		if (pthread_mutex_unlock(&mtx) != 0)	goto done;
 	}
 
 done:
-	netServerFree(sData);
-killMutex:
-	pthread_mutex_destroy(&mtx);
 	return NULL;
 }
 
@@ -139,6 +139,14 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 		return NULL;
 	}
 	
+	int one = 1;
+	if (setsockopt(mySocket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) == -1)
+	{
+		close(socket);
+		freeaddrinfo(servinfo);
+		return NULL;
+	}
+	
 	if (bind(mySocket, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 	{
 		close(socket);
@@ -151,6 +159,7 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 	if (listen(mySocket, 5) == -1)
 	{
 		close(socket);
+		printf("Failed listening on port\n");
 		return NULL;
 	}
 
@@ -190,23 +199,24 @@ void netServerFree(netServer *in_svr)
 	
 	pthread_mutex_lock(&mtx);
 	
+	if (in_svr->m_socket != -1)
+		close(in_svr->m_socket);
+	in_svr->m_socket = -1;
+	
+	pthread_mutex_unlock(&mtx);
+	pthread_t tmp = in_svr->m_serverThread;
+	pthread_join(tmp, NULL);
+	pthread_mutex_lock(&mtx);
+	
 	while (in_svr->m_runningThreads != 0)
 	{
 		pthread_mutex_unlock(&mtx);
 		pthread_mutex_lock(&mtx);
 	}
-	
-	pthread_t tmp = in_svr->m_serverThread;
-	
-	if (in_svr->m_socket)
-		close(in_svr->m_socket);
+	pthread_mutex_unlock(&mtx);
 
 	memset(in_svr, 0, sizeof(netServer));
-	
-	in_svr->m_socket = -1;
-	in_svr->m_mutex = mtx;
-	
-	pthread_mutex_unlock(&mtx);
-	
-	pthread_join(tmp, NULL);
+
+	free(in_svr);
+	pthread_mutex_destroy(&mtx);
 }

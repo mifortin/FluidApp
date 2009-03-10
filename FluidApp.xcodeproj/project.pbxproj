@@ -165,6 +165,7 @@
 		27A661E40F642960009AC619 /* net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = net.h; sourceTree = "<group>"; };
 		27A662F80F645E8D009AC619 /* netClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = netClient.h; sourceTree = "<group>"; };
 		27A662F90F645E8D009AC619 /* netClient.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netClient.c; sourceTree = "<group>"; };
+		27A665030F64A527009AC619 /* field.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = field.h; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* FluidApp_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_main.m; sourceTree = "<group>"; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidApp.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -283,9 +284,18 @@
 			path = net;
 			sourceTree = "<group>";
 		};
+		27A665020F64A473009AC619 /* field */ = {
+			isa = PBXGroup;
+			children = (
+				27A665030F64A527009AC619 /* field.h */,
+			);
+			path = field;
+			sourceTree = "<group>";
+		};
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				27A665020F64A473009AC619 /* field */,
 				27A661DD0F642221009AC619 /* net */,
 				272D26E70F62E0D9004E794A /* lua */,
 				272D26D30F62DFE5004E794A /* FluidServer */,

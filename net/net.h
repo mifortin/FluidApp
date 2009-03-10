@@ -15,6 +15,13 @@ typedef struct netClient netClient;
 netClient *netClientCreate(char *address, char *port, int flags);
 void netClientFree(netClient *client);
 
+//Sends binary data - (no hints, very simple)
+//	returns 1 on success, 0 on failure
+int netClientSendBinary(netClient *client, void *base, int cnt);
+
+//cnt is in/out.  in is the max size of buffer, out is the amount of data...
+int netClientReadBinary(netClient *client, void *dest, int *cnt, int timeout);
+
 //Basic functions to set up a server... (we handle callbacks, that's it!)
 typedef struct netServer netServer;
 
