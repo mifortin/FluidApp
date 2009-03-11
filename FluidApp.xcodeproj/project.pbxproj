@@ -74,6 +74,8 @@
 		27A18B940F66F3FF0023F24B /* field_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18B920F66F3FF0023F24B /* field_pvt.c */; };
 		27A18BB20F6700DF0023F24B /* error_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18BB10F6700DF0023F24B /* error_pvt.c */; };
 		27A18BB30F6700DF0023F24B /* error_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18BB10F6700DF0023F24B /* error_pvt.c */; };
+		27A18C590F672BBE0023F24B /* fluid_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18C580F672BBE0023F24B /* fluid_pvt.c */; };
+		27A18C5A0F672BBE0023F24B /* fluid_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18C580F672BBE0023F24B /* fluid_pvt.c */; };
 		27A661E00F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
 		27A661E10F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
 		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
@@ -169,6 +171,9 @@
 		27A18BA90F66F6660023F24B /* error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = error.h; sourceTree = "<group>"; };
 		27A18BB00F6700DF0023F24B /* error_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = error_pvt.h; sourceTree = "<group>"; };
 		27A18BB10F6700DF0023F24B /* error_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = error_pvt.c; sourceTree = "<group>"; };
+		27A18C520F6728C00023F24B /* fluid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid.h; sourceTree = "<group>"; };
+		27A18C570F672BBE0023F24B /* fluid_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_pvt.h; sourceTree = "<group>"; };
+		27A18C580F672BBE0023F24B /* fluid_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_pvt.c; sourceTree = "<group>"; };
 		27A661DE0F64292E009AC619 /* netServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = netServer.h; sourceTree = "<group>"; };
 		27A661DF0F64292E009AC619 /* netServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netServer.c; sourceTree = "<group>"; };
 		27A661E40F642960009AC619 /* net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = net.h; sourceTree = "<group>"; };
@@ -291,6 +296,16 @@
 			path = error;
 			sourceTree = "<group>";
 		};
+		27A18C510F67287E0023F24B /* fluid */ = {
+			isa = PBXGroup;
+			children = (
+				27A18C520F6728C00023F24B /* fluid.h */,
+				27A18C570F672BBE0023F24B /* fluid_pvt.h */,
+				27A18C580F672BBE0023F24B /* fluid_pvt.c */,
+			);
+			path = fluid;
+			sourceTree = "<group>";
+		};
 		27A661DD0F642221009AC619 /* net */ = {
 			isa = PBXGroup;
 			children = (
@@ -316,10 +331,11 @@
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				27A18C510F67287E0023F24B /* fluid */,
 				27A18BA10F66F6070023F24B /* error */,
 				27A665020F64A473009AC619 /* field */,
-				27A661DD0F642221009AC619 /* net */,
 				272D26E70F62E0D9004E794A /* lua */,
+				27A661DD0F642221009AC619 /* net */,
 				272D26D30F62DFE5004E794A /* FluidServer */,
 				29B97315FDCFA39411CA2CEA /* FluidApp */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
@@ -470,6 +486,7 @@
 				27A662FB0F645E8D009AC619 /* netClient.c in Sources */,
 				27A18B930F66F3FF0023F24B /* field_pvt.c in Sources */,
 				27A18BB20F6700DF0023F24B /* error_pvt.c in Sources */,
+				27A18C5A0F672BBE0023F24B /* fluid_pvt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -513,6 +530,7 @@
 				27A662FA0F645E8D009AC619 /* netClient.c in Sources */,
 				27A18B940F66F3FF0023F24B /* field_pvt.c in Sources */,
 				27A18BB30F6700DF0023F24B /* error_pvt.c in Sources */,
+				27A18C590F672BBE0023F24B /* fluid_pvt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -16,7 +16,7 @@
 #include <netdb.h>
 
 
-int netClientSendBinary(netClient *client, void *base, int cnt)
+error *netClientSendBinary(netClient *client, void *base, int cnt)
 {
 	int totalSent = 0;
 	
@@ -25,16 +25,16 @@ int netClientSendBinary(netClient *client, void *base, int cnt)
 		int sent = send(client->m_socket, (char*)base+totalSent, cnt-totalSent, 0);
 		
 		if (sent == -1)
-			return 0;
+			return errorCreate(NULL, error_net, "failed sending data over network");
 		
 		totalSent += sent;
 	}
 	
-	return 1;
+	return NULL;
 }
 
 
-int netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
+error *netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 {
 	fd_set selectSet;
 	fd_set copySet;
@@ -54,7 +54,7 @@ int netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 	int sel = select(client->m_socket+1, &copySet, NULL, NULL, &to);
 	
 	if (sel == -1)
-		return 0;
+		return errorCreate(NULL, error_net, "Network error while waiting for data");
 	
 	if (sel != 0)
 	{
@@ -62,9 +62,9 @@ int netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 	}
 	
 	if (*cnt == -1)
-		return 0;
+		return errorCreate(NULL, error_net, "Network error while reading data");
 	
-	return 1;
+	return NULL;
 }
 
 
