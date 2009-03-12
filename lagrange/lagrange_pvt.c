@@ -5,11 +5,49 @@
 
 #include "lagrange_pvt.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 lagrange *lagrangeCreate(lua_State *in_lua, const char *in_luaGlobName,
 						 int in_maxParticles, error **out_error)
 {
 	lagrange *toRet;
+	*out_error = NULL;
+	
+	if (in_maxParticles <= 0)
+	{
+		*out_error = errorCreate(NULL, error_flags, "Need at least a particle");
+	}
+	
+	if (in_maxParticles%16 != 0)
+	{
+		*out_error = errorCreate(NULL, error_flags, "Number of particles needs to
+													be multiples of 16");
+	}
+	
+	toRet = malloc(sizeof(lagrange));
+	if (toRet == NULL)
+	{
+		*out_error = errorCreate(NULL, error_memory,
+									"Unable to allocate struct lagrange");
+		return NULL;
+	}
+	
+	if (in_lua)
+	{
+		toRet->m_name = malloc(sizeof(in_luaGlobName)+1);
+		if (toRet->m_name == NULL)
+		{
+			lagrangeFree(toRet);
+			return NULL;
+		}
+		strcpy(toRet->m_name, in_luaGlobName);
+		
+		lua_newtable(in_lua);
+		lua_setfield(in_lua, LUA_GLOBALSINDEX, in_luaGlobName);
+		toRet->m_lua = in_lua;
+	}
 	
 	return toRet;
 }
