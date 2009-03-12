@@ -78,6 +78,8 @@
 		27A661E10F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
 		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		27A662FB0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
+		4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
+		4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		8D11072A0486CEB800E47090 /* FluidApp.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* FluidApp.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* FluidApp_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* FluidApp_main.m */; settings = {ATTRIBUTES = (); }; };
@@ -91,13 +93,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 272D26B70F62DF23004E794A;
 			remoteInfo = FluidServer;
-		};
-		272D26C20F62DF92004E794A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D1107260486CEB800E47090;
-			remoteInfo = FluidApp;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -180,6 +175,9 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
+		4CC5E7270F697C4900CE7928 /* lagrange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange.h; sourceTree = "<group>"; };
+		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
+		4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lagrange_pvt.c; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* FluidApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -316,6 +314,7 @@
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				4CC5E7260F697C1300CE7928 /* lagrange */,
 				27A18BA10F66F6070023F24B /* error */,
 				27A665020F64A473009AC619 /* field */,
 				27A661DD0F642221009AC619 /* net */,
@@ -363,6 +362,16 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		4CC5E7260F697C1300CE7928 /* lagrange */ = {
+			isa = PBXGroup;
+			children = (
+				4CC5E7270F697C4900CE7928 /* lagrange.h */,
+				4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */,
+				4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */,
+			);
+			path = lagrange;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -376,7 +385,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				272D26C30F62DF92004E794A /* PBXTargetDependency */,
 			);
 			name = FluidServer;
 			productName = FluidServer;
@@ -408,9 +416,11 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FluidApp" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 29B97314FDCFA39411CA2CEA /* FluidApp */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				8D1107260486CEB800E47090 /* FluidApp */,
 				272D26B70F62DF23004E794A /* FluidServer */,
@@ -470,6 +480,7 @@
 				27A662FB0F645E8D009AC619 /* netClient.c in Sources */,
 				27A18B930F66F3FF0023F24B /* field_pvt.c in Sources */,
 				27A18BB20F6700DF0023F24B /* error_pvt.c in Sources */,
+				4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -513,6 +524,7 @@
 				27A662FA0F645E8D009AC619 /* netClient.c in Sources */,
 				27A18B940F66F3FF0023F24B /* field_pvt.c in Sources */,
 				27A18BB30F6700DF0023F24B /* error_pvt.c in Sources */,
+				4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,11 +535,6 @@
 			isa = PBXTargetDependency;
 			target = 272D26B70F62DF23004E794A /* FluidServer */;
 			targetProxy = 272D26BA0F62DF35004E794A /* PBXContainerItemProxy */;
-		};
-		272D26C30F62DF92004E794A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8D1107260486CEB800E47090 /* FluidApp */;
-			targetProxy = 272D26C20F62DF92004E794A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
