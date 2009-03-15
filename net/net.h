@@ -27,7 +27,9 @@ error *netClientReadBinary(netClient *client, void *dest, int *cnt, int timeout)
 //Basic functions to set up a server... (we handle callbacks, that's it!)
 typedef struct netServer netServer;
 
-typedef int(*netServerFn_onConnect)(void *d, netServer *in_svr, netClient *in_remote);
+//Net does bare minimum...  The rest is for specialized code.
+typedef int(*netServerFn_onConnect)(void *d, netServer *in_svr,
+										netClient *in_remote);
 
 //Creates a server listening on port, with flags.  With a connection, calls
 //fn_oConn on a new thread...	The server is on a new thread...

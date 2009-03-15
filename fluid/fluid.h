@@ -14,7 +14,8 @@
 //based on floats)
 typedef struct fluid fluid;
 
-fluid *fluidCreate(lua_State *ls, int in_width, int in_height, error **out_err);
+fluid *fluidCreate(lua_State *in_ls, char *in_globName,
+					int in_width, int in_height, error **out_err);
 void fluidFree(fluid *in_fluid);
 
 #endif
