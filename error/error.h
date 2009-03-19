@@ -14,6 +14,8 @@
 #define error_flags		2		/* bad flags */
 #define error_create	3		/* creation error (socket, file, etc.) */
 #define error_net		4		/* error from network transmission */
+#define error_duplicate	5		/* when adding something that already exists */
+#define error_specify	6		/* Got an error - becoming more explicit */
 
 typedef struct error error;
 

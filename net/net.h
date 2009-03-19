@@ -24,6 +24,10 @@ error *netClientSendBinary(netClient *client, void *base, int cnt);
 //cnt is in/out.  in is the max size of buffer, out is the amount of data...
 error *netClientReadBinary(netClient *client, void *dest, int *cnt, int timeout);
 
+//We read (and wait) until the entire buffer is filled.  A nice abstraction
+//to simplify things.
+error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout);
+
 //Basic functions to set up a server... (we handle callbacks, that's it!)
 typedef struct netServer netServer;
 

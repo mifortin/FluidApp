@@ -68,6 +68,31 @@ error *netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 }
 
 
+error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
+{
+	int curRead = 0;
+	
+	for (;;)
+	{
+		int curCnt = cnt - curRead;
+		
+		error *tmp = netClientReadBinary(client,
+							 (char*)dest + curRead, &curCnt, timeout);
+		
+		if (tmp != NULL)
+			return tmp;
+		
+		if (curCnt == 0)
+			return errorCreate(NULL, error_net,
+							   "Timed out while receiving data...");
+		
+		curRead += curCnt;
+		if (curCnt == cnt)
+			return NULL;
+	}
+}
+
+
 netClient *netClientFromSocket(int socket)
 {
 	netClient *toRet = malloc(sizeof(netClient));

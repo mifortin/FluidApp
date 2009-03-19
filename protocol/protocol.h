@@ -36,6 +36,7 @@ typedef error*(*protocolHandlerFn)(void *in_pvt, int in_size, void *in_data);
 protocol *createProtocol(netClient *in_client, int in_maxDataSize, error **out_error);
 void protocolFree(protocol *in_proto);
 
-void protocolAdd(int in_protoID, void *in_pvt, protocolHandlerFn in_fn);
+error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
+					protocolHandlerFn in_fn);
 
 #endif

@@ -7,6 +7,7 @@
 #define PROTOCOL_PVT_H
 
 #include "protocol.h"
+#include <pthread.h>
 
 typedef struct protocolPvt protocolPvt;
 
@@ -31,7 +32,18 @@ struct protocol
 
 	//b-tree of all the protocols.
 	protocolPvt *m_root;
+	
+	//The client that we read/write to
+	netClient *m_client;
+	
+	//The other thread (for joining)
+	int m_bQuit;
+	pthread_mutex_t m_mutex;
+	pthread_t m_readThread;
 };
 
+//Simple ways to deal with the tree...
+void protocolTreeFree(protocolPvt *in_root);
+protocolPvt *protocolFindClosest(protocolPvt *in_root, int in_protoID);
 
 #endif
