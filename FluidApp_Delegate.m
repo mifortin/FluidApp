@@ -27,6 +27,11 @@
 		[m_context flushBuffer];
 	}
 
+	- (void)windowDidResize:(NSNotification *)notification
+	{
+		[self onFrame:r_timer];
+	}
+
 
 	- (void)windowDidBecomeMain:(NSNotification *)aNotification
 	{

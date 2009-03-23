@@ -81,15 +81,8 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 272D26B70F62DF23004E794A /* FluidServer */;
+			remoteGlobalIDString = 272D26B70F62DF23004E794A;
 			remoteInfo = FluidServer;
-		};
-		272D26C20F62DF92004E794A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D1107260486CEB800E47090 /* FluidApp */;
-			remoteInfo = FluidApp;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -322,7 +315,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				272D26C30F62DF92004E794A /* PBXTargetDependency */,
 			);
 			name = FluidServer;
 			productName = FluidServer;
@@ -354,9 +346,11 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FluidApp" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 29B97314FDCFA39411CA2CEA /* FluidApp */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				8D1107260486CEB800E47090 /* FluidApp */,
 				272D26B70F62DF23004E794A /* FluidServer */,
@@ -461,11 +455,6 @@
 			isa = PBXTargetDependency;
 			target = 272D26B70F62DF23004E794A /* FluidServer */;
 			targetProxy = 272D26BA0F62DF35004E794A /* PBXContainerItemProxy */;
-		};
-		272D26C30F62DF92004E794A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8D1107260486CEB800E47090 /* FluidApp */;
-			targetProxy = 272D26C20F62DF92004E794A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
