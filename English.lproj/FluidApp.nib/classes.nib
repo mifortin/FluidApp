@@ -2,9 +2,22 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
+            ACTIONS = {
+                onCancelConnect = id; 
+                onConnect = id; 
+                onDoConnect = id; 
+                onOpen = id; 
+                onSave = id; 
+            }; 
             CLASS = "FluidApp_Delegate"; 
             LANGUAGE = ObjC; 
-            OUTLETS = {"i_window" = NSWindow; }; 
+            OUTLETS = {
+                "i_hostSheet" = NSWindow; 
+                "i_netAddress" = NSTextField; 
+                "i_textView" = NSTextView; 
+                "i_textWindow" = NSWindow; 
+                "i_window" = NSWindow; 
+            }; 
             SUPERCLASS = NSObject; 
         }
     ); 

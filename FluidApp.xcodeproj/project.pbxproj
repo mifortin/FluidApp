@@ -70,6 +70,24 @@
 		272D27670F62E15B004E794A /* FluidServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 272D27660F62E15B004E794A /* FluidServer.c */; };
 		272D277A0F62E4B5004E794A /* FluidApp_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 272D27790F62E4B5004E794A /* FluidApp_Delegate.m */; };
 		272D28060F62F18C004E794A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 272D28050F62F18C004E794A /* OpenGL.framework */; };
+		27941E1E0F727CA6007838B4 /* protocol_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27941E1D0F727CA6007838B4 /* protocol_pvt.c */; };
+		27941E1F0F727CA6007838B4 /* protocol_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27941E1D0F727CA6007838B4 /* protocol_pvt.c */; };
+		27A18B930F66F3FF0023F24B /* field_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18B920F66F3FF0023F24B /* field_pvt.c */; };
+		27A18B940F66F3FF0023F24B /* field_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18B920F66F3FF0023F24B /* field_pvt.c */; };
+		27A18BB20F6700DF0023F24B /* error_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18BB10F6700DF0023F24B /* error_pvt.c */; };
+		27A18BB30F6700DF0023F24B /* error_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18BB10F6700DF0023F24B /* error_pvt.c */; };
+		27A18C590F672BBE0023F24B /* fluid_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18C580F672BBE0023F24B /* fluid_pvt.c */; };
+		27A18C5A0F672BBE0023F24B /* fluid_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18C580F672BBE0023F24B /* fluid_pvt.c */; };
+		27A2F24B0F6D827900667640 /* fluid_advection_stam.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A2F24A0F6D827900667640 /* fluid_advection_stam.c */; };
+		27A2F24C0F6D827900667640 /* fluid_advection_stam.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A2F24A0F6D827900667640 /* fluid_advection_stam.c */; };
+		27A661E00F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
+		27A661E10F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
+		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
+		27A662FB0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
+		4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
+		4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
+		4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
+		4CDE74630F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
 		8D11072A0486CEB800E47090 /* FluidApp.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* FluidApp.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* FluidApp_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* FluidApp_main.m */; settings = {ATTRIBUTES = (); }; };
@@ -149,11 +167,33 @@
 		272D27790F62E4B5004E794A /* FluidApp_Delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_Delegate.m; sourceTree = "<group>"; };
 		272D27B20F62EB22004E794A /* FluidApp_Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Util.h; sourceTree = "<group>"; };
 		272D28050F62F18C004E794A /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		275CE8790F700C2F00CA815C /* protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = protocol.h; sourceTree = "<group>"; };
+		27941E1C0F727CA6007838B4 /* protocol_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = protocol_pvt.h; sourceTree = "<group>"; };
+		27941E1D0F727CA6007838B4 /* protocol_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_pvt.c; sourceTree = "<group>"; };
+		27A18B910F66F3FF0023F24B /* field_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = field_pvt.h; sourceTree = "<group>"; };
+		27A18B920F66F3FF0023F24B /* field_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = field_pvt.c; sourceTree = "<group>"; };
+		27A18BA90F66F6660023F24B /* error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = error.h; sourceTree = "<group>"; };
+		27A18BB00F6700DF0023F24B /* error_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = error_pvt.h; sourceTree = "<group>"; };
+		27A18BB10F6700DF0023F24B /* error_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = error_pvt.c; sourceTree = "<group>"; };
+		27A18C520F6728C00023F24B /* fluid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid.h; sourceTree = "<group>"; };
+		27A18C570F672BBE0023F24B /* fluid_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_pvt.h; sourceTree = "<group>"; };
+		27A18C580F672BBE0023F24B /* fluid_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_pvt.c; sourceTree = "<group>"; };
+		27A2F24A0F6D827900667640 /* fluid_advection_stam.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_advection_stam.c; sourceTree = "<group>"; };
+		27A661DE0F64292E009AC619 /* netServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = netServer.h; sourceTree = "<group>"; };
+		27A661DF0F64292E009AC619 /* netServer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netServer.c; sourceTree = "<group>"; };
+		27A661E40F642960009AC619 /* net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = net.h; sourceTree = "<group>"; };
+		27A662F80F645E8D009AC619 /* netClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = netClient.h; sourceTree = "<group>"; };
+		27A662F90F645E8D009AC619 /* netClient.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netClient.c; sourceTree = "<group>"; };
+		27A665030F64A527009AC619 /* field.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = field.h; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* FluidApp_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_main.m; sourceTree = "<group>"; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidApp.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
+		4CC5E7270F697C4900CE7928 /* lagrange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange.h; sourceTree = "<group>"; };
+		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
+		4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lagrange_pvt.c; sourceTree = "<group>"; };
+		4CDE74610F72A47D007E7B85 /* protocol_tree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_tree.c; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* FluidApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -255,10 +295,70 @@
 			path = lua;
 			sourceTree = "<group>";
 		};
+		275CE8780F700B2400CA815C /* protocol */ = {
+			isa = PBXGroup;
+			children = (
+				275CE8790F700C2F00CA815C /* protocol.h */,
+				27941E1C0F727CA6007838B4 /* protocol_pvt.h */,
+				27941E1D0F727CA6007838B4 /* protocol_pvt.c */,
+				4CDE74610F72A47D007E7B85 /* protocol_tree.c */,
+			);
+			path = protocol;
+			sourceTree = "<group>";
+		};
+		27A18BA10F66F6070023F24B /* error */ = {
+			isa = PBXGroup;
+			children = (
+				27A18BA90F66F6660023F24B /* error.h */,
+				27A18BB00F6700DF0023F24B /* error_pvt.h */,
+				27A18BB10F6700DF0023F24B /* error_pvt.c */,
+			);
+			path = error;
+			sourceTree = "<group>";
+		};
+		27A18C510F67287E0023F24B /* fluid */ = {
+			isa = PBXGroup;
+			children = (
+				27A18C520F6728C00023F24B /* fluid.h */,
+				27A18C570F672BBE0023F24B /* fluid_pvt.h */,
+				27A18C580F672BBE0023F24B /* fluid_pvt.c */,
+				27A2F24A0F6D827900667640 /* fluid_advection_stam.c */,
+			);
+			path = fluid;
+			sourceTree = "<group>";
+		};
+		27A661DD0F642221009AC619 /* net */ = {
+			isa = PBXGroup;
+			children = (
+				27A662F80F645E8D009AC619 /* netClient.h */,
+				27A662F90F645E8D009AC619 /* netClient.c */,
+				27A661DE0F64292E009AC619 /* netServer.h */,
+				27A661DF0F64292E009AC619 /* netServer.c */,
+				27A661E40F642960009AC619 /* net.h */,
+			);
+			path = net;
+			sourceTree = "<group>";
+		};
+		27A665020F64A473009AC619 /* field */ = {
+			isa = PBXGroup;
+			children = (
+				27A665030F64A527009AC619 /* field.h */,
+				27A18B910F66F3FF0023F24B /* field_pvt.h */,
+				27A18B920F66F3FF0023F24B /* field_pvt.c */,
+			);
+			path = field;
+			sourceTree = "<group>";
+		};
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				27A18BA10F66F6070023F24B /* error */,
+				27A665020F64A473009AC619 /* field */,
+				27A18C510F67287E0023F24B /* fluid */,
+				4CC5E7260F697C1300CE7928 /* lagrange */,
 				272D26E70F62E0D9004E794A /* lua */,
+				27A661DD0F642221009AC619 /* net */,
+				275CE8780F700B2400CA815C /* protocol */,
 				272D26D30F62DFE5004E794A /* FluidServer */,
 				29B97315FDCFA39411CA2CEA /* FluidApp */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
@@ -300,6 +400,16 @@
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4CC5E7260F697C1300CE7928 /* lagrange */ = {
+			isa = PBXGroup;
+			children = (
+				4CC5E7270F697C4900CE7928 /* lagrange.h */,
+				4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */,
+				4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */,
+			);
+			path = lagrange;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -406,6 +516,15 @@
 				272D275F0F62E0DA004E794A /* lzio.c in Sources */,
 				272D27610F62E0DA004E794A /* print.c in Sources */,
 				272D27670F62E15B004E794A /* FluidServer.c in Sources */,
+				27A661E00F64292E009AC619 /* netServer.c in Sources */,
+				27A662FB0F645E8D009AC619 /* netClient.c in Sources */,
+				27A18B930F66F3FF0023F24B /* field_pvt.c in Sources */,
+				27A18BB20F6700DF0023F24B /* error_pvt.c in Sources */,
+				27A18C5A0F672BBE0023F24B /* fluid_pvt.c in Sources */,
+				4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */,
+				27A2F24C0F6D827900667640 /* fluid_advection_stam.c in Sources */,
+				27941E1E0F727CA6007838B4 /* protocol_pvt.c in Sources */,
+				4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -445,6 +564,15 @@
 				272D273E0F62E0DA004E794A /* lzio.c in Sources */,
 				272D27400F62E0DA004E794A /* print.c in Sources */,
 				272D277A0F62E4B5004E794A /* FluidApp_Delegate.m in Sources */,
+				27A661E10F64292E009AC619 /* netServer.c in Sources */,
+				27A662FA0F645E8D009AC619 /* netClient.c in Sources */,
+				27A18B940F66F3FF0023F24B /* field_pvt.c in Sources */,
+				27A18BB30F6700DF0023F24B /* error_pvt.c in Sources */,
+				27A18C590F672BBE0023F24B /* fluid_pvt.c in Sources */,
+				4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */,
+				27A2F24B0F6D827900667640 /* fluid_advection_stam.c in Sources */,
+				27941E1F0F727CA6007838B4 /* protocol_pvt.c in Sources */,
+				4CDE74630F72A47D007E7B85 /* protocol_tree.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
