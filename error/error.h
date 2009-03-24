@@ -16,6 +16,7 @@
 #define error_net		4		/* error from network transmission */
 #define error_duplicate	5		/* when adding something that already exists */
 #define error_specify	6		/* Got an error - becoming more explicit */
+#define error_thread	7		/* Error caused by threading issues. */
 
 typedef struct error error;
 

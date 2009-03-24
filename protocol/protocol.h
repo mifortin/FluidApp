@@ -28,15 +28,58 @@
 
 #include "net.h"
 #include "error.h"
+#include "lua.h"
+#include <pthread.h>
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Basic protocol
+//
 
 typedef struct protocol protocol;
-typedef error*(*protocolHandlerFn)(void *in_pvt, int in_size, void *in_data);
+
+//Note: protocol reads on a seperate thread.  The data is invalidated
+//		upon returning from this function (as it blocks the reading)
+typedef error*(*protocolHandlerFn)(protocol *proto,		//For responding...
+								   void *in_pvt,		//Specified object
+								   int in_size,			//Amount of data (bytes)
+								   void *in_data);		//Pointer to the data.
 
 //Max data size is in bytes (should be at least a few k)
-protocol *createProtocol(netClient *in_client, int in_maxDataSize, error **out_error);
+protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
+							error **out_error);
 void protocolFree(protocol *in_proto);
 
+//Add a handler for some protocol
 error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 					protocolHandlerFn in_fn);
+
+//Get the maximum data size (for transmission)
+int protocolMaxSize(protocol *in_p);
+
+//Sends properly formatted data over the net
+//(thread-safe)
+error *protocolSend(protocol *in_p, int in_protoID, int in_size, void *in_data);
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Extensions for Lua
+//		This is a protocol used to send/receive Lua data over the network.
+//		The code can be executed as well.
+//
+//		This is different than the Lua bridge that allows Lua to send data
+//		over the network.  (This keeps both components small and simple,
+//		and by combining them we get complex behaviour)
+//
+//			'luae'	- Send end of lua text (at which point it's executed)
+
+//Upon creating the protocol to transmit lua, we require a lock that will be
+//used to encapsulate all calls to lua.  This code is thread-safe, is yours?
+//	Lua script can be executed on another thread, so beware!
+protocolLua *protocolLuaCreate(protocol *in_proto, lua_State *in_lua,
+							   pthread_mutex_t in_lock, error **out_error);
+void protocolLuaFree(protocolLua *in_proto);
+
 
 #endif

@@ -11,6 +11,7 @@
 #include "net.h"
 #include "lua.h"
 #include "fluid.h"
+#include "protocol.h"
 
 volatile int tmp = 0;
 
@@ -47,6 +48,16 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	
 	lua_State *L = lua_newstate(luaAlloc, NULL);
 	
+	error *pError = NULL;
+	protocol *p = protocolCreate(in_remote, 1024*4, &pError);
+	
+	if (p == NULL)
+	{
+		printf("Failed creating protocol: %s\n", errorMsg(pError));
+		errorFree(pError);
+		return 0;
+	}
+	
 	do {
 		int cnt = 255;
 		netClientReadBinary(in_remote, buffer, &cnt, 100);
@@ -55,6 +66,7 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 		printf("SERVER>%s\n", buffer);
 	} while (strcmp(buffer,"quit") != 0);
 	
+	protocolFree(p);
 	lua_close(L);
 	
 	return 0;
@@ -77,15 +89,27 @@ int main(int argc, char *argv[])
 		
 		if (client)
 		{
+			error *pError = NULL;
+			protocol *p = protocolCreate(client, 1024*4, &pError);
+			if (p == NULL)
+			{
+				printf("Failed creating protocol: %s\n", errorMsg(pError));
+				errorFree(pError);
+			}
+			else
+			{
 			
-			char tmp[256];
-			do {
-				printf("CLIENT> ");
-				scanf("%s", tmp);
-				netClientSendBinary(client,tmp,strlen(tmp));
-			} while (strcmp(tmp, "quit") != 0);
-		
-			netClientFree(client);
+				char tmp[256];
+				do {
+					printf("CLIENT> ");
+					scanf("%s", tmp);
+					netClientSendBinary(client,tmp,strlen(tmp));
+				} while (strcmp(tmp, "quit") != 0);
+				
+				protocolFree(p);
+			
+				netClientFree(client);
+			}
 		}
 		else
 			printf("Failed client: %s\n", errorMsg(err));

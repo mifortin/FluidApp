@@ -7,7 +7,6 @@
 #define PROTOCOL_PVT_H
 
 #include "protocol.h"
-#include <pthread.h>
 
 typedef struct protocolPvt protocolPvt;
 
@@ -45,5 +44,15 @@ struct protocol
 //Simple ways to deal with the tree...
 void protocolTreeFree(protocolPvt *in_root);
 protocolPvt *protocolFindClosest(protocolPvt *in_root, int in_protoID);
+
+
+//Internal data structure to glue Lua and protocol
+typedef struct protocolLua protocolLua;
+
+struct protocolLua
+{
+	lua_State *m_lua;			//Lua state that we are binding...
+	pthread_mutex_t m_lock;		//mutex used to protect the lua state...
+};
 
 #endif
