@@ -56,12 +56,16 @@ error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 						protocolHandlerFn in_fn)
 {
 	protocolPvt *toAdd = malloc(sizeof(protocolPvt));
-	memset(toAdd, 0, sizeof(protocolPvt));
 	if (toAdd == NULL)
 	{
 		return errorCreate(NULL, error_memory,
 								"Not enough memory to register protocol");
 	}
+	
+	memset(toAdd, 0, sizeof(protocolPvt));
+	toAdd->m_name = in_protoID;
+	toAdd->m_data = in_pvt;
+	toAdd->m_fn = in_fn;
 	
 	if (in_proto->m_root == NULL)
 	{
@@ -79,10 +83,6 @@ error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 			return errorCreate(NULL, error_duplicate,
 									"Protocol already exists!");
 		}
-		
-		toAdd->m_name = in_protoID;
-		toAdd->m_data = in_pvt;
-		toAdd->m_fn = in_fn;
 		
 		if (closest->m_name < in_protoID)
 			closest->m_left = toAdd;

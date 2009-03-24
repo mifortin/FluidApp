@@ -5,6 +5,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+#include "protocol.h"
+
 
 @interface FluidApp_Delegate : NSObject
 {
@@ -19,6 +21,8 @@
 	NSOpenGLView *r_view;
 	NSOpenGLContext *m_context;
 	NSTimer *r_timer;
+	
+	protocol *r_proto;
 }
 
 - (IBAction)onSave:(id)in_src;

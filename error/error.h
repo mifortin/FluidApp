@@ -17,6 +17,8 @@
 #define error_duplicate	5		/* when adding something that already exists */
 #define error_specify	6		/* Got an error - becoming more explicit */
 #define error_thread	7		/* Error caused by threading issues. */
+#define error_script	8		/* Error having to do with a scripting engine */
+#define error_timeout	9		/* Elapsed waiting time exceeded. */
 
 typedef struct error error;
 

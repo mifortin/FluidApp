@@ -11,11 +11,12 @@
 
 #include <arpa/inet.h>
 
-void *readThread(void *threadData)
+void *protocolReadThread(void *threadData)
 {
 	protocol *p = (protocol*)threadData;
 	for (;;)
 	{
+retryConnect:
 		if (pthread_mutex_lock(&p->m_mutex) != 0)	goto done;
 		int quitFlag = p->m_bQuit;
 		if (pthread_mutex_unlock(&p->m_mutex) != 0)	goto done;
@@ -27,7 +28,19 @@ void *readThread(void *threadData)
 		int length;
 		error *log;
 		log = netClientGetBinary(p->m_client, &name, sizeof(int), 10);
-		if (log != NULL)	return log;
+		if (log != NULL)
+		{
+			if (errorCode(log) == error_timeout)
+			{
+				errorFree(log);
+				goto retryConnect;
+			}
+			else
+			{
+				printf("netClient: %s\n", errorMsg(log));
+				return log;
+			}
+		}
 		
 		if (pthread_mutex_lock(&p->m_mutex) != 0)	goto done;
 		protocolPvt *tmp = protocolFindClosest(p->m_root, name);
@@ -35,27 +48,46 @@ void *readThread(void *threadData)
 		
 		//Note that the data won't change / get removed so we can play as
 		//we wish...
-		if (tmp->m_name != name)
+		if (tmp == NULL || tmp->m_name != name)
+		{
+			printf("Unsupported host operation (%i)\n", name);
 			return errorCreate(NULL, error_net, "Unsupported host operation");
+		}
 		
 		log = netClientGetBinary(p->m_client, &length, sizeof(int), 10);
 		if (log != NULL)	return log;
-		length = ntohl(length);
+		if (log != NULL)
+		{
+			printf("netClient: %s\n", errorMsg(log));
+			return log;
+		}
 		
 		//Prevent buffer errors
 		if (length < 0 || length > p->m_maxSize)
+		{
+			printf("ProtocolRead: tmpDebug: Invalid msg to host\n");
 			return errorCreate(NULL, error_net, "Host sent invalid request");
+		}
 		
 		//Read the buffer
 		log = netClientGetBinary(p->m_client, p->m_readBuffer, length, 10);
-		if (log != NULL)	return log;
+		if (log != NULL)
+		{
+			printf("netClient: %s\n", errorMsg(log));
+			return log;
+		}
 		
 		//Invoke the proper function...
 		log = tmp->m_fn(p, tmp->m_data, length, p->m_readBuffer);
-		if (log != NULL)	return log;
+		if (log != NULL)
+		{
+			printf("netClient: %s\n", errorMsg(log));
+			return log;
+		}
 	}
 	
 done:
+	printf("ProtocolRead: tmpDebug: Failed locking mutex\n");
 	return errorCreate(NULL, error_thread, "Failed locking mutex");
 }
 
@@ -136,6 +168,8 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 	}
 	memset(toRet, 0, sizeof(protocol));
 	toRet->m_bQuit = 1;			//To not free thread...
+	toRet->m_maxSize = in_maxDataSize;
+	toRet->m_client = in_client;
 	
 	if (pthread_mutex_init(&toRet->m_mutex, NULL) != 0)
 	{
@@ -152,6 +186,16 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 								 "Unable to allocate read buffer.");
 		return NULL;
 	}
+	
+	toRet->m_bQuit = 0;
+	if (pthread_create(&toRet->m_readThread, NULL, protocolReadThread, toRet) != 0)
+	{
+		toRet->m_bQuit = 1;
+		protocolFree(toRet);
+		*out_error = errorCreate(NULL, error_thread, "Failed creating read thread");
+		return NULL;
+	}
+	
 	
 	return toRet;
 }
@@ -195,7 +239,8 @@ int protocolMaxSize(protocol *p)
 }
 
 
-error *protocolSend(protocol *in_p, int in_protoID, int in_size, void *in_data)
+error *protocolSend(protocol *in_p, int in_protoID, int in_size,
+					const void *in_data)
 {
 	if (in_size < 0 || in_size > in_p->m_maxSize)
 		return errorCreate(NULL, error_flags, "Size must be in range [%i,%i]",

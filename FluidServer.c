@@ -43,13 +43,15 @@ void * luaAlloc (void *ud,
 
 
 int onConnect(void *d, netServer *in_vr, netClient *in_remote)
-{
-	char buffer[256];
-	
+{	
 	lua_State *L = lua_newstate(luaAlloc, NULL);
+	luaopen_base(L);
+	luaopen_string(L);
+	luaopen_math(L);
 	
 	error *pError = NULL;
 	protocol *p = protocolCreate(in_remote, 1024*4, &pError);
+	protocolLua *pl = protocolLuaCreate(p, L, m, &pError);
 	
 	if (p == NULL)
 	{
@@ -58,14 +60,9 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 		return 0;
 	}
 	
-	do {
-		int cnt = 255;
-		netClientReadBinary(in_remote, buffer, &cnt, 100);
-		buffer[cnt] = '\0';
-		
-		printf("SERVER>%s\n", buffer);
-	} while (strcmp(buffer,"quit") != 0);
+	for (;;);
 	
+	protocolLuaFree(pl);
 	protocolFree(p);
 	lua_close(L);
 	

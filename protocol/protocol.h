@@ -59,7 +59,7 @@ int protocolMaxSize(protocol *in_p);
 
 //Sends properly formatted data over the net
 //(thread-safe)
-error *protocolSend(protocol *in_p, int in_protoID, int in_size, void *in_data);
+error *protocolSend(protocol *in_p, int in_protoID, int in_size, const void *in_data);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,6 +73,7 @@ error *protocolSend(protocol *in_p, int in_protoID, int in_size, void *in_data);
 //		and by combining them we get complex behaviour)
 //
 //			'luae'	- Send end of lua text (at which point it's executed)
+typedef struct protocolLua protocolLua;
 
 //Upon creating the protocol to transmit lua, we require a lock that will be
 //used to encapsulate all calls to lua.  This code is thread-safe, is yours?
@@ -80,6 +81,10 @@ error *protocolSend(protocol *in_p, int in_protoID, int in_size, void *in_data);
 protocolLua *protocolLuaCreate(protocol *in_proto, lua_State *in_lua,
 							   pthread_mutex_t in_lock, error **out_error);
 void protocolLuaFree(protocolLua *in_proto);
+
+//Sends the given script (null-terminated string) to whoever is supposed to
+//process it.
+error *protocolLuaSend(protocol *in_proto, const char *in_script);
 
 
 #endif

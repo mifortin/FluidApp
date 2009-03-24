@@ -47,8 +47,6 @@ protocolPvt *protocolFindClosest(protocolPvt *in_root, int in_protoID);
 
 
 //Internal data structure to glue Lua and protocol
-typedef struct protocolLua protocolLua;
-
 struct protocolLua
 {
 	lua_State *m_lua;			//Lua state that we are binding...

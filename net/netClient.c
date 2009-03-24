@@ -16,7 +16,7 @@
 #include <netdb.h>
 
 
-error *netClientSendBinary(netClient *client, void *base, int cnt)
+error *netClientSendBinary(netClient *client, const void *base, int cnt)
 {
 	int totalSent = 0;
 	
@@ -82,9 +82,12 @@ error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 		if (tmp != NULL)
 			return tmp;
 		
-		if (curCnt == 0)
-			return errorCreate(NULL, error_net,
+		if (curCnt == 0 && curRead == 0)
+			return errorCreate(NULL, error_timeout,
 							   "Timed out while receiving data...");
+		else if (curCnt == 0)
+			return errorCreate(NULL, error_net,
+							   "Timed out while waiting for remaining data");
 		
 		curRead += curCnt;
 		if (curCnt == cnt)
@@ -104,7 +107,8 @@ netClient *netClientFromSocket(int socket)
 	return toRet;
 }
 
-netClient *netClientCreate(char *address, char *port, int flags, error **out_e)
+netClient *netClientCreate(const char *address, char *port, int flags,
+						   error **out_e)
 {
 	if (!(flags&NETS_UDP) && !(flags&NETS_TCP))
 	{

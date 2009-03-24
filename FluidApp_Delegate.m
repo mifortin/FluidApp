@@ -109,6 +109,27 @@
 	- (IBAction)onDoConnect:(id)in_src
 	{
 		[NSApp endSheet:i_hostSheet returnCode:NSOKButton];
+	
+		error *err;
+		netClient *nc = netClientCreate([[i_netAddress stringValue] UTF8String],
+									"2048", NETS_TCP, &err);
+		if (nc == NULL)
+		{
+			NSLog(@"Failed connecting!");
+			return;
+		}
+		
+		r_proto = protocolCreate(nc, 1024*32, &err);
+		if (r_proto == NULL)
+		{
+			NSLog(@"Failed creating protocol");
+			return;
+		}
+		
+		if (err = protocolLuaSend(r_proto, [[i_textView string] UTF8String]))
+		{
+			NSLog(@"Failed sending LUA script, %s", errorMsg(err));
+		}
 	}
 	
 	
