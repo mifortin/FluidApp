@@ -88,6 +88,8 @@
 		4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
 		4CDE74630F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
+		4CF5FA8D0F79972E000F10EC /* protocol_float.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF5FA8C0F79972E000F10EC /* protocol_float.c */; };
+		4CF5FA8E0F79972E000F10EC /* protocol_float.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF5FA8C0F79972E000F10EC /* protocol_float.c */; };
 		4CFF95F40F7852BE0074014C /* protocol_lua.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFF95F30F7852BE0074014C /* protocol_lua.c */; };
 		4CFF95F50F7852BE0074014C /* protocol_lua.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFF95F30F7852BE0074014C /* protocol_lua.c */; };
 		8D11072A0486CEB800E47090 /* FluidApp.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* FluidApp.nib */; };
@@ -196,6 +198,7 @@
 		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
 		4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lagrange_pvt.c; sourceTree = "<group>"; };
 		4CDE74610F72A47D007E7B85 /* protocol_tree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_tree.c; sourceTree = "<group>"; };
+		4CF5FA8C0F79972E000F10EC /* protocol_float.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_float.c; sourceTree = "<group>"; };
 		4CFF95F30F7852BE0074014C /* protocol_lua.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_lua.c; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* FluidApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -306,6 +309,7 @@
 				27941E1D0F727CA6007838B4 /* protocol_pvt.c */,
 				4CDE74610F72A47D007E7B85 /* protocol_tree.c */,
 				4CFF95F30F7852BE0074014C /* protocol_lua.c */,
+				4CF5FA8C0F79972E000F10EC /* protocol_float.c */,
 			);
 			path = protocol;
 			sourceTree = "<group>";
@@ -530,6 +534,7 @@
 				27941E1E0F727CA6007838B4 /* protocol_pvt.c in Sources */,
 				4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */,
 				4CFF95F50F7852BE0074014C /* protocol_lua.c in Sources */,
+				4CF5FA8D0F79972E000F10EC /* protocol_float.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -579,6 +584,7 @@
 				27941E1F0F727CA6007838B4 /* protocol_pvt.c in Sources */,
 				4CDE74630F72A47D007E7B85 /* protocol_tree.c in Sources */,
 				4CFF95F40F7852BE0074014C /* protocol_lua.c in Sources */,
+				4CF5FA8E0F79972E000F10EC /* protocol_float.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

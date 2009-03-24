@@ -53,4 +53,17 @@ struct protocolLua
 	pthread_mutex_t m_lock;		//mutex used to protect the lua state...
 };
 
+
+//Internal data structure to be able to send floating-point scalars
+struct protocolFloat
+{
+	protocol *m_proto;
+	
+	pthread_mutex_t m_luaLock;		//Protect lua
+	pthread_mutex_t m_dataLock;		//Protect the data
+	
+	int m_noElements;
+	float *r_elements;
+};
+
 #endif

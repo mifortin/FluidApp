@@ -87,4 +87,29 @@ void protocolLuaFree(protocolLua *in_proto);
 error *protocolLuaSend(protocol *in_proto, const char *in_script);
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Lua data transfer utilities
+//		For this to work - we need some sort of global data store.
+//		Something that Lua can access in sync with the other end.  For
+//		ease, this is represented as an array.
+//
+typedef struct protocolFloat protocolFloat;
+
+//Bind this to a protocol, and optionally a lua state.  The lua state - 
+//when bound, will get a table called 'float' where it can do 'float.send'
+//and 'float.receive'.  These get immediate values - returning the previous
+//value when the network is congested.
+protocolFloat *protocolFloatCreate(protocol *in_p,
+								   int in_numElements,
+								   lua_State *in_lua,
+								   pthread_mutex_t in_luaLock,
+								   error **out_error);
+void protocolFloatFree(protocolFloat *in_f);
+
+//These methods are for outside of Lua.  Lua is limited to the same limits
+float protocolFloatReceive(protocolFloat *in_f, int in_eleNo,
+						   error **out_err, float in_default);
+error *protocolFloatSend(protocolFloat *in_f, int in_eleNo, float in_val);
+
 #endif
