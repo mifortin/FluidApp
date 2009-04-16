@@ -52,6 +52,7 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	error *pError = NULL;
 	protocol *p = protocolCreate(in_remote, 1024*4, &pError);
 	protocolLua *pl = protocolLuaCreate(p, L, m, &pError);
+	protocolFloatCreate(p, 10, L, m, &pError);
 	
 	if (p == NULL)
 	{

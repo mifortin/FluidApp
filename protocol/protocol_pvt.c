@@ -228,6 +228,8 @@ void protocolFree(protocol *in_proto)
 		if (in_proto->m_readBuffer)
 			free(in_proto->m_readBuffer);
 		
+		pthread_mutex_destroy(&in_proto->m_mutex);
+		
 		free(in_proto);
 	}
 }

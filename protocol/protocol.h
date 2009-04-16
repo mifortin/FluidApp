@@ -100,16 +100,17 @@ typedef struct protocolFloat protocolFloat;
 //when bound, will get a table called 'float' where it can do 'float.send'
 //and 'float.receive'.  These get immediate values - returning the previous
 //value when the network is congested.
+//
+//	NOTE: Lua's GC is used to free the memory.
 protocolFloat *protocolFloatCreate(protocol *in_p,
 								   int in_numElements,
 								   lua_State *in_lua,
 								   pthread_mutex_t in_luaLock,
 								   error **out_error);
-void protocolFloatFree(protocolFloat *in_f);
 
 //These methods are for outside of Lua.  Lua is limited to the same limits
 float protocolFloatReceive(protocolFloat *in_f, int in_eleNo,
-						   error **out_err, float in_default);
+						   error **out_err);
 error *protocolFloatSend(protocolFloat *in_f, int in_eleNo, float in_val);
 
 #endif
