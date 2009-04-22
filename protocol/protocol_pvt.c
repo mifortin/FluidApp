@@ -11,6 +11,8 @@
 
 #include <arpa/inet.h>
 
+#include "memory.h"
+
 void *protocolReadThread(void *threadData)
 {
 	protocol *p = (protocol*)threadData;
@@ -32,7 +34,7 @@ retryConnect:
 		{
 			if (errorCode(log) == error_timeout)
 			{
-				errorFree(log);
+				x_free(log);
 				goto retryConnect;
 			}
 			else
@@ -55,7 +57,6 @@ retryConnect:
 		}
 		
 		log = netClientGetBinary(p->m_client, &length, sizeof(int), 10);
-		if (log != NULL)	return log;
 		if (log != NULL)
 		{
 			printf("netClient: %s\n", errorMsg(log));
@@ -63,9 +64,10 @@ retryConnect:
 		}
 		
 		//Prevent buffer errors
+		length = ntohl(length);
 		if (length < 0 || length > p->m_maxSize)
 		{
-			printf("ProtocolRead: tmpDebug: Invalid msg to host\n");
+			printf("ProtocolRead: tmpDebug: Invalid msg to host (%i)\n",length);
 			return errorCreate(NULL, error_net, "Host sent invalid request");
 		}
 		
@@ -89,6 +91,36 @@ retryConnect:
 done:
 	printf("ProtocolRead: tmpDebug: Failed locking mutex\n");
 	return errorCreate(NULL, error_thread, "Failed locking mutex");
+}
+
+
+void protocolFree(void *o)
+{
+	protocol *in_proto = (protocol*)o;
+	int doJoin = 0;
+	pthread_mutex_lock(&in_proto->m_mutex);
+	if (in_proto->m_bQuit == 0)
+	{
+		in_proto->m_bQuit = 1;
+		doJoin = 1;
+	}
+	pthread_mutex_unlock(&in_proto->m_mutex);
+	
+	error *proto = NULL;
+	
+	if (doJoin == 1)
+		pthread_join(in_proto->m_readThread, (void*)&proto);
+	
+	if (proto)
+		x_free(proto);
+	
+	if (in_proto->m_root)
+		protocolTreeFree(in_proto->m_root);
+	
+	if (in_proto->m_readBuffer)
+		free(in_proto->m_readBuffer);
+	
+	pthread_mutex_destroy(&in_proto->m_mutex);
 }
 
 
@@ -159,7 +191,7 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 		return NULL;
 	}
 	
-	toRet = malloc(sizeof(protocol));
+	toRet = x_malloc(sizeof(protocol), protocolFree);
 	if (toRet == NULL)
 	{
 		*out_error = errorCreate(NULL, error_memory,
@@ -174,14 +206,14 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 	if (pthread_mutex_init(&toRet->m_mutex, NULL) != 0)
 	{
 		*out_error = errorCreate(NULL, error_create, "Failed creating read mutex");
-		free(toRet);
+		x_free(toRet);
 		return NULL;
 	}
 	
 	toRet->m_readBuffer = malloc(in_maxDataSize);
 	if (toRet->m_readBuffer == NULL)
 	{
-		protocolFree(toRet);
+		x_free(toRet);
 		*out_error = errorCreate(NULL, error_memory,
 								 "Unable to allocate read buffer.");
 		return NULL;
@@ -191,47 +223,13 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 	if (pthread_create(&toRet->m_readThread, NULL, protocolReadThread, toRet) != 0)
 	{
 		toRet->m_bQuit = 1;
-		protocolFree(toRet);
+		x_free(toRet);
 		*out_error = errorCreate(NULL, error_thread, "Failed creating read thread");
 		return NULL;
 	}
 	
 	
 	return toRet;
-}
-
-
-void protocolFree(protocol *in_proto)
-{
-	if (in_proto)
-	{
-		int doJoin = 0;
-		pthread_mutex_lock(&in_proto->m_mutex);
-		if (in_proto->m_bQuit == 0)
-		{
-			in_proto->m_bQuit = 1;
-			doJoin = 1;
-		}
-		pthread_mutex_unlock(&in_proto->m_mutex);
-		
-		error *proto = NULL;
-		
-		if (doJoin == 1)
-			pthread_join(in_proto->m_readThread, (void*)&proto);
-		
-		if (proto)
-			errorFree(proto);
-		
-		if (in_proto->m_root)
-			protocolTreeFree(in_proto->m_root);
-		
-		if (in_proto->m_readBuffer)
-			free(in_proto->m_readBuffer);
-		
-		pthread_mutex_destroy(&in_proto->m_mutex);
-		
-		free(in_proto);
-	}
 }
 
 

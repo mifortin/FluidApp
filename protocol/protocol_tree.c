@@ -13,6 +13,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "memory.h"
+
 void protocolTreeFree(protocolPvt *in_root)
 {
 	if (in_root)
@@ -20,6 +22,7 @@ void protocolTreeFree(protocolPvt *in_root)
 		if (in_root->m_left)	protocolTreeFree(in_root->m_left);
 		if (in_root->m_right)	protocolTreeFree(in_root->m_right);
 		
+		x_free(in_root->m_data);
 		free(in_root);
 	}
 }
@@ -70,6 +73,7 @@ error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 	if (in_proto->m_root == NULL)
 	{
 		in_proto->m_root = toAdd;
+		x_retain(in_pvt);
 		return NULL;
 	}
 	else
@@ -88,6 +92,8 @@ error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 			closest->m_left = toAdd;
 		else
 			closest->m_right = toAdd;
+		
+		x_retain(in_pvt);
 		
 		return NULL;
 	}

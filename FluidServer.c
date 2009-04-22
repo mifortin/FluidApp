@@ -10,8 +10,11 @@
 
 #include "net.h"
 #include "lua.h"
+#include "lualib.h"
 #include "fluid.h"
 #include "protocol.h"
+#include "error.h"
+#include "memory.h"
 
 volatile int tmp = 0;
 
@@ -50,21 +53,36 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	luaopen_math(L);
 	
 	error *pError = NULL;
+	mpMutex *mtx = mpMutexCreate(&pError);
 	protocol *p = protocolCreate(in_remote, 1024*4, &pError);
-	protocolLua *pl = protocolLuaCreate(p, L, m, &pError);
-	protocolFloatCreate(p, 10, L, m, &pError);
+	protocolLua *pl = protocolLuaCreate(p, L, mtx, &pError);
+	protocolFloatCreate(p, 10, L, mtx, &pError);
 	
 	if (p == NULL)
 	{
 		printf("Failed creating protocol: %s\n", errorMsg(pError));
-		errorFree(pError);
+		x_free(pError);
 		return 0;
 	}
 	
-	for (;;);
+	for (;;)
+	{
+		mpMutexLock(mtx);
+		
+		lua_getglobal(L, "eventLoop");
+		if (lua_isfunction(L, -1) && !lua_isnone(L,-1) && !lua_isnil(L,-1))
+		{
+			lua_pcall(L,0,0,0);
+		}
+		else
+			lua_pop(L,1);
+		
+		mpMutexUnlock(mtx);
+	}
 	
-	protocolLuaFree(pl);
-	protocolFree(p);
+	x_free(mtx);
+	x_free(pl);
+	x_free(p);
 	lua_close(L);
 	
 	return 0;
@@ -72,7 +90,7 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 
 
 int main(int argc, char *argv[])
-{
+{	
 	printf("Fluid Server Launching\n");
 	pthread_mutex_init(&m, NULL);
 	
@@ -82,37 +100,7 @@ int main(int argc, char *argv[])
 	{
 		printf("Server Launched\n");
 		
-		//NOTE: client might get destroyed before the server in this eg.
-		netClient *client = netClientCreate("localhost","2048",NETS_TCP, &err);
-		
-		if (client)
-		{
-			error *pError = NULL;
-			protocol *p = protocolCreate(client, 1024*4, &pError);
-			if (p == NULL)
-			{
-				printf("Failed creating protocol: %s\n", errorMsg(pError));
-				errorFree(pError);
-			}
-			else
-			{
-			
-				char tmp[256];
-				do {
-					printf("CLIENT> ");
-					scanf("%s", tmp);
-					netClientSendBinary(client,tmp,strlen(tmp));
-				} while (strcmp(tmp, "quit") != 0);
-				
-				protocolFree(p);
-			
-				netClientFree(client);
-			}
-		}
-		else
-			printf("Failed client: %s\n", errorMsg(err));
-		
-		netServerFree(server);
+		x_free(server);
 		
 		pthread_mutex_lock(&m);
 		printf("Value of tmp: %i\n", tmp);

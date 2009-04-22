@@ -16,7 +16,6 @@ typedef struct netClient netClient;
 
 netClient *netClientCreate(const char *address, char *port, int flags,
 						   error **out_e);
-void netClientFree(netClient *client);
 
 //Sends binary data - (no hints, very simple)
 //	returns NULL on success, else an error object
@@ -41,8 +40,5 @@ typedef int(*netServerFn_onConnect)(void *d, netServer *in_svr,
 netServer *netServerCreate(char *port, int flags, void *in_d,
 												netServerFn_onConnect fn_oConn,
 												error **out_error);
-
-//server free is thread-safe.
-void netServerFree(netServer *in_svr);
 
 #endif

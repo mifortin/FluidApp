@@ -50,7 +50,7 @@ protocolPvt *protocolFindClosest(protocolPvt *in_root, int in_protoID);
 struct protocolLua
 {
 	lua_State *m_lua;			//Lua state that we are binding...
-	pthread_mutex_t m_lock;		//mutex used to protect the lua state...
+	mpMutex *r_lock;		//mutex used to protect the lua state...
 };
 
 
@@ -59,7 +59,7 @@ struct protocolFloat
 {
 	protocol *m_proto;
 	
-	pthread_mutex_t m_luaLock;		//Protect lua
+	mpMutex *r_luaLock;		//Protect lua
 	pthread_mutex_t m_dataLock;		//Protect the data
 	
 	int m_noElements;

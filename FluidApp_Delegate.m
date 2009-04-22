@@ -6,16 +6,9 @@
 #import "FluidApp_Delegate.h"
 #import "FluidApp_Util.h"
 #import "OpenGL/gl.h"
+#include "memory.h"
 
 @implementation FluidApp_Delegate
-	
-	- init
-	{
-		if (![super init])
-			return nil;
-		
-		return self;
-	}
 	
 	
 	- (void)awakeFromNib
@@ -93,6 +86,19 @@
 	
 	- (IBAction)onConnect:(id)in_src
 	{
+		if (r_proto != NULL)
+		{
+			error *err;
+			if (err = protocolLuaSend(r_proto, [[i_textView string] UTF8String]))
+			{
+				NSLog(@"Failed sending LUA script, %s", errorMsg(err));
+				return;
+			}
+			[r_drawer open];
+			
+			return;
+		}
+		
 		[NSApp beginSheet:i_hostSheet modalForWindow:i_textWindow
 								modalDelegate:self
 							didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
@@ -109,7 +115,7 @@
 	- (IBAction)onDoConnect:(id)in_src
 	{
 		[NSApp endSheet:i_hostSheet returnCode:NSOKButton];
-	
+		
 		error *err;
 		netClient *nc = netClientCreate([[i_netAddress stringValue] UTF8String],
 									"2048", NETS_TCP, &err);
@@ -129,7 +135,44 @@
 		if (err = protocolLuaSend(r_proto, [[i_textView string] UTF8String]))
 		{
 			NSLog(@"Failed sending LUA script, %s", errorMsg(err));
+			return;
 		}
+		
+		pthread_mutex_t m_luaLock;
+		protocolFloat*pf = protocolFloatCreate(r_proto, 10, NULL,
+											   m_luaLock, &err);
+		
+		
+		//Add to the sideBar a custom view...
+		int x;
+		for (x=0; x<10; x++)
+		{
+			[NSBundle loadNibNamed:@"FluidNumber" owner:self];
+			NSPoint fo = {32,0+x*20};
+			[i_simpleNumber setFrameOrigin:fo];
+			[i_simpleNumber setHidden:NO];
+			[i_sideBar addSubview:i_simpleNumber];
+			[i_sideBar setNeedsDisplay:YES];
+			
+			[i_simpleNumber bindToProtocol:pf atIndex:x];
+			
+			[i_simpleNumber setAutoresizingMask:NSViewMaxYMargin];
+			
+			Release(i_simpleNumber);
+		}
+		
+		//Now, open a drawer!!!
+		NSSize cs = {160, [i_textWindow frame].size.height};
+		r_drawer = [[NSDrawer alloc] initWithContentSize:cs preferredEdge:NSMaxXEdge];
+		[r_drawer setParentWindow:i_textWindow];
+		
+		cs.height = 0;
+		[r_drawer setMinContentSize:cs];
+		cs.height = 4096;
+		[r_drawer setMaxContentSize:cs];
+		[r_drawer setContentView:i_sideBar];
+		[i_sideBar setAutoresizingMask:NSViewHeightSizable|NSViewMaxYMargin];
+		[r_drawer open];
 	}
 	
 	

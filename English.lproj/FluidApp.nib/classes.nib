@@ -1,25 +1,57 @@
-{
-    IBClasses = (
-        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
-        {
-            ACTIONS = {
-                onCancelConnect = id; 
-                onConnect = id; 
-                onDoConnect = id; 
-                onOpen = id; 
-                onSave = id; 
-            }; 
-            CLASS = "FluidApp_Delegate"; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {
-                "i_hostSheet" = NSWindow; 
-                "i_netAddress" = NSTextField; 
-                "i_textView" = NSTextView; 
-                "i_textWindow" = NSWindow; 
-                "i_window" = NSWindow; 
-            }; 
-            SUPERCLASS = NSObject; 
-        }
-    ); 
-    IBVersion = 1; 
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IBClasses</key>
+	<array>
+		<dict>
+			<key>ACTIONS</key>
+			<dict>
+				<key>onCancelConnect</key>
+				<string>id</string>
+				<key>onConnect</key>
+				<string>id</string>
+				<key>onDoConnect</key>
+				<string>id</string>
+				<key>onOpen</key>
+				<string>id</string>
+				<key>onSave</key>
+				<string>id</string>
+			</dict>
+			<key>CLASS</key>
+			<string>FluidApp_Delegate</string>
+			<key>LANGUAGE</key>
+			<string>ObjC</string>
+			<key>OUTLETS</key>
+			<dict>
+				<key>i_hostSheet</key>
+				<string>NSWindow</string>
+				<key>i_netAddress</key>
+				<string>NSTextField</string>
+				<key>i_sideBar</key>
+				<string>NSView</string>
+				<key>i_simpleNumber</key>
+				<string>id</string>
+				<key>i_textView</key>
+				<string>NSTextView</string>
+				<key>i_textWindow</key>
+				<string>NSWindow</string>
+				<key>i_window</key>
+				<string>NSWindow</string>
+			</dict>
+			<key>SUPERCLASS</key>
+			<string>NSObject</string>
+		</dict>
+		<dict>
+			<key>CLASS</key>
+			<string>FirstResponder</string>
+			<key>LANGUAGE</key>
+			<string>ObjC</string>
+			<key>SUPERCLASS</key>
+			<string>NSObject</string>
+		</dict>
+	</array>
+	<key>IBVersion</key>
+	<string>1</string>
+</dict>
+</plist>

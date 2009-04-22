@@ -8,22 +8,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+
+#include "lauxlib.h"
+
+#include "memory.h"
 
 error *protocolLuaHandleData(protocol *in_proto,
 							 void *in_pvt,
 							 int in_size,
 							 void *in_data)
-{
+{	
 	protocolLua *pvt = (protocolLua*)in_pvt;
 	
 	char *cData = (char*)in_data;
 	if (cData[in_size-1] != '\0')
 		return errorCreate(NULL, error_net, "Host did not NULL-terminate data");
 	
-	if (pthread_mutex_lock(&pvt->m_lock) != 0)
-		return errorCreate(NULL, error_thread, "Failed locking lua lock");
+	error *e = NULL;
+	if (NULL != (e = mpMutexLock(pvt->r_lock)))
+		return errorReply(e, error_thread, "Failed locking lua lock");
 	
 	error *err = NULL;
+	printf("Lua got script: %s\n", (char*)in_data);
 	switch(luaL_loadstring(pvt->m_lua, (char*)in_data))
 	{
 		case LUA_ERRMEM:
@@ -39,7 +46,8 @@ error *protocolLuaHandleData(protocol *in_proto,
 	
 	if (err != NULL)
 	{
-		pthread_mutex_unlock(&pvt->m_lock);
+		e = mpMutexUnlock(pvt->r_lock);
+		if (e)	x_free(e);
 		return err;
 	}
 	
@@ -64,21 +72,29 @@ error *protocolLuaHandleData(protocol *in_proto,
 	
 	if (err != NULL)
 	{
-		pthread_mutex_unlock(&pvt->m_lock);
+		e = mpMutexUnlock(pvt->r_lock);
+		if (e) x_free(e);
 		return err;
 	}
 	
-	if (pthread_mutex_unlock(&pvt->m_lock) != 0)
-		return errorCreate(NULL, error_thread, "Failed unlocking lua lock");
+	if (NULL != (e = mpMutexUnlock(pvt->r_lock)))
+		return errorReply(e, error_thread, "Failed unlocking lua lock");
 	
 	return NULL;
 }
 
 
+void protocolLuaFree(void *in_o)
+{
+	protocolLua *in_proto = (protocolLua*)in_o;
+	x_free(in_proto->r_lock);
+}
+
+
 protocolLua *protocolLuaCreate(protocol *in_proto, lua_State *in_lua,
-							   pthread_mutex_t in_lock, error **out_error)
+							   mpMutex *in_lock, error **out_error)
 {	
-	protocolLua *toRet = malloc(sizeof(protocolLua));
+	protocolLua *toRet = x_malloc(sizeof(protocolLua), protocolLuaFree);
 	if (toRet == NULL)
 	{
 		*out_error = errorCreate(NULL, error_memory,
@@ -86,29 +102,20 @@ protocolLua *protocolLuaCreate(protocol *in_proto, lua_State *in_lua,
 		return NULL;
 	}
 	
-	toRet->m_lock = in_lock;
+	toRet->r_lock = in_lock;
+	x_retain(toRet->r_lock);
 	toRet->m_lua = in_lua;
 	
 	error *err;
 	if (err = protocolAdd(in_proto, 'luae', toRet, protocolLuaHandleData))
 	{
-		free(toRet);
+		x_free(toRet);
 		*out_error = errorReply(err, error_specify,
 								 "Failed registering luae protocol");
 		return NULL;
 	}
 		
 	return toRet;
-}
-
-
-void protocolLuaFree(protocolLua *in_proto)
-{
-	if (in_proto)
-	{
-		pthread_mutex_destroy(&in_proto->m_lock);
-		free(in_proto);
-	}
 }
 
 

@@ -4,6 +4,7 @@
  */
 
 #include "error_pvt.h"
+#include "memory.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,9 +13,24 @@
 
 struct error errorDefault = {NULL, NULL, error_memory, "Failed creating error"};
 
+
+void errorFree(void *in_o)
+{
+	error *in_error = (error*)in_o;
+	if (in_error)
+	{
+		if (in_error->m_next) x_free(in_error->m_next);
+		if (in_error->m_child) x_free(in_error->m_child);
+		
+		if (in_error->m_string)
+			free(in_error->m_string);
+	}
+}
+
+
 error *errorCreate(error *in_prev, int in_code, const char *in_text, ...)
 {
-	error *toRet = malloc(sizeof(error));
+	error *toRet = x_malloc(sizeof(error), errorFree);
 	
 	if (toRet)
 	{
@@ -35,7 +51,7 @@ error *errorCreate(error *in_prev, int in_code, const char *in_text, ...)
 
 error *errorReply(error *in_error, int in_reply_code, const char *in_text, ...)
 {
-	error *toRet = malloc(sizeof(error));
+	error *toRet = x_malloc(sizeof(error), errorFree);
 	
 	if (toRet)
 	{
@@ -73,20 +89,6 @@ error *errorReplyTo(error *in_error)
 		return in_error->m_child;
 	else
 		return NULL;
-}
-
-void errorFree(error *in_error)
-{
-	if (in_error)
-	{
-		if (in_error->m_next) errorFree(in_error->m_next);
-		if (in_error->m_child) errorFree(in_error->m_child);
-		
-		if (in_error->m_string)
-			free(in_error->m_string);
-		
-		free(in_error);
-	}
 }
 
 int errorCode(error *in_error)

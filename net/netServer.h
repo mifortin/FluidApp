@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include "netClient.h"
 #include "net.h"
+#include "mp.h"
 
 struct netServer {
 	//The socket that the server listens to....
@@ -22,7 +23,7 @@ struct netServer {
 	netServerFn_onConnect m_userFunction;
 	
 	//The thread, and the mutex...
-	pthread_mutex_t m_mutex;
+	mpMutex *r_mutex;
 	pthread_t m_serverThread;
 	
 	//Temp work item...

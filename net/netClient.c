@@ -14,6 +14,9 @@
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <unistd.h>
+
+#include "memory.h"
 
 
 error *netClientSendBinary(netClient *client, const void *base, int cnt)
@@ -96,16 +99,26 @@ error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 }
 
 
-netClient *netClientFromSocket(int socket)
+void netClientFree(void *in_o)
 {
-	netClient *toRet = malloc(sizeof(netClient));
+	netClient *client = (netClient*)in_o;
+	if (client->m_socket != -1)
+		close(client->m_socket);
+	
+	memset(client, 0, sizeof(netClient));
+}
+
+netClient *netClientFromSocket(int in_socket)
+{
+	netClient *toRet = x_malloc(sizeof(netClient), netClientFree);
 	if (toRet)
 	{
 		memset(toRet, 0, sizeof(netClient));
-		toRet->m_socket = socket;
+		toRet->m_socket = in_socket;
 	}
 	return toRet;
 }
+
 
 netClient *netClientCreate(const char *address, char *port, int flags,
 						   error **out_e)
@@ -157,13 +170,3 @@ netClient *netClientCreate(const char *address, char *port, int flags,
 	return netClientFromSocket(mySocket);
 }
 
-
-void netClientFree(netClient *client)
-{
-	if (client->m_socket != -1)
-		close(client->m_socket);
-	
-	memset(client, 0, sizeof(netClient));
-	
-	free(client);
-}

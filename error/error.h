@@ -29,10 +29,6 @@ error *errorNext(error *in_error);
 
 error *errorReplyTo(error *in_error);
 
-//Frees an error and all sub-errors.
-void errorFree(error *in_error);
-
-
 int errorCode(error *in_error);
 const char *errorMsg(error *in_error);
 #endif

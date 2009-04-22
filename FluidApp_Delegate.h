@@ -6,7 +6,7 @@
 #import <Cocoa/Cocoa.h>
 
 #include "protocol.h"
-
+#import "X_SimpleNumber.h"
 
 @interface FluidApp_Delegate : NSObject
 {
@@ -23,6 +23,14 @@
 	NSTimer *r_timer;
 	
 	protocol *r_proto;
+	
+	IBOutlet NSView *i_sideBar;
+	
+	NSDrawer *r_drawer;
+	
+	
+	//These are loaded dynamically
+	IBOutlet X_SimpleNumber *i_simpleNumber;
 }
 
 - (IBAction)onSave:(id)in_src;

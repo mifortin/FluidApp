@@ -30,6 +30,7 @@
 #include "error.h"
 #include "lua.h"
 #include <pthread.h>
+#include "mp.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -48,7 +49,6 @@ typedef error*(*protocolHandlerFn)(protocol *proto,		//For responding...
 //Max data size is in bytes (should be at least a few k)
 protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 							error **out_error);
-void protocolFree(protocol *in_proto);
 
 //Add a handler for some protocol
 error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
@@ -79,8 +79,7 @@ typedef struct protocolLua protocolLua;
 //used to encapsulate all calls to lua.  This code is thread-safe, is yours?
 //	Lua script can be executed on another thread, so beware!
 protocolLua *protocolLuaCreate(protocol *in_proto, lua_State *in_lua,
-							   pthread_mutex_t in_lock, error **out_error);
-void protocolLuaFree(protocolLua *in_proto);
+							   mpMutex *in_lock, error **out_error);
 
 //Sends the given script (null-terminated string) to whoever is supposed to
 //process it.
@@ -100,12 +99,10 @@ typedef struct protocolFloat protocolFloat;
 //when bound, will get a table called 'float' where it can do 'float.send'
 //and 'float.receive'.  These get immediate values - returning the previous
 //value when the network is congested.
-//
-//	NOTE: Lua's GC is used to free the memory.
 protocolFloat *protocolFloatCreate(protocol *in_p,
 								   int in_numElements,
 								   lua_State *in_lua,
-								   pthread_mutex_t in_luaLock,
+								   mpMutex *in_luaLock,
 								   error **out_error);
 
 //These methods are for outside of Lua.  Lua is limited to the same limits

@@ -84,6 +84,13 @@
 		27A661E10F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
 		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		27A662FB0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
+		4C7307A40F9BDA4300C6D0BD /* X_NumberFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */; };
+		4C7307C60F9BFC5E00C6D0BD /* FluidNumber.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C7307C40F9BFC5E00C6D0BD /* FluidNumber.nib */; };
+		4C8B36390F9E9F2D005D64F4 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
+		4C8B363A0F9E9F2D005D64F4 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
+		4C8DE1080F9D548D0013795C /* X_SimpleNumber.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DE1070F9D548D0013795C /* X_SimpleNumber.m */; };
+		4C8DE10F0F9D5B540013795C /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DE10E0F9D5B540013795C /* memory.c */; };
+		4C8DE1100F9D5B540013795C /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DE10E0F9D5B540013795C /* memory.c */; };
 		4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
@@ -194,6 +201,15 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
+		4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_NumberFormatter.h; sourceTree = "<group>"; };
+		4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_NumberFormatter.m; sourceTree = "<group>"; };
+		4C7307C50F9BFC5E00C6D0BD /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidNumber.nib; sourceTree = "<group>"; };
+		4C8B36370F9E9D83005D64F4 /* mp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mp.h; sourceTree = "<group>"; };
+		4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_mutex.c; sourceTree = "<group>"; };
+		4C8DE1060F9D548D0013795C /* X_SimpleNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_SimpleNumber.h; sourceTree = "<group>"; };
+		4C8DE1070F9D548D0013795C /* X_SimpleNumber.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_SimpleNumber.m; sourceTree = "<group>"; };
+		4C8DE10D0F9D59840013795C /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
+		4C8DE10E0F9D5B540013795C /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
 		4CC5E7270F697C4900CE7928 /* lagrange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange.h; sourceTree = "<group>"; };
 		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
 		4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lagrange_pvt.c; sourceTree = "<group>"; };
@@ -365,6 +381,8 @@
 				27A18C510F67287E0023F24B /* fluid */,
 				4CC5E7260F697C1300CE7928 /* lagrange */,
 				272D26E70F62E0D9004E794A /* lua */,
+				4C8DE10B0F9D592F0013795C /* memory */,
+				4C8B362C0F9E9BEA005D64F4 /* mp */,
 				27A661DD0F642221009AC619 /* net */,
 				275CE8780F700B2400CA815C /* protocol */,
 				272D26D30F62DFE5004E794A /* FluidServer */,
@@ -384,6 +402,10 @@
 				272D27780F62E4B5004E794A /* FluidApp_Delegate.h */,
 				272D27790F62E4B5004E794A /* FluidApp_Delegate.m */,
 				272D27B20F62EB22004E794A /* FluidApp_Util.h */,
+				4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */,
+				4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */,
+				4C8DE1060F9D548D0013795C /* X_SimpleNumber.h */,
+				4C8DE1070F9D548D0013795C /* X_SimpleNumber.m */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -394,6 +416,7 @@
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				29B97318FDCFA39411CA2CEA /* FluidApp.nib */,
+				4C7307C40F9BFC5E00C6D0BD /* FluidNumber.nib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -408,6 +431,24 @@
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4C8B362C0F9E9BEA005D64F4 /* mp */ = {
+			isa = PBXGroup;
+			children = (
+				4C8B36370F9E9D83005D64F4 /* mp.h */,
+				4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */,
+			);
+			name = mp;
+			sourceTree = "<group>";
+		};
+		4C8DE10B0F9D592F0013795C /* memory */ = {
+			isa = PBXGroup;
+			children = (
+				4C8DE10D0F9D59840013795C /* memory.h */,
+				4C8DE10E0F9D5B540013795C /* memory.c */,
+			);
+			name = memory;
 			sourceTree = "<group>";
 		};
 		4CC5E7260F697C1300CE7928 /* lagrange */ = {
@@ -483,6 +524,7 @@
 			files = (
 				8D11072A0486CEB800E47090 /* FluidApp.nib in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
+				4C7307C60F9BFC5E00C6D0BD /* FluidNumber.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -535,6 +577,8 @@
 				4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */,
 				4CFF95F50F7852BE0074014C /* protocol_lua.c in Sources */,
 				4CF5FA8D0F79972E000F10EC /* protocol_float.c in Sources */,
+				4C8DE1100F9D5B540013795C /* memory.c in Sources */,
+				4C8B36390F9E9F2D005D64F4 /* mp_mutex.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -585,6 +629,10 @@
 				4CDE74630F72A47D007E7B85 /* protocol_tree.c in Sources */,
 				4CFF95F40F7852BE0074014C /* protocol_lua.c in Sources */,
 				4CF5FA8E0F79972E000F10EC /* protocol_float.c in Sources */,
+				4C7307A40F9BDA4300C6D0BD /* X_NumberFormatter.m in Sources */,
+				4C8DE1080F9D548D0013795C /* X_SimpleNumber.m in Sources */,
+				4C8DE10F0F9D5B540013795C /* memory.c in Sources */,
+				4C8B363A0F9E9F2D005D64F4 /* mp_mutex.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -613,6 +661,14 @@
 				29B97319FDCFA39411CA2CEA /* English */,
 			);
 			name = FluidApp.nib;
+			sourceTree = "<group>";
+		};
+		4C7307C40F9BFC5E00C6D0BD /* FluidNumber.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				4C7307C50F9BFC5E00C6D0BD /* English */,
+			);
+			name = FluidNumber.nib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -683,7 +739,17 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_EFFECTIVE_CPLUSPLUS_VIOLATIONS = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
@@ -693,7 +759,19 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_VERSION = "";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_EFFECTIVE_CPLUSPLUS_VIOLATIONS = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
