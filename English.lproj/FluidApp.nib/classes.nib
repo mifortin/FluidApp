@@ -7,6 +7,26 @@
 		<dict>
 			<key>ACTIONS</key>
 			<dict>
+				<key>onTextChanged</key>
+				<string>id</string>
+			</dict>
+			<key>CLASS</key>
+			<string>X_SimpleNumber</string>
+			<key>LANGUAGE</key>
+			<string>ObjC</string>
+			<key>OUTLETS</key>
+			<dict>
+				<key>i_subview</key>
+				<string>NSView</string>
+				<key>i_txtField</key>
+				<string>NSTextField</string>
+			</dict>
+			<key>SUPERCLASS</key>
+			<string>NSObject</string>
+		</dict>
+		<dict>
+			<key>ACTIONS</key>
+			<dict>
 				<key>onCancelConnect</key>
 				<string>id</string>
 				<key>onConnect</key>
@@ -26,12 +46,14 @@
 			<dict>
 				<key>i_hostSheet</key>
 				<string>NSWindow</string>
+				<key>i_logBar</key>
+				<string>NSView</string>
 				<key>i_netAddress</key>
 				<string>NSTextField</string>
 				<key>i_sideBar</key>
 				<string>NSView</string>
 				<key>i_simpleNumber</key>
-				<string>id</string>
+				<string>X_SimpleNumber</string>
 				<key>i_textView</key>
 				<string>NSTextView</string>
 				<key>i_textWindow</key>

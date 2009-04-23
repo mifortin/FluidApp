@@ -176,6 +176,24 @@
 		[r_drawer setContentView:i_sideBar];
 		[i_sideBar setAutoresizingMask:NSViewHeightSizable|NSViewMaxYMargin];
 		[r_drawer open];
+		
+		//And a second drawer!
+		cs.width = [i_textWindow frame].size.height;
+		cs.height = 320;
+		
+		NSDrawer *drwer = [[NSDrawer alloc] initWithContentSize:cs
+												  preferredEdge:NSMinYEdge];
+		[drwer setParentWindow:i_textWindow];
+		
+		cs.width = 0;
+		cs.height = 0;
+		[drwer setMinContentSize:cs];
+		cs.width =  4096;
+		cs.height = 1024;
+		[drwer setMaxContentSize:cs];
+		
+		[drwer setContentView:i_logBar];
+		[drwer open];
 	}
 	
 	

@@ -72,6 +72,8 @@ struct protocolString
 {
 	protocolStringHandler m_handler;
 	void *r_handlerObject;
+	
+	protocol *m_proto;
 };
 
 #endif

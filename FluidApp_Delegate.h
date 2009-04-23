@@ -25,6 +25,7 @@
 	protocol *r_proto;
 	
 	IBOutlet NSView *i_sideBar;
+	IBOutlet NSView *i_logBar;
 	
 	NSDrawer *r_drawer;
 	
