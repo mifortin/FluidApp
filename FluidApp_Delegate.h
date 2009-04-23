@@ -28,6 +28,7 @@
 	
 	NSDrawer *r_drawer;
 	
+	NSMutableArray *allObjs;
 	
 	//These are loaded dynamically
 	IBOutlet X_SimpleNumber *i_simpleNumber;

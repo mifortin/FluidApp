@@ -19,12 +19,28 @@
 	m_refNumber = in_index;
 }
 
+- (void)controlTextDidEndEditing:(NSNotification *)aNotification
+{
+	[self onTextChanged:self];
+}
+
 - (IBAction)onTextChanged:(id)in_sender
 {
 	if (r_fl)
 	{
-		protocolFloatSend(r_fl, m_refNumber, [in_sender floatValue]);
+		protocolFloatSend(r_fl, m_refNumber, [i_txtField floatValue]);
 	}
+}
+
+
+- (NSView*)view
+{
+	return i_subview;
+}
+
+- (void)dealloc
+{
+	[super dealloc];
 }
 
 @end

@@ -110,4 +110,26 @@ float protocolFloatReceive(protocolFloat *in_f, int in_eleNo,
 						   error **out_err);
 error *protocolFloatSend(protocolFloat *in_f, int in_eleNo, float in_val);
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	String data transfer utilities
+//		For sending/receiving strings.  Namely Lua error messages!
+//		(it should not die as easily!)
+//
+typedef struct protocolString protocolString;
+typedef error*(*protocolStringHandler)(void *in_o, const char *in_szData);
+
+//String has two parts - the handler, and the lua stuff.
+//	Lua allows for sending a string (essentially a logging mechanism),
+//	whereas 
+protocolString *protocolStringCreate(protocol *in_p,
+									 lua_State *in_lua,
+									 mpMutex *in_luaLock,
+									 void *in_objHandler,
+									 protocolStringHandler in_handler,
+									 error **out_error);
+
+error *protocolStringSend(protocol *in_p, const char *in_string);
 #endif

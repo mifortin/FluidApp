@@ -14,8 +14,15 @@
 			<string>X_SimpleNumber</string>
 			<key>LANGUAGE</key>
 			<string>ObjC</string>
+			<key>OUTLETS</key>
+			<dict>
+				<key>i_subview</key>
+				<string>NSView</string>
+				<key>i_txtField</key>
+				<string>NSTextField</string>
+			</dict>
 			<key>SUPERCLASS</key>
-			<string>NSView</string>
+			<string>NSObject</string>
 		</dict>
 		<dict>
 			<key>CLASS</key>

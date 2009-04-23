@@ -13,6 +13,7 @@
 	
 	- (void)awakeFromNib
 	{
+		allObjs = [[NSMutableArray alloc] initWithCapacity:10];
 	}
 	
 	- (void)dealloc
@@ -20,6 +21,7 @@
 		[r_timer invalidate];
 		Release(r_view);
 		Release(r_timer);
+		Release(allObjs);
 		
 		[super dealloc];
 	}
@@ -138,9 +140,8 @@
 			return;
 		}
 		
-		pthread_mutex_t m_luaLock;
 		protocolFloat*pf = protocolFloatCreate(r_proto, 10, NULL,
-											   m_luaLock, &err);
+											   NULL, &err);
 		
 		
 		//Add to the sideBar a custom view...
@@ -149,15 +150,17 @@
 		{
 			[NSBundle loadNibNamed:@"FluidNumber" owner:self];
 			NSPoint fo = {32,0+x*20};
-			[i_simpleNumber setFrameOrigin:fo];
-			[i_simpleNumber setHidden:NO];
-			[i_sideBar addSubview:i_simpleNumber];
+			NSView *v = [i_simpleNumber view];
+			[v setFrameOrigin:fo];
+			[v setHidden:NO];
+			[i_sideBar addSubview:v];
 			[i_sideBar setNeedsDisplay:YES];
 			
 			[i_simpleNumber bindToProtocol:pf atIndex:x];
 			
-			[i_simpleNumber setAutoresizingMask:NSViewMaxYMargin];
+			[v setAutoresizingMask:NSViewMaxYMargin];
 			
+			[allObjs addObject:i_simpleNumber];
 			Release(i_simpleNumber);
 		}
 		

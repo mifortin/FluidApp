@@ -53,7 +53,7 @@ error *protocolFloatHandleData(protocol *in_proto,
 void protocolFloatFree(void *in_o)
 {
 	protocolFloat *in_f = (protocolFloat*)in_o;
-	x_free(in_f->r_luaLock);
+	if (in_f->r_luaLock) x_free(in_f->r_luaLock);
 	if (in_f->r_elements)
 	{
 		pthread_mutex_destroy(&in_f->m_dataLock);
@@ -74,7 +74,7 @@ int protocolFloatLuaGC(lua_State *in_lua)
 
 int protocolFloatLuaGet(lua_State *in_lua)
 {
-	printf("LUA Float Get\n");
+	//printf("LUA Float Get\n");
 	
 	error *err = NULL;
 	
@@ -95,7 +95,7 @@ int protocolFloatLuaGet(lua_State *in_lua)
 
 int protocolFloatLuaSet(lua_State *in_lua)
 {
-	printf("LUA Float Set\n");
+	//printf("LUA Float Set\n");
 	
 	error *err = NULL;
 	
@@ -130,7 +130,7 @@ protocolFloat *protocolFloatCreate(protocol *in_p,
 	
 	toRet->m_proto = in_p;
 	toRet->r_luaLock = in_luaLock;
-	x_retain(in_luaLock);
+	if (in_luaLock != NULL) x_retain(in_luaLock);
 	toRet->m_noElements = in_numElements;
 	toRet->r_elements = calloc(in_numElements,sizeof(float));
 	if (toRet->r_elements == NULL)

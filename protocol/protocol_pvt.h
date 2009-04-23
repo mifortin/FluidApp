@@ -66,4 +66,12 @@ struct protocolFloat
 	float *r_elements;
 };
 
+
+//Internal data structure to be able to send/receive string data
+struct protocolString
+{
+	protocolStringHandler m_handler;
+	void *r_handlerObject;
+};
+
 #endif
