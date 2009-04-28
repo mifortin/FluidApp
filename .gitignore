@@ -3,3 +3,5 @@
 *.mode2
 *.mode2v3
 *.pbxuser
+*.o
+

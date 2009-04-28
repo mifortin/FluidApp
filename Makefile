@@ -4,7 +4,7 @@ PPU=FluidServer.ppu.o
 
 SPU=
 
-INCLUDE= -I. -Ifield -Ifluid -Ilua -Inet -Iprotocol -Ierror
+INCLUDE= -I$(PWD) -I$(PWD)/field -I$(PWD)/fluid -I$(PWD)/lua -I$(PWD)/net -I$(PWD)/protocol -I$(PWD)/error
 
 all:	ppu	spu
 	@ppu32-gcc -maltivec $(PPU) $(SPU) -std=c99 -lm -lspe2 -o FluidServer
@@ -36,7 +36,7 @@ spu: $(SPU)
 
 %.ppu.o: %.c
 	@echo "PPU-Compile $<"
-	@ppu32-gcc -maltivec -c $< -o $(INCLUDE) $@
+	ppu32-gcc -maltivec -c $< $(INCLUDE) -o $@
 
 clean:
 	rm *.ppu.o *.spu.o FluidServer
