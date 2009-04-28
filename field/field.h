@@ -21,6 +21,10 @@ int fieldComponents(field *in_f);
 float *fieldData(field *in_f);
 
 //Utility functions to convert from 32-bit float to 16-bit float
+//typedef union
+//{
+//};
+
 #define float32to16(x)	
 
 #endif
