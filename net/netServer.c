@@ -21,7 +21,6 @@
 
 #include "memory.h"
 
-
 void *netServerConnection(void *eData)
 {
 	netServer *sData = (netServer*)eData;

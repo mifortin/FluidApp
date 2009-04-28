@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef CELL
 #include <libkern/OSAtomic.h>
+#endif
 
 typedef struct memory_pvt memory_pvt;
 struct memory_pvt
@@ -30,8 +32,13 @@ void *x_malloc(int size, x_dealloc in_d)
 void x_free(void *in_o)
 {
 	memory_pvt *r = (memory_pvt*)in_o;
+
+#ifdef CELL
+	int nVal = __sync_fetch_and_add(&r[-1].rc, -1) -1;
+#else
 	int nVal = OSAtomicAdd32Barrier(-1, &r[-1].rc);
-	
+#endif
+
 	if (nVal == 0)
 	{
 		r[-1].kill(in_o);
@@ -43,5 +50,9 @@ void x_free(void *in_o)
 void x_retain(void *in_o)
 {
 	memory_pvt *r = (memory_pvt*)in_o;
+#ifdef CELL
+	__sync_fetch_and_add(&r[-1].rc, 1);
+#else
 	OSAtomicAdd32Barrier(1, &r[-1].rc);
+#endif
 }

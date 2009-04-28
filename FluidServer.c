@@ -143,9 +143,9 @@ int main(int argc, char *argv[])
 						 ((g.y >> 23) & 0x000000FF)-127);
 						//(double)(g.y & 0x007FFFFF) * pow(2,(g.y >> 22) & 0x000000FF - 127));
 	
-	return 0;
+//	return 0;
 	
-	printf("Fluid Server Launching\n");
+	printf("\n\nFluid Server Launching\n");
 	pthread_mutex_init(&m, NULL);
 	
 	error *err = NULL;

@@ -21,4 +21,8 @@ struct netClient {
 //Hack for the server code...
 netClient *netClientFromSocket(int socket);
 
+#ifdef CELL
+#define FD_COPY(a,b)	*b = *a
+#endif
+
 #endif
