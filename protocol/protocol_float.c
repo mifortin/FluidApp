@@ -33,7 +33,7 @@ error *protocolFloatHandleData(protocol *in_proto,
 	
 	protocolFloatPvt *dt = (protocolFloatPvt*)in_data;
 	int i = ntohl(dt->index);
-	float data = ntohl(dt->data);
+	float data = dt->data;
 	
 	if (i < 0 || i >= pf->m_noElements)
 		return errorCreate(NULL, error_net, "Invalid float element referenced");
@@ -223,7 +223,7 @@ float protocolFloatReceive(protocolFloat *in_f, int in_eleNo,
 		return 0;
 	}
 	
-	int toRet;
+	float toRet;
 	
 	if (pthread_mutex_lock(&in_f->m_dataLock) != 0)
 	{
@@ -248,7 +248,7 @@ error *protocolFloatSend(protocolFloat *in_f, int in_eleNo, float in_val)
 	
 	protocolFloatPvt toSend;
 	toSend.index = htonl(in_eleNo);
-	toSend.data = htonl(in_val);
+	toSend.data = in_val;
 	
 	return protocolSend(in_f->m_proto, 'floa', sizeof(protocolFloatPvt), &toSend);
 }
