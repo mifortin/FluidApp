@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 		float x;
 		int y;
 	} g;
-	g.x = 0.00000000001f;
+	g.x = 5000.1f;
 	
 	//Loop over and display each bit...
 	int k;

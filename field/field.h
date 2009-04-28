@@ -20,4 +20,7 @@ int fieldHeight(field *in_f);
 int fieldComponents(field *in_f);
 float *fieldData(field *in_f);
 
+//Utility functions to convert from 32-bit float to 16-bit float
+#define float32to16(x)	
+
 #endif
