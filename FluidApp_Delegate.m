@@ -8,12 +8,26 @@
 #import "OpenGL/gl.h"
 #include "memory.h"
 
+error* myStringHandler(void *in_o, const char *in_szData)
+{
+	NSObject *o = (NSObject*)in_o;
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	[o performSelectorOnMainThread:@selector(addToLog:)
+						withObject:[NSString stringWithCString:in_szData
+												  encoding:NSASCIIStringEncoding]
+						waitUntilDone:YES];
+	[pool release];
+	return NULL;
+}
+
 @implementation FluidApp_Delegate
 	
 	
 	- (void)awakeFromNib
 	{
 		allObjs = [[NSMutableArray alloc] initWithCapacity:10];
+		[i_logView setEditable:NO];
 	}
 	
 	- (void)dealloc
@@ -25,7 +39,20 @@
 		
 		[super dealloc];
 	}
+
+
+	- (void)addToLog:(NSString*)in_str
+	{
+		[i_logView setString:[[i_logView string] stringByAppendingString:in_str]];
+		
+	}
 	
+
+	- (IBAction)clearLog:(id)srcObj
+	{
+		[i_logView setString:@""];
+	}
+
 	
 	- (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode
 							contextInfo:(void  *)contextInfo
@@ -118,9 +145,12 @@
 	{
 		[NSApp endSheet:i_hostSheet returnCode:NSOKButton];
 		
+		
+		//Add to the sideBar a custom view...
+		int x;
 		error *err;
 		netClient *nc = netClientCreate([[i_netAddress stringValue] UTF8String],
-									"2048", NETS_TCP, &err);
+										"2048", NETS_TCP, &err);
 		if (nc == NULL)
 		{
 			NSLog(@"Failed connecting!");
@@ -134,6 +164,8 @@
 			return;
 		}
 		
+		protocolStringCreate(r_proto, NULL, NULL, self, myStringHandler, &err);
+		
 		if (err = protocolLuaSend(r_proto, [[i_textView string] UTF8String]))
 		{
 			NSLog(@"Failed sending LUA script, %s", errorMsg(err));
@@ -142,10 +174,6 @@
 		
 		protocolFloat*pf = protocolFloatCreate(r_proto, 10, NULL,
 											   NULL, &err);
-		
-		
-		//Add to the sideBar a custom view...
-		int x;
 		for (x=0; x<10; x++)
 		{
 			[NSBundle loadNibNamed:@"FluidNumber" owner:self];
@@ -179,7 +207,7 @@
 		
 		//And a second drawer!
 		cs.width = [i_textWindow frame].size.height;
-		cs.height = 320;
+		cs.height = 160;
 		
 		NSDrawer *drwer = [[NSDrawer alloc] initWithContentSize:cs
 												  preferredEdge:NSMinYEdge];
@@ -194,6 +222,7 @@
 		
 		[drwer setContentView:i_logBar];
 		[drwer open];
+		
 	}
 	
 	

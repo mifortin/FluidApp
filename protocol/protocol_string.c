@@ -32,9 +32,9 @@ error *protocolStringHandleData(protocol *in_proto,
 
 void protocolStringFree(void *in_o)
 {
-	protocolString *in_s = (protocolString*)in_o;
+	//protocolString *in_s = (protocolString*)in_o;
 	
-	if (in_s->r_handlerObject)	x_free(in_s->r_handlerObject);
+	//if (in_s->r_handlerObject)	x_free(in_s->r_handlerObject);
 }
 
 
@@ -55,7 +55,7 @@ int protocolStringLuaCall(lua_State *in_lua)
 	
 	int i;
 	char tmpBuffer[16];
-	for (i=1; i<=nParams; i++)
+	for (i=2; i<=nParams; i++)
 	{
 		if (lua_isnil(in_lua, i))
 			protocolStringSend(ps->m_proto, " (nil) " );
@@ -102,10 +102,10 @@ protocolString *protocolStringCreate(	protocol *in_p,
 	toRet->m_handler = in_handler;
 	toRet->r_handlerObject = in_objHandler;
 	toRet->m_proto = in_p;
-	x_retain(in_objHandler);
+	//x_retain(in_objHandler);
 	
 	*out_error = protocolAdd(in_p, 'str0', toRet, protocolStringHandleData);
-	if (out_error)
+	if (*out_error)
 		return NULL;
 	
 	
@@ -120,6 +120,9 @@ protocolString *protocolStringCreate(	protocol *in_p,
 		
 		*out_error = mpMutexLock(in_luaLock);
 		if (*out_error) return NULL;
+		
+		protocolString **ld = lua_newuserdata(in_lua, sizeof(protocolString*));
+		*ld = toRet;
 		
 		lua_newtable(in_lua);
 		

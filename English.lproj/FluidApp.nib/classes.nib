@@ -27,6 +27,8 @@
 		<dict>
 			<key>ACTIONS</key>
 			<dict>
+				<key>clearLog</key>
+				<string>id</string>
 				<key>onCancelConnect</key>
 				<string>id</string>
 				<key>onConnect</key>
@@ -48,6 +50,8 @@
 				<string>NSWindow</string>
 				<key>i_logBar</key>
 				<string>NSView</string>
+				<key>i_logView</key>
+				<string>NSTextView</string>
 				<key>i_netAddress</key>
 				<string>NSTextField</string>
 				<key>i_sideBar</key>

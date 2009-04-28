@@ -39,9 +39,12 @@ error *protocolLuaHandleData(protocol *in_proto,
 			break;
 			
 		case LUA_ERRSYNTAX:
-			err = errorCreate(NULL, error_script, "Syntax error in lua script: %s",
-							lua_tostring(pvt->m_lua, -1));
-			break;
+			e = mpMutexUnlock(pvt->r_lock);
+			if (e) x_free(e);
+			e = protocolStringSend(in_proto, "\nLua syntax error: ");
+			if (e) return e;
+			e = protocolStringSend(in_proto, lua_tostring(pvt->m_lua,-1));
+			return e;
 	}
 	
 	if (err != NULL)
@@ -54,9 +57,12 @@ error *protocolLuaHandleData(protocol *in_proto,
 	switch(lua_pcall(pvt->m_lua, 0, 0, 0))
 	{
 		case LUA_ERRRUN:
-			err = errorCreate(NULL, error_script, "Lua runtime error: %s",
-							   lua_tostring(pvt->m_lua, -1));
-			break;
+			e = mpMutexUnlock(pvt->r_lock);
+			if (e) x_free(e);
+			e = protocolStringSend(in_proto, "\nLua runtime error: ");
+			if (e) return e;
+			e = protocolStringSend(in_proto, lua_tostring(pvt->m_lua,-1));
+			return e;
 			
 		case LUA_ERRMEM:
 			err = errorCreate(NULL, error_memory, "Lua out of memory: %s",

@@ -15,6 +15,7 @@
 	IBOutlet NSWindow *i_hostSheet;
 	
 	IBOutlet NSTextView *i_textView;
+	IBOutlet NSTextView *i_logView;
 	
 	IBOutlet NSTextField *i_netAddress;
 
@@ -42,4 +43,5 @@
 - (IBAction)onCancelConnect:(id)in_src;
 - (IBAction)onDoConnect:(id)in_src;
 
+- (IBAction)clearLog:(id)srcObj;
 @end

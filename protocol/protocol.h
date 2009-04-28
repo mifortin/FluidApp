@@ -73,6 +73,8 @@ error *protocolSend(protocol *in_p, int in_protoID, int in_size, const void *in_
 //		and by combining them we get complex behaviour)
 //
 //			'luae'	- Send end of lua text (at which point it's executed)
+//
+//		(REQUIRES PROTOCOL STRING)
 typedef struct protocolLua protocolLua;
 
 //Upon creating the protocol to transmit lua, we require a lock that will be

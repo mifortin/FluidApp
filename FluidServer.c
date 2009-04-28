@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <math.h>
 
 #include "net.h"
 #include "lua.h"
@@ -45,6 +46,12 @@ void * luaAlloc (void *ud,
 }
 
 
+error *hndlr(void *o, const char *d)
+{
+	return NULL;
+}
+
+
 int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 {	
 	lua_State *L = lua_newstate(luaAlloc, NULL);
@@ -57,6 +64,7 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	protocol *p = protocolCreate(in_remote, 1024*4, &pError);
 	protocolLua *pl = protocolLuaCreate(p, L, mtx, &pError);
 	protocolFloatCreate(p, 10, L, mtx, &pError);
+	protocolStringCreate(p, L, mtx, mtx, hndlr, &pError);
 	
 	if (p == NULL)
 	{
@@ -89,8 +97,54 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 }
 
 
+typedef short float16;
+
 int main(int argc, char *argv[])
-{	
+{
+	//Simple float/short conversion...
+	union {
+		float x;
+		int y;
+	} g;
+	g.x = 0.00000000001f;
+	
+	//Loop over and display each bit...
+	int k;
+	double amt = 1.0;
+	for (k=31; k>=0; k--)
+	{
+		if (k == 30 || k == 22) printf(" ");
+		printf("%i", (g.y >> k)&0x00000001);
+		
+		if (k < 22 && ((g.y >> k)&0x00000001))
+		{
+			//printf("%f %f\n",amt,1.0/pow(2,k));
+			//amt *= 1.0/pow(2,k);
+		}
+	}
+	
+	printf("\n");
+	
+	for (k=22; k>=0; k--)
+	{
+		//if (k == 30 || k == 22) printf(" ");
+		//printf("%i", (g.y >> k)&0x00000001);
+		
+		if (((g.y >> k)&0x00000001))
+		{
+			printf("%f %f\n",amt,1.0/pow(2,k+1));
+			amt += 1.0/pow(2,k+1);
+		}
+	}
+	
+	printf(" %i %i %f %f %i", (g.y >> 23) & 0x000000FF, g.y & 0x007FFFFF,amt,
+						(1+(double)(g.y & 0x007FFFFF)/(pow(2,23)))* pow(2,((g.y >> 23) & 0x000000FF)- 127),
+					//	amt  * pow(2,((g.y >> 23) & 0x000000FF)- 127),
+						 ((g.y >> 23) & 0x000000FF)-127);
+						//(double)(g.y & 0x007FFFFF) * pow(2,(g.y >> 22) & 0x000000FF - 127));
+	
+	return 0;
+	
 	printf("Fluid Server Launching\n");
 	pthread_mutex_init(&m, NULL);
 	
