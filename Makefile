@@ -1,6 +1,8 @@
 # This is for the CELL target.  OS/X target uses the xcodeproj
 
-PPU=FluidServer.ppu.o
+LUA=lua/lapi.ppu.o lua/lauxlib.ppu.o lua/lbaselib.ppu.o lua/lcode.ppu.o lua/ldblib.ppu.o lua/ldebug.ppu.o lua/ldo.ppu.o lua/ldump.ppu.o lua/lfunc.ppu.o lua/lgc.ppu.o lua/linit.ppu.o lua/liolib.ppu.o lua/llex.ppu.o lua/lmathlib.ppu.o lua/lmem.ppu.o lua/loadlib.ppu.o lua/lobject.ppu.o lua/lopcodes.ppu.o lua/loslib.ppu.o lua/lparser.ppu.o lua/lstate.ppu.o lua/lstring.ppu.o lua/lstrlib.ppu.o lua/ltable.ppu.o lua/ltablib.ppu.o lua/ltm.ppu.o lua/lundump.ppu.o lua/lvm.ppu.o lua/lzio.ppu.o lua/print.ppu.o
+
+PPU=FluidServer.ppu.o memory.ppu.o mp_mutex.ppu.o error/error_pvt.ppu.o field/field_pvt.ppu.o fluid/fluid_pvt.ppu.o fluid/fluid_advection_stam.ppu.o lagrange.ppu.o $(LUA) 
 
 SPU=
 
