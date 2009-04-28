@@ -10,11 +10,16 @@ all:	ppu	spu
 	@ppu32-gcc -maltivec $(PPU) $(SPU) -std=c99 -lm -lspe2 -o FluidServer
 	@echo "Linking..."
 
-run:	all
+run:	all pull
 	@echo "Updating..."
-	@git pull
 	@echo "Launching..."
 	./FluidServer
+
+pull:
+	git pull --upload-pack /usr/local/bin/git-upload-pack
+
+push:
+	git push --receive-pack /usr/local/bin/git-receive-pack
 
 ppu: $(PPU)
 
