@@ -58,9 +58,13 @@ protocolPvt *protocolFindClosest(protocolPvt *in_root, int in_protoID)
 error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 						protocolHandlerFn in_fn)
 {
+	if (pthread_mutex_lock(&in_proto->m_mutex) != 0)
+		return errorCreate(NULL, error_thread, "Failed locking mutex!");
+	
 	protocolPvt *toAdd = malloc(sizeof(protocolPvt));
 	if (toAdd == NULL)
 	{
+		pthread_mutex_unlock(&in_proto->m_mutex);
 		return errorCreate(NULL, error_memory,
 								"Not enough memory to register protocol");
 	}
@@ -74,7 +78,6 @@ error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 	{
 		in_proto->m_root = toAdd;
 		x_retain(in_pvt);
-		return NULL;
 	}
 	else
 	{
@@ -84,6 +87,7 @@ error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 		if (closest->m_name == in_protoID)
 		{
 			free(toAdd);
+			pthread_mutex_unlock(&in_proto->m_mutex);
 			return errorCreate(NULL, error_duplicate,
 									"Protocol already exists!");
 		}
@@ -94,7 +98,10 @@ error *protocolAdd(protocol *in_proto, int in_protoID, void *in_pvt,
 			closest->m_right = toAdd;
 		
 		x_retain(in_pvt);
-		
-		return NULL;
 	}
+	
+	if (pthread_mutex_unlock(&in_proto->m_mutex) != 0)
+		return errorCreate(NULL, error_thread, "Failed unlocking mutex");
+	
+	return NULL;
 }

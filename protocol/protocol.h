@@ -61,6 +61,18 @@ int protocolMaxSize(protocol *in_p);
 //(thread-safe)
 error *protocolSend(protocol *in_p, int in_protoID, int in_size, const void *in_data);
 
+//Protocol hides a buffer for reading purposes.  Sometimes, it would be nice
+//to be able to use that buffer to send data as well as receive.
+//
+//	Therefore, this will lock the buffer (but prevent receiving of data)
+//
+//	So this is more or less a temp buffer to be used quickly - or else
+//	bad things might happen.
+error *protocolLockBuffer(protocol *in_p, int *out_buffSize, void **out_buffData);
+
+//This unlocks the buffer and sends it.
+error *protocolUnlockAndSendBuffer(protocol *in_p, int in_protoID, int in_size);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //

@@ -72,6 +72,7 @@ retryConnect:
 		}
 		
 		//Read the buffer
+		if (pthread_mutex_lock(&p->m_bufferMutex) != 0)	goto done;
 		log = netClientGetBinary(p->m_client, p->m_readBuffer, length, 10);
 		if (log != NULL)
 		{
@@ -86,6 +87,8 @@ retryConnect:
 			printf("netClient: %s\n", errorMsg(log));
 			return log;
 		}
+		
+		if (pthread_mutex_unlock(&p->m_bufferMutex) != 0) goto done;
 	}
 	
 done:
@@ -121,6 +124,7 @@ void protocolFree(void *o)
 		free(in_proto->m_readBuffer);
 	
 	pthread_mutex_destroy(&in_proto->m_mutex);
+	pthread_mutex_destroy(&in_proto->m_bufferMutex);
 }
 
 
@@ -210,6 +214,14 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 		return NULL;
 	}
 	
+	if (pthread_mutex_init(&toRet->m_bufferMutex, NULL) != 0)
+	{
+		*out_error = errorCreate(NULL, error_create, "Failed creating data mutex");
+		x_free(toRet);
+		
+		return NULL;
+	}
+	
 	toRet->m_readBuffer = malloc(in_maxDataSize);
 	if (toRet->m_readBuffer == NULL)
 	{
@@ -246,9 +258,6 @@ error *protocolSend(protocol *in_p, int in_protoID, int in_size,
 		return errorCreate(NULL, error_flags, "Size must be in range [%i,%i]",
 								0, in_p->m_maxSize);
 	
-	if (pthread_mutex_lock(&in_p->m_mutex) != 0)
-		return errorCreate(NULL, error_thread, "Failed locking mutex");
-	
 	//First send the protocol ID.
 	error *tmp;
 	if (tmp = netClientSendBinary(in_p->m_client, &in_protoID, sizeof(int)))
@@ -262,8 +271,31 @@ error *protocolSend(protocol *in_p, int in_protoID, int in_size,
 	if (tmp = netClientSendBinary(in_p->m_client, in_data, in_size))
 		return errorCreate(tmp, error_specify, "Failed sending data");
 	
-	if (pthread_mutex_unlock(&in_p->m_mutex) != 0)
-		return errorCreate(NULL, error_thread, "Failed unlocking mutex");
+	return NULL;
+}
+
+error *protocolLockBuffer(protocol *in_p, int *out_buffSize, void **out_buffData)
+{
+	if (pthread_mutex_lock(&in_p->m_bufferMutex) != 0)
+		return errorCreate(NULL, error_thread, "Failed locking buffer access");
+	
+	*out_buffSize = protocolMaxSize(in_p);
+	*out_buffData = in_p->m_readBuffer;
+	
+	return NULL;
+}
+
+
+error *protocolUnlockAndSendBuffer(protocol *in_p, int in_protoID, int in_size)
+{
+	if (in_size > protocolMaxSize(in_p))
+		return errorCreate(NULL, error_flags, "Buffer overrun in send request");
+	
+	error *err = protocolSend(in_p, in_protoID, in_size, in_p->m_readBuffer);
+	if (err)	return err;
+	
+	if (pthread_mutex_unlock(&in_p->m_bufferMutex) != 0)
+		return errorCreate(NULL, error_thread, "Failed releasing lock on mutex");
 	
 	return NULL;
 }

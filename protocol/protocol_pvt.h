@@ -27,6 +27,7 @@ struct protocol
 	int m_maxSize;
 	
 	//Our read buffer!
+	pthread_mutex_t m_bufferMutex;		//Protect the buffer!
 	void *m_readBuffer;
 
 	//b-tree of all the protocols.
