@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "memory.h"
 
 int fluid_advection_lua(lua_State *in_l)
 {
@@ -59,7 +60,7 @@ void fluid_swapField(fluid *in_f)
 }
 
 
-fluid *fluidCreate(lua_State *in_ls, char *in_globName,
+fluid *fluidCreate(protocol *in_proto, lua_State *in_ls, char *in_globName,
 					int in_width, int in_height, error **out_err)
 {
 	fluid *toRet = malloc(sizeof(fluid));
@@ -74,7 +75,7 @@ fluid *fluidCreate(lua_State *in_ls, char *in_globName,
 	memset(toRet, 0, sizeof(fluid));
 	
 	error *tmpError = NULL;
-	toRet->fluidData[0] = fieldCreate(in_width, in_height, 8, &tmpError);
+	toRet->fluidData[0] = fieldCreate(in_proto, in_width, in_height, 8,NULL,NULL, &tmpError);
 	if (toRet->fluidData[0] == NULL)
 	{
 		*out_err = errorReply(tmpError, error_create,
@@ -83,12 +84,12 @@ fluid *fluidCreate(lua_State *in_ls, char *in_globName,
 		return NULL;
 	}
 	
-	toRet->fluidData[1] = fieldCreate(in_width, in_height, 8, &tmpError);
+	toRet->fluidData[1] = fieldCreate(in_proto, in_width, in_height, 8,NULL,NULL, &tmpError);
 	if (toRet->fluidData[1] == NULL)
 	{
 		*out_err = errorReply(tmpError, error_create,
 									"Failed creating fluid data");
-		fieldFree(toRet->fluidData[0]);
+		x_free(toRet->fluidData[0]);
 		free(toRet);
 		return NULL;
 	}
@@ -113,8 +114,8 @@ void fluidFree(fluid *in_fluid)
 {
 	if (in_fluid)
 	{
-		if (in_fluid->fluidData[0])	fieldFree(in_fluid->fluidData[0]);
-		if (in_fluid->fluidData[1]) fieldFree(in_fluid->fluidData[1]);
+		if (in_fluid->fluidData[0])	x_free(in_fluid->fluidData[0]);
+		if (in_fluid->fluidData[1]) x_free(in_fluid->fluidData[1]);
 		
 		if (in_fluid->m_ls)
 		{

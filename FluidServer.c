@@ -16,6 +16,7 @@
 #include "protocol.h"
 #include "error.h"
 #include "memory.h"
+#include "field.h"
 
 volatile int tmp = 0;
 
@@ -66,6 +67,16 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	protocolFloatCreate(p, 10, L, mtx, &pError);
 	protocolStringCreate(p, L, mtx, mtx, hndlr, &pError);
 	
+	field *f = fieldCreate(p, 512, 512, 16, L, mtx, &pError);
+	
+	int *t = (int*)fieldData(f);
+	
+	int x;
+	for (x=0; x<512*512*16; x++)
+		t[x] = rand();
+	
+	fieldSend(f, 1, 1, 0);
+	
 	if (p == NULL)
 	{
 		printf("Failed creating protocol: %s\n", errorMsg(pError));
@@ -106,7 +117,7 @@ int main(int argc, char *argv[])
 		float x;
 		int y;
 	} g;
-	g.x = 5000.1f;
+	g.x = 0.11;
 	
 	//Loop over and display each bit...
 	int k;
@@ -142,8 +153,6 @@ int main(int argc, char *argv[])
 					//	amt  * pow(2,((g.y >> 23) & 0x000000FF)- 127),
 						 ((g.y >> 23) & 0x000000FF)-127);
 						//(double)(g.y & 0x007FFFFF) * pow(2,(g.y >> 22) & 0x000000FF - 127));
-	
-//	return 0;
 	
 	printf("\n\nFluid Server Launching\n");
 	pthread_mutex_init(&m, NULL);

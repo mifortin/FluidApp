@@ -15,7 +15,12 @@ struct field
 	int m_width, m_height;
 	int m_components;
 	
-	float *m_data;
+	union {
+		float *f;
+		int *i;
+	} r_data;
+	
+	protocol *m_proto;		//No retain - proto retains us.
 };
 
 #endif
