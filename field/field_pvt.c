@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 void fieldFree(void *in_o)
 {
@@ -24,6 +25,56 @@ error *fieldHandleData(protocol *in_proto,
 								int in_size,
 								void *in_data)
 {
+	field *in_f = (field*)in_pvt;
+	short *s_data = (short*)in_data;
+	
+	//Just started receiving - read in the headers...
+	if (in_f->m_prevX == 0 && in_f->m_prevY == 0)
+	{
+		if (s_data[1] != in_f->m_width ||
+			s_data[2] != in_f->m_height ||
+			s_data[3] < 0 || s_data[3] >= in_f->m_components)
+			return errorCreate(NULL, error_net, "Invalid field headers");
+		
+		s_data+=4;
+		in_size -= sizeof(short)*4;
+		in_f->m_prevC = s_data[3];
+	}
+	
+	//Take our matrix and loop over it from wherever we are....
+	assert(in_size%sizeof(short) == 0);
+	
+	in_size/=sizeof(short);
+	
+	int *dstPtr = in_f->r_data.i + (in_f->m_prevX +  in_f->m_prevY * in_f->m_width)
+					* in_f->m_components + in_f->m_prevC;
+	
+	while (in_size > 0)
+	{
+		short *d = (short*)dstPtr;
+		
+		//Cram into d[0] and d[1].
+		d[0] = (s_data[0] & 0x8000)		//Copy the sign
+				| ((s_data[0] >> 3) & 0x0FFF);	//First part of exponent.
+		d[1] = ((s_data[0] << 13) & 0xE000);
+		
+		dstPtr += in_f->m_components;
+		s_data++;
+		
+		in_size--;
+		
+		in_f->m_prevX++;
+		if (in_f->m_prevX == in_f->m_width)
+		{
+			in_f->m_prevX = 0;
+			in_f->m_prevY++;
+			
+			if (in_f->m_prevY == in_f->m_height)
+				in_f->m_prevY = 0;
+		}
+	}
+	
+	return NULL;
 }
 
 
@@ -42,6 +93,7 @@ field *fieldCreate(protocol *in_proto,
 		return NULL;
 	}
 	
+	toRet->r_data.f = NULL;
 	toRet->r_data.f = malloc(numData);
 	if (toRet->r_data.f == NULL)
 	{
@@ -50,10 +102,22 @@ field *fieldCreate(protocol *in_proto,
 		return NULL;
 	}
 	
+	*out_err = protocolAdd(in_proto, 'feld', toRet, fieldHandleData);
+	if (*out_err)
+	{
+		x_free(toRet);
+		return NULL;
+	}
+	
 	toRet->m_width = in_width;
 	toRet->m_height = in_height;
 	toRet->m_components = in_components;
 	toRet->m_proto = in_proto;
+	
+	toRet->m_prevX = 0;
+	toRet->m_prevY = 0;
+	toRet->m_prevC = 0;
+	
 	memset(toRet->r_data.i, 0, numData);
 	
 	return toRet;
@@ -108,9 +172,18 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 	
 	//Network overhead is greater...
 	int maxProtoSize;
-	short *buffer = malloc(in_f->m_width * in_f->m_height * sizeof(short));
-	if (buffer == NULL)
-		return errorCreate(NULL, error_memory, "Out of memory creating buffer");
+	short *buffer;
+	error *err = protocolLockBuffer(in_f->m_proto, &maxProtoSize, (void**)&buffer);
+	if (err)	return err;
+	
+	buffer[0] = (short)in_c;		//0 later on
+	buffer[1] = (short)in_f->m_width;
+	buffer[2] = (short)in_f->m_height;
+	buffer[3] = (short)in_dstPlane;
+	int protoUsed = sizeof(short) * 4;
+	maxProtoSize -= sizeof(short) * 4;
+	buffer += 4;
+	
 	
 	//Copy the data to our buffer (afterwards let the simulation run free!
 	//	Like the WIND!!!)
@@ -119,64 +192,33 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 	int tot = in_f->m_width * in_f->m_height;
 	for (x=0; x<tot; x++)
 	{
+		maxProtoSize-=sizeof(short);
+		if (maxProtoSize < 0)
+		{
+			err = protocolUnlockAndSendBuffer(in_f->m_proto, 'feld', protoUsed);
+			if (err)
+				return err;
+			
+			err = protocolLockBuffer(in_f->m_proto,&maxProtoSize,(void**)&buffer);
+			maxProtoSize-=sizeof(short);
+			protoUsed = 0;
+		}
+		
 		short *cur = (short*)ptr;
 		
 		//Now this ought to be interesting...
 		//	Needs different implementation on INTEL?
-		buffer[x] = (cur[0] & 0x8000) |
+		buffer[0] = (cur[0] & 0x8000) |
 					((cur[0] << 3) & 0x7FF8) |
 					((cur[1] >> 13) & 0x0007);
-		buffer[x] =  opt[(buffer[x] & 0x7B00) >> 10] & buffer[x];
+		buffer[0] =  opt[(buffer[x] & 0x7B00) >> 10] & buffer[x];
+		buffer++;
+		
+		protoUsed += sizeof(short);
 		
 		ptr += in_f->m_components;
 	}
 	
-	z_stream strm;
-	memset(&strm, 0, sizeof(strm));
-	strm.zalloc = Z_NULL;
-	strm.zfree = Z_NULL;
-	strm.opaque = Z_NULL;
-	
-	if (deflateInit(&strm, in_c) != Z_OK)
-		return errorCreate(NULL, error_create, "Failed launching gzip");
-	
-	strm.avail_in = in_f->m_width * in_f->m_height * sizeof(short);
-	strm.next_in = (void*)buffer;
-	
-	float totSent = 0;
-	
-	do {
-		void *outBuff;
-		error *err = protocolLockBuffer(in_f->m_proto, &maxProtoSize, &outBuff);
-		if (err)
-		{
-			deflateEnd(&strm);
-			free(buffer);
-			return err;
-		}
-		
-		strm.avail_out = maxProtoSize;
-		strm.next_out = outBuff;
-		
-		deflate(&strm,Z_FINISH);
-		
-		totSent += maxProtoSize - strm.avail_out;
-		err = protocolUnlockAndSendBuffer(in_f->m_proto, 'feld',
-										  maxProtoSize - strm.avail_out);
-		if (err)
-		{
-			deflateEnd(&strm);
-			free(buffer);
-			return err;
-		}
-		
-	} while (strm.avail_out == 0);
-	
-	printf("Compression Ratio: %f\n",
-		   totSent / (float) (in_f->m_width * in_f->m_height * sizeof(short)));
-	
-	free(buffer);
-	deflateEnd(&strm);
-	
-	return NULL;
+	return protocolUnlockAndSendBuffer(in_f->m_proto, 'feld', protoUsed);
 }
+

@@ -75,7 +75,7 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	for (x=0; x<512*512*16; x++)
 		t[x] = rand();
 	
-	fieldSend(f, 1, 1, 0);
+	fieldSend(f, 1, 1, 9);
 	
 	if (p == NULL)
 	{

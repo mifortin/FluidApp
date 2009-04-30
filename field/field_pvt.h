@@ -21,6 +21,12 @@ struct field
 	} r_data;
 	
 	protocol *m_proto;		//No retain - proto retains us.
+	
+	//Data for the previous receive.  This is essentially to maintain
+	//state.
+	int m_prevX;
+	int m_prevY;
+	int m_prevC;
 };
 
 #endif

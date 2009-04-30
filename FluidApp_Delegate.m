@@ -4,6 +4,7 @@
 //
 
 #import "FluidApp_Delegate.h"
+#import "field.h"
 #import "FluidApp_Util.h"
 #import "OpenGL/gl.h"
 #include "memory.h"
@@ -174,6 +175,8 @@ error* myStringHandler(void *in_o, const char *in_szData)
 		
 		protocolFloat*pf = protocolFloatCreate(r_proto, 10, NULL,
 											   NULL, &err);
+		fieldCreate(r_proto, 512, 512, 16, NULL, NULL, &err);
+		
 		for (x=0; x<10; x++)
 		{
 			[NSBundle loadNibNamed:@"FluidNumber" owner:self];
