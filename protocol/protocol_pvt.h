@@ -65,6 +65,9 @@ struct protocolFloat
 	
 	int m_noElements;
 	float *r_elements;
+	
+	void *m_changeObject;
+	protocolFloatChangeHandler m_changeHandler; 
 };
 
 

@@ -36,4 +36,11 @@ float *fieldData(field *in_f);
 //	This is a very lossy process.  (which will be rectified in due time...)
 error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c);
 
+
+//Methods used to register a handler whenever a new field is received
+//over the network.
+typedef error*(*fieldReceiveHandler)(field *in_f, int in_plane, void *in_obj);
+error *fieldSetReceiveHandler(field *in_f, void *in_obj,
+							  fieldReceiveHandler in_rh);
+
 #endif

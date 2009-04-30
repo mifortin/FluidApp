@@ -36,9 +36,10 @@ error *fieldHandleData(protocol *in_proto,
 			s_data[3] < 0 || s_data[3] >= in_f->m_components)
 			return errorCreate(NULL, error_net, "Invalid field headers");
 		
+		//printf("%i %i %i\n",in_f->m_prevC, s_data[3], in_f->m_components);
+		in_f->m_prevC = s_data[3];
 		s_data+=4;
 		in_size -= sizeof(short)*4;
-		in_f->m_prevC = s_data[3];
 	}
 	
 	//Take our matrix and loop over it from wherever we are....
@@ -48,6 +49,7 @@ error *fieldHandleData(protocol *in_proto,
 	
 	int *dstPtr = in_f->r_data.i + (in_f->m_prevX +  in_f->m_prevY * in_f->m_width)
 					* in_f->m_components + in_f->m_prevC;
+	
 	
 	while (in_size > 0)
 	{
@@ -220,5 +222,14 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 	}
 	
 	return protocolUnlockAndSendBuffer(in_f->m_proto, 'feld', protoUsed);
+}
+
+
+
+error *fieldSetReceiveHandler(field *in_f, void *in_obj,
+							  fieldReceiveHandler in_rh)
+{
+	
+	return NULL;
 }
 

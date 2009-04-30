@@ -73,6 +73,10 @@ error *protocolLockBuffer(protocol *in_p, int *out_buffSize, void **out_buffData
 //This unlocks the buffer and sends it.
 error *protocolUnlockAndSendBuffer(protocol *in_p, int in_protoID, int in_size);
 
+//Call this once all of the specific desired communication channels have
+//been established.  This will allow the protocol to start processing
+//connections (or else it may get caught while initializing!)
+error *protocolSetReadyState(protocol *in_p);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -123,6 +127,12 @@ protocolFloat *protocolFloatCreate(protocol *in_p,
 float protocolFloatReceive(protocolFloat *in_f, int in_eleNo,
 						   error **out_err);
 error *protocolFloatSend(protocolFloat *in_f, int in_eleNo, float in_val);
+
+//Method to add change handler.... 
+typedef error*(*protocolFloatChangeHandler)(protocolFloat *in_f, int in_index,
+											void *in_obj);
+error *protocolFloatSetChangeHandler(protocolFloat *in_f, void *in_obj,
+								   protocolFloatChangeHandler in_h);
 
 
 

@@ -33,6 +33,11 @@
 }
 
 
+- (void)setFloat:(float)in_value
+{
+	[i_txtField setFloatValue:in_value];
+}
+
 - (NSView*)view
 {
 	return i_subview;

@@ -24,6 +24,8 @@
 
 - (IBAction)onTextChanged:(id)in_sender;
 
+- (void)setFloat:(float)in_value;
+
 - (NSView*)view;
 
 @end

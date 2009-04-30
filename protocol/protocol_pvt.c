@@ -231,17 +231,22 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 		return NULL;
 	}
 	
-	toRet->m_bQuit = 0;
-	if (pthread_create(&toRet->m_readThread, NULL, protocolReadThread, toRet) != 0)
-	{
-		toRet->m_bQuit = 1;
-		x_free(toRet);
-		*out_error = errorCreate(NULL, error_thread, "Failed creating read thread");
-		return NULL;
-	}
-	
 	
 	return toRet;
+}
+
+
+
+error *protocolSetReadyState(protocol *in_p)
+{
+	in_p->m_bQuit = 0;
+	if (pthread_create(&in_p->m_readThread, NULL, protocolReadThread, in_p) != 0)
+	{
+		in_p->m_bQuit = 1;
+		return errorCreate(NULL, error_thread, "Failed creating read thread");
+	}
+	
+	return NULL;
 }
 
 

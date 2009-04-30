@@ -69,6 +69,8 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	
 	field *f = fieldCreate(p, 512, 512, 16, L, mtx, &pError);
 	
+	protocolSetReadyState(p);
+	
 	int *t = (int*)fieldData(f);
 	
 	int x;

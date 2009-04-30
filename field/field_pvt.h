@@ -27,6 +27,10 @@ struct field
 	int m_prevX;
 	int m_prevY;
 	int m_prevC;
+	
+	//Receive handler and object...
+	fieldReceiveHandler m_receiveHandler;
+	void *m_receiveObj;
 };
 
 #endif

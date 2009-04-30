@@ -84,20 +84,10 @@
 		27A661E10F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
 		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		27A662FB0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
-		4C375F9C0FA92E40001E5CAB /* fluid_advection.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C375F9B0FA92E40001E5CAB /* fluid_advection.c */; };
-		4C375F9D0FA92E40001E5CAB /* fluid_advection.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C375F9B0FA92E40001E5CAB /* fluid_advection.c */; };
 		4C7307A40F9BDA4300C6D0BD /* X_NumberFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */; };
 		4C7307C60F9BFC5E00C6D0BD /* FluidNumber.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C7307C40F9BFC5E00C6D0BD /* FluidNumber.nib */; };
 		4C8B36390F9E9F2D005D64F4 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
 		4C8B363A0F9E9F2D005D64F4 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
-		4C8C8E1A0FA9C114005475C4 /* fluid_cpuCore.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E190FA9C114005475C4 /* fluid_cpuCore.c */; };
-		4C8C8E1B0FA9C114005475C4 /* fluid_cpuCore.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E190FA9C114005475C4 /* fluid_cpuCore.c */; };
-		4C8C8E430FA9C522005475C4 /* mp_task.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E420FA9C522005475C4 /* mp_task.c */; };
-		4C8C8E440FA9C522005475C4 /* mp_task.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E420FA9C522005475C4 /* mp_task.c */; };
-		4C8C8E630FA9E1CA005475C4 /* fluid_jacobi.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E620FA9E1CA005475C4 /* fluid_jacobi.c */; };
-		4C8C8E640FA9E1CA005475C4 /* fluid_jacobi.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E620FA9E1CA005475C4 /* fluid_jacobi.c */; };
-		4C8C8E690FA9E1F2005475C4 /* fluid_jacobi_error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E680FA9E1F2005475C4 /* fluid_jacobi_error.c */; };
-		4C8C8E6A0FA9E1F2005475C4 /* fluid_jacobi_error.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C8E680FA9E1F2005475C4 /* fluid_jacobi_error.c */; };
 		4C8DE1080F9D548D0013795C /* X_SimpleNumber.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DE1070F9D548D0013795C /* X_SimpleNumber.m */; };
 		4C8DE10F0F9D5B540013795C /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DE10E0F9D5B540013795C /* memory.c */; };
 		4C8DE1100F9D5B540013795C /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DE10E0F9D5B540013795C /* memory.c */; };
@@ -213,20 +203,10 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
-		4C375F8A0FA92AF6001E5CAB /* fluid_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_macros.h; sourceTree = "<group>"; };
-		4C375F9A0FA92E40001E5CAB /* fluid_advection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_advection.h; sourceTree = "<group>"; };
-		4C375F9B0FA92E40001E5CAB /* fluid_advection.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_advection.c; sourceTree = "<group>"; };
 		4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_NumberFormatter.h; sourceTree = "<group>"; };
 		4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_NumberFormatter.m; sourceTree = "<group>"; };
 		4C7307C50F9BFC5E00C6D0BD /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidNumber.nib; sourceTree = "<group>"; };
 		4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_mutex.c; sourceTree = "<group>"; };
-		4C8C8E180FA9C114005475C4 /* fluid_cpuCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_cpuCore.h; sourceTree = "<group>"; };
-		4C8C8E190FA9C114005475C4 /* fluid_cpuCore.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_cpuCore.c; sourceTree = "<group>"; };
-		4C8C8E420FA9C522005475C4 /* mp_task.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_task.c; sourceTree = "<group>"; };
-		4C8C8E5C0FA9DFAC005475C4 /* fluid_jacobi_impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_jacobi_impl.h; sourceTree = "<group>"; };
-		4C8C8E5E0FA9E0A5005475C4 /* fluid_jacobi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_jacobi.h; sourceTree = "<group>"; };
-		4C8C8E620FA9E1CA005475C4 /* fluid_jacobi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_jacobi.c; sourceTree = "<group>"; };
-		4C8C8E680FA9E1F2005475C4 /* fluid_jacobi_error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_jacobi_error.c; sourceTree = "<group>"; };
 		4C8DE1060F9D548D0013795C /* X_SimpleNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_SimpleNumber.h; sourceTree = "<group>"; };
 		4C8DE1070F9D548D0013795C /* X_SimpleNumber.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_SimpleNumber.m; sourceTree = "<group>"; };
 		4C8DE10D0F9D59840013795C /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
@@ -371,15 +351,6 @@
 				27A18C570F672BBE0023F24B /* fluid_pvt.h */,
 				27A18C580F672BBE0023F24B /* fluid_pvt.c */,
 				27A2F24A0F6D827900667640 /* fluid_advection_stam.c */,
-				4C375F8A0FA92AF6001E5CAB /* fluid_macros.h */,
-				4C375F9A0FA92E40001E5CAB /* fluid_advection.h */,
-				4C375F9B0FA92E40001E5CAB /* fluid_advection.c */,
-				4C8C8E180FA9C114005475C4 /* fluid_cpuCore.h */,
-				4C8C8E190FA9C114005475C4 /* fluid_cpuCore.c */,
-				4C8C8E5C0FA9DFAC005475C4 /* fluid_jacobi_impl.h */,
-				4C8C8E5E0FA9E0A5005475C4 /* fluid_jacobi.h */,
-				4C8C8E620FA9E1CA005475C4 /* fluid_jacobi.c */,
-				4C8C8E680FA9E1F2005475C4 /* fluid_jacobi_error.c */,
 			);
 			path = fluid;
 			sourceTree = "<group>";
@@ -471,7 +442,6 @@
 			children = (
 				4CD6461E0FA7AB7D00073448 /* mpx.h */,
 				4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */,
-				4C8C8E420FA9C522005475C4 /* mp_task.c */,
 			);
 			name = mp;
 			sourceTree = "<group>";
@@ -614,11 +584,6 @@
 				4C8DE1100F9D5B540013795C /* memory.c in Sources */,
 				4C8B36390F9E9F2D005D64F4 /* mp_mutex.c in Sources */,
 				4CAC8CF00F9FC8FC0081249A /* protocol_string.c in Sources */,
-				4C375F9C0FA92E40001E5CAB /* fluid_advection.c in Sources */,
-				4C8C8E1B0FA9C114005475C4 /* fluid_cpuCore.c in Sources */,
-				4C8C8E440FA9C522005475C4 /* mp_task.c in Sources */,
-				4C8C8E640FA9E1CA005475C4 /* fluid_jacobi.c in Sources */,
-				4C8C8E6A0FA9E1F2005475C4 /* fluid_jacobi_error.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -674,11 +639,6 @@
 				4C8DE10F0F9D5B540013795C /* memory.c in Sources */,
 				4C8B363A0F9E9F2D005D64F4 /* mp_mutex.c in Sources */,
 				4CAC8CF10F9FC8FC0081249A /* protocol_string.c in Sources */,
-				4C375F9D0FA92E40001E5CAB /* fluid_advection.c in Sources */,
-				4C8C8E1A0FA9C114005475C4 /* fluid_cpuCore.c in Sources */,
-				4C8C8E430FA9C522005475C4 /* mp_task.c in Sources */,
-				4C8C8E630FA9E1CA005475C4 /* fluid_jacobi.c in Sources */,
-				4C8C8E690FA9E1F2005475C4 /* fluid_jacobi_error.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

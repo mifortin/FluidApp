@@ -24,6 +24,7 @@
 	NSTimer *r_timer;
 	
 	protocol *r_proto;
+	protocolFloat *r_pf;
 	
 	IBOutlet NSView *i_sideBar;
 	IBOutlet NSView *i_logBar;

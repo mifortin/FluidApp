@@ -22,13 +22,30 @@ error* myStringHandler(void *in_o, const char *in_szData)
 	return NULL;
 }
 
+
+error *myFloatHandler(protocolFloat *in_f, int in_id, void *in_o)
+{
+	NSObject *o = (NSObject*)in_o;
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	[o performSelectorOnMainThread:@selector(updateFloat:)
+					withObject:[NSNumber numberWithInt:in_id] waitUntilDone:NO];
+	[pool release];
+	
+	return NULL;
+}
+
+
 @implementation FluidApp_Delegate
 	
 	
 	- (void)awakeFromNib
 	{
-		allObjs = [[NSMutableArray alloc] initWithCapacity:10];
-		[i_logView setEditable:NO];
+		if (allObjs == nil)
+		{
+			allObjs = [[NSMutableArray alloc] initWithCapacity:10];
+			[i_logView setEditable:NO];
+		}
 	}
 	
 	- (void)dealloc
@@ -46,6 +63,13 @@ error* myStringHandler(void *in_o, const char *in_szData)
 	{
 		[i_logView setString:[[i_logView string] stringByAppendingString:in_str]];
 		
+	}
+
+	- (void)updateFloat:(NSNumber*)in_index
+	{
+		int v = [in_index intValue];
+		error *err;
+		[[allObjs objectAtIndex:v] setFloat:protocolFloatReceive(r_pf, v, &err)];
 	}
 	
 
@@ -173,9 +197,11 @@ error* myStringHandler(void *in_o, const char *in_szData)
 			return;
 		}
 		
-		protocolFloat*pf = protocolFloatCreate(r_proto, 10, NULL,
+		r_pf = protocolFloatCreate(r_proto, 10, NULL,
 											   NULL, &err);
+		protocolFloatSetChangeHandler(r_pf, self, myFloatHandler);
 		fieldCreate(r_proto, 512, 512, 16, NULL, NULL, &err);
+		
 		
 		for (x=0; x<10; x++)
 		{
@@ -187,7 +213,7 @@ error* myStringHandler(void *in_o, const char *in_szData)
 			[i_sideBar addSubview:v];
 			[i_sideBar setNeedsDisplay:YES];
 			
-			[i_simpleNumber bindToProtocol:pf atIndex:x];
+			[i_simpleNumber bindToProtocol:r_pf atIndex:x];
 			
 			[v setAutoresizingMask:NSViewMaxYMargin];
 			
@@ -226,6 +252,7 @@ error* myStringHandler(void *in_o, const char *in_szData)
 		[drwer setContentView:i_logBar];
 		[drwer open];
 		
+		protocolSetReadyState(r_proto);
 	}
 	
 	

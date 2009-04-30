@@ -42,6 +42,8 @@ error *protocolFloatHandleData(protocol *in_proto,
 		return errorCreate(NULL, error_thread, "Failed locking mutex");
 	
 	pf->r_elements[i] = data;
+	if (pf->m_changeHandler)
+		pf->m_changeHandler(pf, i, pf->m_changeObject);
 	
 	if (pthread_mutex_unlock(&pf->m_dataLock) != 0)
 		return errorCreate(NULL, error_thread, "Failed unlocking mutex");
@@ -87,6 +89,7 @@ int protocolFloatLuaGet(lua_State *in_lua)
 	{
 		lua_pushstring(in_lua, errorMsg(err));
 		lua_error(in_lua);
+		x_free(err);
 	}
 	
 	return 1;
@@ -133,6 +136,8 @@ protocolFloat *protocolFloatCreate(protocol *in_p,
 	if (in_luaLock != NULL) x_retain(in_luaLock);
 	toRet->m_noElements = in_numElements;
 	toRet->r_elements = calloc(in_numElements,sizeof(float));
+	toRet->m_changeObject = NULL;
+	toRet->m_changeHandler = NULL;
 	if (toRet->r_elements == NULL)
 	{
 		x_free(toRet);
@@ -246,9 +251,42 @@ error *protocolFloatSend(protocolFloat *in_f, int in_eleNo, float in_val)
 	if (in_eleNo < 0 || in_eleNo >= in_f->m_noElements)
 		return errorCreate(NULL, error_flags, "Index out of range");
 	
+	if(pthread_mutex_lock(&in_f->m_dataLock) != 0)
+	{
+		return errorCreate(NULL, error_thread, "Failed locking mutex");
+	}
+	
+	in_f->r_elements[in_eleNo] = in_val;
+	if (in_f->m_changeHandler)
+		in_f->m_changeHandler(in_f, in_eleNo, in_f->m_changeObject);
+	
+	if (pthread_mutex_unlock(&in_f->m_dataLock) != 0)
+	{
+		return errorCreate(NULL, error_thread, "Failed unlocking mutex");
+	}
+	
 	protocolFloatPvt toSend;
 	toSend.index = htonl(in_eleNo);
 	toSend.data = in_val;
 	
 	return protocolSend(in_f->m_proto, 'floa', sizeof(protocolFloatPvt), &toSend);
+}
+
+error *protocolFloatSetChangeHandler(protocolFloat *in_f, void *in_obj,
+									 protocolFloatChangeHandler in_h)
+{
+	if(pthread_mutex_lock(&in_f->m_dataLock) != 0)
+	{
+		return errorCreate(NULL, error_thread, "Failed locking mutex");
+	}
+	
+	in_f->m_changeObject = in_obj;
+	in_f->m_changeHandler = in_h;
+	
+	if (pthread_mutex_unlock(&in_f->m_dataLock) != 0)
+	{
+		return errorCreate(NULL, error_thread, "Failed unlocking mutex");
+	}
+	
+	return NULL;
 }
