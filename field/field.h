@@ -23,7 +23,10 @@ field *fieldCreate(protocol *in_proto,
 int fieldWidth(field *in_f);
 int fieldHeight(field *in_f);
 int fieldComponents(field *in_f);
-float *fieldData(field *in_f);
+
+//Lock/unlock the field (note the threading)
+float *fieldDataLock(field *in_f, error **out_err);
+error *fieldDataUnlock(field *in_f);
 
 //Sends a field over the network.
 //	srcPlane and dstPlane are teh source and destination plane.

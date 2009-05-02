@@ -7,6 +7,7 @@
 #define FIELD_PVT_H
 
 #include "field.h"
+#include <pthread.h>
 
 struct field
 {
@@ -31,6 +32,9 @@ struct field
 	//Receive handler and object...
 	fieldReceiveHandler m_receiveHandler;
 	void *m_receiveObj;
+	
+	//Data lock...
+	pthread_mutex_t r_dataLock;
 };
 
 #endif

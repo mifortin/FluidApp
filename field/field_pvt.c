@@ -15,6 +15,9 @@
 void fieldFree(void *in_o)
 {
 	field *in_f = (field*)in_o;
+	
+	pthread_mutex_destroy(&in_f->r_dataLock);
+	
 	if (in_f->r_data.f)
 		free(in_f->r_data.f);
 }
@@ -51,6 +54,9 @@ error *fieldHandleData(protocol *in_proto,
 					* in_f->m_components + in_f->m_prevC;
 	
 	
+	if (pthread_mutex_lock(&in_f->r_dataLock) != 0)
+		return errorCreate(NULL, error_thread, "Failed locking field");
+	
 	while (in_size > 0)
 	{
 		short *d = (short*)dstPtr;
@@ -72,9 +78,18 @@ error *fieldHandleData(protocol *in_proto,
 			in_f->m_prevY++;
 			
 			if (in_f->m_prevY == in_f->m_height)
+			{
 				in_f->m_prevY = 0;
+				
+				error *e = in_f->m_receiveHandler(in_f, in_f->m_prevC,
+												  in_f->m_receiveObj);
+				if (e) return e;
+			}
 		}
 	}
+	
+	if (pthread_mutex_unlock(&in_f->r_dataLock) != 0)
+		return errorCreate(NULL, error_thread, "Failed unlocking field");
 	
 	return NULL;
 }
@@ -95,19 +110,19 @@ field *fieldCreate(protocol *in_proto,
 		return NULL;
 	}
 	
+	if (pthread_mutex_init(&toRet->r_dataLock, NULL) != 0)
+	{
+		x_free(toRet);
+		*out_err = errorCreate(NULL , error_thread, "Failed creating locks");
+		return NULL;
+	}
+	
 	toRet->r_data.f = NULL;
 	toRet->r_data.f = malloc(numData);
 	if (toRet->r_data.f == NULL)
 	{
 		x_free(toRet);
 		*out_err = errorCreate(NULL, error_memory, "Failed creating field data");
-		return NULL;
-	}
-	
-	*out_err = protocolAdd(in_proto, 'feld', toRet, fieldHandleData);
-	if (*out_err)
-	{
-		x_free(toRet);
 		return NULL;
 	}
 	
@@ -121,6 +136,13 @@ field *fieldCreate(protocol *in_proto,
 	toRet->m_prevC = 0;
 	
 	memset(toRet->r_data.i, 0, numData);
+	
+	*out_err = protocolAdd(in_proto, 'feld', toRet, fieldHandleData);
+	if (*out_err)
+	{
+		x_free(toRet);
+		return NULL;
+	}
 	
 	return toRet;
 }
@@ -138,6 +160,25 @@ int fieldHeight(field *in_f)
 int fieldComponents(field *in_f)
 {
 	return in_f->m_components;
+}
+
+float *fieldDataLock(field *in_f, error **out_err)
+{
+	if (pthread_mutex_lock(&in_f->r_dataLock) != 0)
+	{
+		*out_err = errorCreate(NULL, error_net, "Failed locking field");
+		return NULL;
+	}
+	
+	return in_f->r_data.f;
+}
+
+error *fieldDataUnlock(field *in_f)
+{
+	if (pthread_mutex_unlock(&in_f->r_dataLock) != 0)
+		return errorCreate(NULL, error_net, "Failed unlocking field");
+	
+	return NULL;
 }
 
 float *fieldData(field *in_f)
@@ -171,6 +212,9 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 	if (in_srcPlane < 0 || in_srcPlane >= in_f->m_components)
 		return errorCreate(NULL, error_flags, "This field doesn't have plane %i",
 											in_srcPlane);
+	
+	if (pthread_mutex_lock(&in_f->r_dataLock) != 0)
+		return errorCreate(NULL, error_thread, "Failed locking field");
 	
 	//Network overhead is greater...
 	int maxProtoSize;
@@ -221,6 +265,8 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 		ptr += in_f->m_components;
 	}
 	
+	pthread_mutex_unlock(&in_f->r_dataLock);
+	
 	return protocolUnlockAndSendBuffer(in_f->m_proto, 'feld', protoUsed);
 }
 
@@ -229,6 +275,14 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 error *fieldSetReceiveHandler(field *in_f, void *in_obj,
 							  fieldReceiveHandler in_rh)
 {
+	if (pthread_mutex_lock(&in_f->r_dataLock) != 0)
+		return errorCreate(NULL, error_thread, "Failed locking field");
+		
+	in_f->m_receiveHandler = in_rh;
+	in_f->m_receiveObj = in_obj;
+	
+	if (pthread_mutex_unlock(&in_f->r_dataLock) != 0)
+		return errorCreate(NULL, error_thread, "Failed unlocking field");
 	
 	return NULL;
 }

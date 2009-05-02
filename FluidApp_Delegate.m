@@ -35,6 +35,13 @@ error *myFloatHandler(protocolFloat *in_f, int in_id, void *in_o)
 	return NULL;
 }
 
+error *myFieldHandler(field *in_f, int in_id, void *in_o)
+{
+	printf("GOT A MATRIX (%i)!!!\n\n", in_id);
+	
+	return NULL;
+}
+
 
 @implementation FluidApp_Delegate
 	
@@ -45,6 +52,52 @@ error *myFloatHandler(protocolFloat *in_f, int in_id, void *in_o)
 		{
 			allObjs = [[NSMutableArray alloc] initWithCapacity:10];
 			[i_logView setEditable:NO];
+		}
+		
+		if (r_view == nil)
+		{
+			NSOpenGLPixelFormatAttribute attribs[] =
+			{
+				NSOpenGLPFAAlphaSize, 8,
+				NSOpenGLPFADepthSize, 16,
+				NSOpenGLPFADoubleBuffer, YES,
+				0, 0
+			};
+			
+			NSOpenGLPixelFormat *pf = [[NSOpenGLPixelFormat alloc]
+									   initWithAttributes:attribs];
+			
+			if (pf == nil)
+			{
+				NSLog(@"Failed creating pixel format");
+				return;
+			}
+			
+			r_view = [[NSOpenGLView alloc]
+					  initWithFrame:[i_window frame]
+					  pixelFormat: pf];
+			Release(pf);
+			
+			if (r_view == nil)
+			{
+				NSLog(@"Unable to create GL View");
+				return;
+			}
+			
+			m_context = [r_view openGLContext];
+			
+			[i_window setContentView:r_view];
+			
+			r_timer = [NSTimer scheduledTimerWithTimeInterval:1.0f/120.0f
+													   target:self
+													 selector:@selector(onFrame:)
+													 userInfo: nil
+													  repeats:YES];
+			[r_timer retain];
+			
+			
+			[m_context makeCurrentContext];
+			glGenTextures(1, &r_texture);
 		}
 	}
 	
@@ -200,8 +253,9 @@ error *myFloatHandler(protocolFloat *in_f, int in_id, void *in_o)
 		r_pf = protocolFloatCreate(r_proto, 10, NULL,
 											   NULL, &err);
 		protocolFloatSetChangeHandler(r_pf, self, myFloatHandler);
-		fieldCreate(r_proto, 512, 512, 16, NULL, NULL, &err);
+		r_field = fieldCreate(r_proto, 512, 512, 16, NULL, NULL, &err);
 		
+		fieldSetReceiveHandler(r_field, self, myFieldHandler);
 		
 		for (x=0; x<10; x++)
 		{
@@ -262,6 +316,28 @@ error *myFloatHandler(protocolFloat *in_f, int in_id, void *in_o)
 		
 		glClear(GL_COLOR_BUFFER_BIT);
 		
+		error *err;
+		float *d = fieldDataLock(r_field, &err);
+		
+		glBindTexture(GL_TEXTURE_2D, r_texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_FLOAT, d);
+		glEnable(GL_TEXTURE_2D);
+		
+		glColor4f(1,1,1,1);
+		
+		glBegin(GL_QUADS);
+		glTexCoord2f(0,0);
+		glVertex3f(-1, -1, 0);
+		glTexCoord2f(1,0);
+		glVertex3f(1, -1, 0);
+		glTexCoord2f(1,1);
+		glVertex3f(1, 1, 0);
+		glTexCoord2f(0,1);
+		glVertex3f(-1, 1, 0);
+		glEnd();
+		
+		fieldDataUnlock(r_field);
+		
 		[m_context flushBuffer];
 	}
 
@@ -273,47 +349,7 @@ error *myFloatHandler(protocolFloat *in_f, int in_id, void *in_o)
 
 	- (void)windowDidBecomeMain:(NSNotification *)aNotification
 	{
-		if (r_view == nil)
-		{
-			NSOpenGLPixelFormatAttribute attribs[] =
-				{
-					NSOpenGLPFAAlphaSize, 8,
-					NSOpenGLPFADepthSize, 16,
-					NSOpenGLPFADoubleBuffer, YES,
-					0, 0
-				};
-				
-			NSOpenGLPixelFormat *pf = [[NSOpenGLPixelFormat alloc]
-										initWithAttributes:attribs];
-			
-			if (pf == nil)
-			{
-				NSLog(@"Failed creating pixel format");
-				return;
-			}
-			
-			r_view = [[NSOpenGLView alloc]
-						initWithFrame:[i_window frame]
-						pixelFormat: pf];
-			Release(pf);
-			
-			if (r_view == nil)
-			{
-				NSLog(@"Unable to create GL View");
-				return;
-			}
-			
-			m_context = [r_view openGLContext];
-			
-			[i_window setContentView:r_view];
-			
-			r_timer = [NSTimer scheduledTimerWithTimeInterval:1.0f/120.0f
-								target:self
-								selector:@selector(onFrame:)
-								userInfo: nil
-								repeats:YES];
-			[r_timer retain];
-		}
+		
 	}
 	
 	

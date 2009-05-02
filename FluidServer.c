@@ -71,12 +71,14 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	
 	protocolSetReadyState(p);
 	
-	int *t = (int*)fieldData(f);
-	
+	int *t = (int*)fieldDataLock(f, &pError);
 	int x;
 	for (x=0; x<512*512*16; x++)
-		t[x] = rand();
+		t[x] = 0;
 	
+	fieldDataUnlock(f);
+	
+	fieldSend(f, 0, 0, 9);
 	fieldSend(f, 1, 1, 9);
 	
 	if (p == NULL)

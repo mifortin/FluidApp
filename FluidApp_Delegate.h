@@ -7,6 +7,8 @@
 
 #include "protocol.h"
 #import "X_SimpleNumber.h"
+#include "field.h"
+#include <OpenGL/gl.h>
 
 @interface FluidApp_Delegate : NSObject
 {
@@ -25,6 +27,7 @@
 	
 	protocol *r_proto;
 	protocolFloat *r_pf;
+	field *r_field;
 	
 	IBOutlet NSView *i_sideBar;
 	IBOutlet NSView *i_logBar;
@@ -35,6 +38,8 @@
 	
 	//These are loaded dynamically
 	IBOutlet X_SimpleNumber *i_simpleNumber;
+	
+	GLuint r_texture;
 }
 
 - (IBAction)onSave:(id)in_src;
