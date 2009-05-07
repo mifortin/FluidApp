@@ -84,6 +84,13 @@
 		27A661E10F64292E009AC619 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
 		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		27A662FB0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
+		27BD78E60FB10B450077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
+		27BD78E70FB10B450077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
+		27BD791E0FB111C60077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
+		27BD79250FB112070077C0B0 /* FluidTest.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD79240FB112070077C0B0 /* FluidTest.c */; };
+		27D59C5C0FB22CB200A56651 /* halfV.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D59C5B0FB22CB200A56651 /* halfV.c */; };
+		27D59C5D0FB22CB200A56651 /* halfV.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D59C5B0FB22CB200A56651 /* halfV.c */; };
+		27D59C5E0FB22CB200A56651 /* halfV.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D59C5B0FB22CB200A56651 /* halfV.c */; };
 		4C7307A40F9BDA4300C6D0BD /* X_NumberFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */; };
 		4C7307C60F9BFC5E00C6D0BD /* FluidNumber.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C7307C40F9BFC5E00C6D0BD /* FluidNumber.nib */; };
 		4C8B36390F9E9F2D005D64F4 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
@@ -208,6 +215,11 @@
 		27A662F80F645E8D009AC619 /* netClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = netClient.h; sourceTree = "<group>"; };
 		27A662F90F645E8D009AC619 /* netClient.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netClient.c; sourceTree = "<group>"; };
 		27A665030F64A527009AC619 /* field.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = field.h; sourceTree = "<group>"; };
+		27BD78E40FB10B450077C0B0 /* half.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = half.h; sourceTree = "<group>"; };
+		27BD78E50FB10B450077C0B0 /* half.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = half.c; sourceTree = "<group>"; };
+		27BD79190FB111930077C0B0 /* FluidTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FluidTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		27BD79240FB112070077C0B0 /* FluidTest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = FluidTest.c; sourceTree = "<group>"; };
+		27D59C5B0FB22CB200A56651 /* halfV.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = halfV.c; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* FluidApp_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_main.m; sourceTree = "<group>"; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidApp.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -251,6 +263,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		27BD79170FB111930077C0B0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072E0486CEB800E47090 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -268,6 +287,7 @@
 			children = (
 				8D1107320486CEB800E47090 /* FluidApp.app */,
 				272D26B80F62DF23004E794A /* FluidServer */,
+				27BD79190FB111930077C0B0 /* FluidTest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -406,9 +426,28 @@
 			path = field;
 			sourceTree = "<group>";
 		};
+		27BD78E30FB10B080077C0B0 /* half */ = {
+			isa = PBXGroup;
+			children = (
+				27BD78E40FB10B450077C0B0 /* half.h */,
+				27BD78E50FB10B450077C0B0 /* half.c */,
+				27D59C5B0FB22CB200A56651 /* halfV.c */,
+			);
+			name = half;
+			sourceTree = "<group>";
+		};
+		27BD79140FB1113A0077C0B0 /* FluidTest */ = {
+			isa = PBXGroup;
+			children = (
+				27BD79240FB112070077C0B0 /* FluidTest.c */,
+			);
+			name = FluidTest;
+			sourceTree = "<group>";
+		};
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				27BD78E30FB10B080077C0B0 /* half */,
 				27A18BA10F66F6070023F24B /* error */,
 				27A665020F64A473009AC619 /* field */,
 				27A18C510F67287E0023F24B /* fluid */,
@@ -420,6 +459,7 @@
 				275CE8780F700B2400CA815C /* protocol */,
 				272D26D30F62DFE5004E794A /* FluidServer */,
 				29B97315FDCFA39411CA2CEA /* FluidApp */,
+				27BD79140FB1113A0077C0B0 /* FluidTest */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
 			name = FluidApp;
@@ -514,6 +554,22 @@
 			productReference = 272D26B80F62DF23004E794A /* FluidServer */;
 			productType = "com.apple.product-type.tool";
 		};
+		27BD79180FB111930077C0B0 /* FluidTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 27BD791B0FB111B20077C0B0 /* Build configuration list for PBXNativeTarget "FluidTest" */;
+			buildPhases = (
+				27BD79160FB111930077C0B0 /* Sources */,
+				27BD79170FB111930077C0B0 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FluidTest;
+			productName = FluidTest;
+			productReference = 27BD79190FB111930077C0B0 /* FluidTest */;
+			productType = "com.apple.product-type.tool";
+		};
 		8D1107260486CEB800E47090 /* FluidApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "FluidApp" */;
@@ -547,6 +603,7 @@
 			targets = (
 				8D1107260486CEB800E47090 /* FluidApp */,
 				272D26B70F62DF23004E794A /* FluidServer */,
+				27BD79180FB111930077C0B0 /* FluidTest */,
 			);
 		};
 /* End PBXProject section */
@@ -619,6 +676,18 @@
 				4CFA696F0FAA952000E6847C /* fluid_cpuCore.c in Sources */,
 				4CFA69700FAA952000E6847C /* fluid_jacobi.c in Sources */,
 				4CFA69710FAA952000E6847C /* fluid_jacobi_error.c in Sources */,
+				27BD78E70FB10B450077C0B0 /* half.c in Sources */,
+				27D59C5E0FB22CB200A56651 /* halfV.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		27BD79160FB111930077C0B0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27BD791E0FB111C60077C0B0 /* half.c in Sources */,
+				27BD79250FB112070077C0B0 /* FluidTest.c in Sources */,
+				27D59C5C0FB22CB200A56651 /* halfV.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -679,6 +748,8 @@
 				4CFA696B0FAA952000E6847C /* fluid_cpuCore.c in Sources */,
 				4CFA696C0FAA952000E6847C /* fluid_jacobi.c in Sources */,
 				4CFA696D0FAA952000E6847C /* fluid_jacobi_error.c in Sources */,
+				27BD78E60FB10B450077C0B0 /* half.c in Sources */,
+				27D59C5D0FB22CB200A56651 /* halfV.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -746,6 +817,36 @@
 				INSTALL_PATH = "$(HOME)/bin";
 				PREBINDING = NO;
 				PRODUCT_NAME = FluidServer;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		27BD791C0FB111B20077C0B0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = "$(HOME)/bin";
+				PREBINDING = NO;
+				PRODUCT_NAME = FluidTest;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		27BD791D0FB111B20077C0B0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = "$(HOME)/bin";
+				PREBINDING = NO;
+				PRODUCT_NAME = FluidTest;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -834,6 +935,15 @@
 			buildConfigurations = (
 				272D26C00F62DF5F004E794A /* Debug */,
 				272D26C10F62DF5F004E794A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		27BD791B0FB111B20077C0B0 /* Build configuration list for PBXNativeTarget "FluidTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27BD791C0FB111B20077C0B0 /* Debug */,
+				27BD791D0FB111B20077C0B0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

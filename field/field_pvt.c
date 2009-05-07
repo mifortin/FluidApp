@@ -5,8 +5,8 @@
 
 #include "field_pvt.h"
 #include "memory.h"
+#include "half.h"
 
-#include <zlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,14 +29,14 @@ error *fieldHandleData(protocol *in_proto,
 								void *in_data)
 {
 	field *in_f = (field*)in_pvt;
-	short *s_data = (short*)in_data;
+	float16 *s_data = (float16*)in_data;
 	
 	//Just started receiving - read in the headers...
 	if (in_f->m_prevX == 0 && in_f->m_prevY == 0)
 	{
 		if (s_data[1] != in_f->m_width ||
 			s_data[2] != in_f->m_height ||
-			s_data[3] < 0 || s_data[3] >= in_f->m_components)
+			s_data[3] >= in_f->m_components)
 			return errorCreate(NULL, error_net, "Invalid field headers");
 		
 		//printf("%i %i %i\n",in_f->m_prevC, s_data[3], in_f->m_components);
@@ -50,7 +50,7 @@ error *fieldHandleData(protocol *in_proto,
 	
 	in_size/=sizeof(short);
 	
-	int *dstPtr = in_f->r_data.i + (in_f->m_prevX +  in_f->m_prevY * in_f->m_width)
+	float *dstPtr = in_f->r_data.f + (in_f->m_prevX +  in_f->m_prevY * in_f->m_width)
 					* in_f->m_components + in_f->m_prevC;
 	
 	
@@ -59,12 +59,7 @@ error *fieldHandleData(protocol *in_proto,
 	
 	while (in_size > 0)
 	{
-		short *d = (short*)dstPtr;
-		
-		//Cram into d[0] and d[1].
-		d[0] = (s_data[0] & 0x8000)		//Copy the sign
-				| ((s_data[0] >> 3) & 0x0FFF);	//First part of exponent.
-		d[1] = ((s_data[0] << 13) & 0xE000);
+		*dstPtr = half2float(s_data[0]);
 		
 		dstPtr += in_f->m_components;
 		s_data++;
@@ -188,27 +183,7 @@ float *fieldData(field *in_f)
 
 
 error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
-{
-	//Let the compiler handle this...
-	const short opt[16] = {
-		0xFFFF,		//0000
-		0xFFFF,		//0001
-		0xFFFF,		//0010
-		0xFFFF,		//0011
-		0xFFFF,		//0100
-		0xFFFF,		//0101
-		0xFFFF,		//0110
-		0xFFFF,		//0111
-		0xFFFF,		//1000
-		0xFB00,		//1001
-		0xFB00,		//1010
-		0xFB00,		//1011
-		0xFB00,		//1100
-		0xFB00,		//1101
-		0xFB00,		//1110
-		0xFB00,		//1111
-	};
-	
+{	
 	if (in_srcPlane < 0 || in_srcPlane >= in_f->m_components)
 		return errorCreate(NULL, error_flags, "This field doesn't have plane %i",
 											in_srcPlane);
@@ -218,7 +193,7 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 	
 	//Network overhead is greater...
 	int maxProtoSize;
-	short *buffer;
+	float16 *buffer;
 	error *err = protocolLockBuffer(in_f->m_proto, &maxProtoSize, (void**)&buffer);
 	if (err)	return err;
 	
@@ -233,7 +208,7 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 	
 	//Copy the data to our buffer (afterwards let the simulation run free!
 	//	Like the WIND!!!)
-	int *ptr = in_f->r_data.i + in_srcPlane;
+	float *ptr = in_f->r_data.f + in_srcPlane;
 	int x;
 	int tot = in_f->m_width * in_f->m_height;
 	for (x=0; x<tot; x++)
@@ -250,14 +225,10 @@ error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c)
 			protoUsed = 0;
 		}
 		
-		short *cur = (short*)ptr;
-		
 		//Now this ought to be interesting...
 		//	Needs different implementation on INTEL?
-		buffer[0] = (cur[0] & 0x8000) |
-					((cur[0] << 3) & 0x7FF8) |
-					((cur[1] >> 13) & 0x0007);
-		buffer[0] =  opt[(buffer[x] & 0x7B00) >> 10] & buffer[x];
+		buffer[0] = float2half(ptr[0]);
+		
 		buffer++;
 		
 		protoUsed += sizeof(short);

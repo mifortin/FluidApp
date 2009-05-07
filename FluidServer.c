@@ -71,15 +71,28 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	
 	protocolSetReadyState(p);
 	
-	int *t = (int*)fieldDataLock(f, &pError);
+	float *t = (float*)fieldDataLock(f, &pError);
 	int x;
 	for (x=0; x<512*512*16; x++)
-		t[x] = 0;
+		t[x] = 1;
+		
+
+	int y;
+	for (x=0; x<512; x++)
+	{
+		for (y=0; y<512; y++)
+		{
+			t[x*16 + y*512*16 + 0] = (float)x/512.0;
+			t[x*16 + y*512*16 + 1] = (float)y/512.0;
+			t[x*16 + y*512*16 + 2] = 0.5;
+		}
+	}
 	
 	fieldDataUnlock(f);
 	
 	fieldSend(f, 0, 0, 9);
 	fieldSend(f, 1, 1, 9);
+	fieldSend(f, 2, 2, 9);
 	
 	if (p == NULL)
 	{
@@ -121,7 +134,7 @@ int main(int argc, char *argv[])
 		float x;
 		int y;
 	} g;
-	g.x = 0.11;
+	g.x = 100.2;
 	
 	//Loop over and display each bit...
 	int k;
@@ -157,6 +170,8 @@ int main(int argc, char *argv[])
 					//	amt  * pow(2,((g.y >> 23) & 0x000000FF)- 127),
 						 ((g.y >> 23) & 0x000000FF)-127);
 						//(double)(g.y & 0x007FFFFF) * pow(2,(g.y >> 22) & 0x000000FF - 127));
+	
+	//return 0;
 	
 	printf("\n\nFluid Server Launching\n");
 	pthread_mutex_init(&m, NULL);

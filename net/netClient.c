@@ -16,6 +16,8 @@
 #include <netdb.h>
 #include <unistd.h>
 
+#include <stdio.h>
+
 #include "memory.h"
 
 
@@ -62,6 +64,7 @@ error *netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 	if (sel != 0)
 	{
 		*cnt = read(client->m_socket, base, bufferSize);
+		//printf(" [%i/%i] ", bufferSize, *cnt);
 	}
 	
 	if (*cnt == -1)
@@ -78,6 +81,7 @@ error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 	for (;;)
 	{
 		int curCnt = cnt - curRead;
+		//printf("Requesting %i -- ", curCnt);
 		
 		error *tmp = netClientReadBinary(client,
 							 (char*)dest + curRead, &curCnt, timeout);
@@ -90,10 +94,13 @@ error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 							   "Timed out while receiving data...");
 		else if (curCnt == 0)
 			return errorCreate(NULL, error_net,
-							   "Timed out while waiting for remaining data");
+				"Timed out while waiting for remaining data Got (%i/%i)",
+					curRead, cnt);
 		
 		curRead += curCnt;
-		if (curCnt == cnt)
+		//printf("Read %i (%i of %i)\n", curCnt, curRead, cnt);
+		//printf("Read %i (%i of %i)\n", curRead, cnt, curCnt);
+		if (curRead == cnt)
 			return NULL;
 	}
 }

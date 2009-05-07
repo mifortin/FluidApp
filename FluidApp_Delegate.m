@@ -253,7 +253,7 @@ error *myFieldHandler(field *in_f, int in_id, void *in_o)
 		r_pf = protocolFloatCreate(r_proto, 10, NULL,
 											   NULL, &err);
 		protocolFloatSetChangeHandler(r_pf, self, myFloatHandler);
-		r_field = fieldCreate(r_proto, 512, 512, 16, NULL, NULL, &err);
+		r_field = fieldCreate(r_proto, 512, 512, 3, NULL, NULL, &err);
 		
 		fieldSetReceiveHandler(r_field, self, myFieldHandler);
 		
@@ -317,26 +317,39 @@ error *myFieldHandler(field *in_f, int in_id, void *in_o)
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		error *err;
-		float *d = fieldDataLock(r_field, &err);
-		
-		glBindTexture(GL_TEXTURE_2D, r_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_FLOAT, d);
-		glEnable(GL_TEXTURE_2D);
-		
-		glColor4f(1,1,1,1);
-		
-		glBegin(GL_QUADS);
-		glTexCoord2f(0,0);
-		glVertex3f(-1, -1, 0);
-		glTexCoord2f(1,0);
-		glVertex3f(1, -1, 0);
-		glTexCoord2f(1,1);
-		glVertex3f(1, 1, 0);
-		glTexCoord2f(0,1);
-		glVertex3f(-1, 1, 0);
-		glEnd();
-		
-		fieldDataUnlock(r_field);
+		if (r_field)
+		{
+			float *d = fieldDataLock(r_field, &err);
+			
+			assert(glGetError() == GL_NO_ERROR);
+			glEnable(GL_TEXTURE_2D);
+			assert(glGetError() == GL_NO_ERROR);
+			glBindTexture(GL_TEXTURE_2D, r_texture);
+			assert(glGetError() == GL_NO_ERROR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_FLOAT, d);
+			assert(glGetError() == GL_NO_ERROR);
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+			assert(glGetError() == GL_NO_ERROR);
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+			
+			assert(glGetError() == GL_NO_ERROR);
+			
+			glColor4f(1,1,1,1);
+			glBindTexture(GL_TEXTURE_2D, r_texture);
+			
+			glBegin(GL_QUADS);
+			glTexCoord2f(0,0);
+			glVertex3f(-1, -1, 0);
+			glTexCoord2f(1,0);
+			glVertex3f(1, -1, 0);
+			glTexCoord2f(1,1);
+			glVertex3f(1, 1, 0);
+			glTexCoord2f(0,1);
+			glVertex3f(-1, 1, 0);
+			glEnd();
+			
+			fieldDataUnlock(r_field);
+		}
 		
 		[m_context flushBuffer];
 	}
