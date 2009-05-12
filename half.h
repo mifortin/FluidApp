@@ -24,6 +24,6 @@ void float2bin(float in_float);
 //
 //	Organized like the gZip library, but faster, and lossy!
 typedef struct halfV halfV;
-halfVState *halfVCreate();
+halfV *halfVCreate();
 
 #endif

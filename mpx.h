@@ -8,6 +8,8 @@
 
 #include "error.h"
 
+
+////////////////////////////////////////////////////////////////////////////////
 //File dealing with the general multiprocessing issues.  Namely, a wrapper
 //to protect pthread_mutexes at the moment.  Later on, multi-machine
 //abstractions may be dumped here...
@@ -23,6 +25,7 @@ error *mpMutexLock(mpMutex *in_m);
 error *mpMutexUnlock(mpMutex *in_m);
 
 
+////////////////////////////////////////////////////////////////////////////////
 //This is a port of the FXTaskSequence to C.  It's very annoying to do,
 //however this will simplify things in the long run.  (as long as I
 //can keep all these libraries seperate enough!)
@@ -51,4 +54,7 @@ error *mpTaskSetJoin(mpTaskSet *in_ts);
 error *mpTaskSetEnterCriticalSection(mpTaskSet *in_ts);
 error *mpTaskSetLeaveCriticalSection(mpTaskSet *in_ts);
 
+
+////////////////////////////////////////////////////////////////////////////////
+//
 #endif
