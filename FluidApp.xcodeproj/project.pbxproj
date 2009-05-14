@@ -91,6 +91,12 @@
 		27D59C5C0FB22CB200A56651 /* halfV.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D59C5B0FB22CB200A56651 /* halfV.c */; };
 		27D59C5D0FB22CB200A56651 /* halfV.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D59C5B0FB22CB200A56651 /* halfV.c */; };
 		27D59C5E0FB22CB200A56651 /* halfV.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D59C5B0FB22CB200A56651 /* halfV.c */; };
+		4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */; };
+		4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */; };
+		4C1BA6840FBC6EC400A74684 /* FluidZip.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C1BA6830FBC6EC400A74684 /* FluidZip.nib */; };
+		4C1BA6930FBC6F9A00A74684 /* FluidZip_Window.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */; };
+		4C1BA69A0FBC709800A74684 /* FluidZip_Window.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6990FBC709800A74684 /* FluidZip_Window.m */; };
+		4C1BA6B70FBC720800A74684 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		4C7307A40F9BDA4300C6D0BD /* X_NumberFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */; };
 		4C7307C60F9BFC5E00C6D0BD /* FluidNumber.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C7307C40F9BFC5E00C6D0BD /* FluidNumber.nib */; };
 		4C8B36390F9E9F2D005D64F4 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
@@ -225,6 +231,15 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
+		4C1BA6700FBC6D3900A74684 /* FluidZip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidZip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4C1BA6720FBC6D3A00A74684 /* FluidZip-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FluidZip-Info.plist"; sourceTree = "<group>"; };
+		4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_main.m; sourceTree = "<group>"; };
+		4C1BA67F0FBC6EA300A74684 /* FluidZip_Delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidZip_Delegate.h; sourceTree = "<group>"; };
+		4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Delegate.m; sourceTree = "<group>"; };
+		4C1BA6830FBC6EC400A74684 /* FluidZip.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = FluidZip.nib; sourceTree = "<group>"; };
+		4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = FluidZip_Window.nib; sourceTree = "<group>"; };
+		4C1BA6980FBC709800A74684 /* FluidZip_Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidZip_Window.h; sourceTree = "<group>"; };
+		4C1BA6990FBC709800A74684 /* FluidZip_Window.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Window.m; sourceTree = "<group>"; };
 		4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_NumberFormatter.h; sourceTree = "<group>"; };
 		4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_NumberFormatter.m; sourceTree = "<group>"; };
 		4C7307C50F9BFC5E00C6D0BD /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidNumber.nib; sourceTree = "<group>"; };
@@ -270,6 +285,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4C1BA66E0FBC6D3900A74684 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C1BA6B70FBC720800A74684 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072E0486CEB800E47090 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -288,6 +311,7 @@
 				8D1107320486CEB800E47090 /* FluidApp.app */,
 				272D26B80F62DF23004E794A /* FluidServer */,
 				27BD79190FB111930077C0B0 /* FluidTest */,
+				4C1BA6700FBC6D3900A74684 /* FluidZip.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -460,6 +484,7 @@
 				272D26D30F62DFE5004E794A /* FluidServer */,
 				29B97315FDCFA39411CA2CEA /* FluidApp */,
 				27BD79140FB1113A0077C0B0 /* FluidTest */,
+				4C1BA66A0FBC6D0E00A74684 /* FluidZip */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
 			name = FluidApp;
@@ -504,6 +529,21 @@
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4C1BA66A0FBC6D0E00A74684 /* FluidZip */ = {
+			isa = PBXGroup;
+			children = (
+				4C1BA6830FBC6EC400A74684 /* FluidZip.nib */,
+				4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */,
+				4C1BA6720FBC6D3A00A74684 /* FluidZip-Info.plist */,
+				4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */,
+				4C1BA67F0FBC6EA300A74684 /* FluidZip_Delegate.h */,
+				4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */,
+				4C1BA6980FBC709800A74684 /* FluidZip_Window.h */,
+				4C1BA6990FBC709800A74684 /* FluidZip_Window.m */,
+			);
+			name = FluidZip;
 			sourceTree = "<group>";
 		};
 		4C8B362C0F9E9BEA005D64F4 /* mp */ = {
@@ -570,6 +610,23 @@
 			productReference = 27BD79190FB111930077C0B0 /* FluidTest */;
 			productType = "com.apple.product-type.tool";
 		};
+		4C1BA66F0FBC6D3900A74684 /* FluidZip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4C1BA6750FBC6D3B00A74684 /* Build configuration list for PBXNativeTarget "FluidZip" */;
+			buildPhases = (
+				4C1BA66C0FBC6D3900A74684 /* Resources */,
+				4C1BA66D0FBC6D3900A74684 /* Sources */,
+				4C1BA66E0FBC6D3900A74684 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FluidZip;
+			productName = FluidZip;
+			productReference = 4C1BA6700FBC6D3900A74684 /* FluidZip.app */;
+			productType = "com.apple.product-type.application";
+		};
 		8D1107260486CEB800E47090 /* FluidApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "FluidApp" */;
@@ -604,11 +661,21 @@
 				8D1107260486CEB800E47090 /* FluidApp */,
 				272D26B70F62DF23004E794A /* FluidServer */,
 				27BD79180FB111930077C0B0 /* FluidTest */,
+				4C1BA66F0FBC6D3900A74684 /* FluidZip */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4C1BA66C0FBC6D3900A74684 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C1BA6840FBC6EC400A74684 /* FluidZip.nib in Resources */,
+				4C1BA6930FBC6F9A00A74684 /* FluidZip_Window.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D1107290486CEB800E47090 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -688,6 +755,16 @@
 				27BD791E0FB111C60077C0B0 /* half.c in Sources */,
 				27BD79250FB112070077C0B0 /* FluidTest.c in Sources */,
 				27D59C5C0FB22CB200A56651 /* halfV.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4C1BA66D0FBC6D3900A74684 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */,
+				4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */,
+				4C1BA69A0FBC709800A74684 /* FluidZip_Window.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -851,6 +928,54 @@
 			};
 			name = Release;
 		};
+		4C1BA6730FBC6D3B00A74684 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INFOPLIST_FILE = "FluidZip-Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = FluidZip;
+			};
+			name = Debug;
+		};
+		4C1BA6740FBC6D3B00A74684 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INFOPLIST_FILE = "FluidZip-Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = FluidZip;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -944,6 +1069,15 @@
 			buildConfigurations = (
 				27BD791C0FB111B20077C0B0 /* Debug */,
 				27BD791D0FB111B20077C0B0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4C1BA6750FBC6D3B00A74684 /* Build configuration list for PBXNativeTarget "FluidZip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C1BA6730FBC6D3B00A74684 /* Debug */,
+				4C1BA6740FBC6D3B00A74684 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
