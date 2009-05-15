@@ -160,8 +160,8 @@
 	//Loop through the data accumulating curvature.  Once curvature change
 	//exceeds a given threshold (on any component) create an entry.
 	int memUsageReal = 0;
-	float threshold = 60*bpp;
-	float minThresh = 100*bpp;
+	float threshold = 40*bpp;
+	float minThresh = 20*bpp;
 	
 	for (y=0; y<h; y++)
 	{
@@ -209,13 +209,30 @@
 			
 			if (needToWork)
 			{
+				if (x != w-1 && indices[indices[y*w] + y*w] < x-2)
+				{
+					indices[y*w]++;
+					int ci = indices[y*w];
+					
+					indices[y*w+ci] = x-1;
+					for (z=0; z<bpp; z++)
+					{
+						data[ci*bpp + y*bpp*w + z] = s[(x-1)*bpp + y*bpp*w + z];
+						cmp[z] = 0;
+					}
+					
+					memUsageReal += sizeof(int) + bpp*sizeof(float);
+				}
+				
+				int nx = (x == w-1)?x:x+1;
+				
 				indices[y*w]++;
 				int ci = indices[y*w];
 				
-				indices[y*w+ci] = x;
+				indices[y*w+ci] = nx;
 				for (z=0; z<bpp; z++)
 				{
-					data[ci*bpp + y*bpp*w + z] = s[x*bpp + y*bpp*w + z];
+					data[ci*bpp + y*bpp*w + z] = s[nx*bpp + y*bpp*w + z];
 					cmp[z] = 0;
 				}
 				
@@ -250,9 +267,9 @@
 						(scaleF)*data[x*bpp + y*bpp*w + z]
 						+ (1-scaleF)*data[(x-1)*bpp + y*bpp*w + z];
 					
-					if (x2 == prevX)
+					if (x2 == prevX && z != 3)
 					{
-						d[z + x2*bpp + y*bpp*w] = 0;
+						//d[z + x2*bpp + y*bpp*w] = 0;
 					}
 				}
 			}
