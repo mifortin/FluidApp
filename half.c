@@ -21,24 +21,33 @@ union half_bits
 	unsigned char c[4];
 };
 
+//Macros for portability...
+#if __LITTLE_ENDIAN__
+	#define BP_LEFT		1
+	#define BP_RIGHT	0
+#else
+	#define BP_LEFT		0
+	#define BP_RIGHT	1
+#endif
+
 //Convert a float to a half-float  (scalar)
 float16 float2half(float in_float)
 {
 	half_bits hb;
 	hb.f = in_float;
 	
-	short mantissa = (hb.s[0] >> 7) & 0x00FF;
+	short mantissa = (hb.s[BP_LEFT] >> 7) & 0x00FF;
 	mantissa += 16-127;
 	if (mantissa < 0)
 		return 0;
 	
 	if (mantissa > 32)
-		return (hb.s[0] & 0x8000) | (0xAFFF);
+		return (hb.s[BP_LEFT] & 0x8000) | (0xAFFF);
 	
-	return		(hb.s[0] & 0x8000)			//Sign bit		(1 bits)
-			|	((mantissa << 10) & 0x7C00)	//Mantissa		(5 bits)
-			|	((hb.s[0] << 3) & 0x03F8)	//Significand	(7 bits)
-			|	((hb.s[1] >> 13) & 0x0007);	//Significand	(3 bits)
+	return		(hb.s[BP_LEFT] & 0x8000)			//Sign bit		(1 bits)
+			|	((mantissa << 10) & 0x7C00)			//Mantissa		(5 bits)
+			|	((hb.s[BP_LEFT] << 3) & 0x03F8)		//Significand	(7 bits)
+			|	((hb.s[BP_RIGHT] >> 13) & 0x0007);	//Significand	(3 bits)
 }
 
 //Convert a half-float to a float  (scalar)
@@ -59,10 +68,10 @@ float half2float(float16 in_half)
 	mantissa += 127 - 16;
 	
 	half_bits hb;
-	hb.s[0] =		(in_half & 0x8000)			//Sign bit		(1 bits)
-				|	((mantissa << 7) & 0x7F80)	//Mantissa		(8 bits)
-				|	((in_half >> 3) & 0x007F);	//Significand	(7 bits)
-	hb.s[1] =		(in_half << 13) & 0xFFFF;	//Significand	(16 bits)
+	hb.s[BP_LEFT] =		(in_half & 0x8000)				//Sign bit		(1 bits)
+				|	((mantissa << 7) & 0x7F80)			//Mantissa		(8 bits)
+				|	((in_half >> 3) & 0x007F);			//Significand	(7 bits)
+	hb.s[BP_RIGHT] =		(in_half << 13) & 0xFFFF;	//Significand	(16 bits)
 	
 	return hb.f;
 }
