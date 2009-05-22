@@ -119,21 +119,6 @@
 	float *deriv = malloc(sizeof(float)*w*h*bpp);
 	float *curv = malloc(sizeof(float)*w*h*bpp);
 	
-	//Try cleaning the results?
-	for (y=0; y<h; y++)
-	{
-		for (x=1; x<w-1; x++)
-		{
-			for (z=0; z<bpp; z++)
-			{
-				float avg = (s[z+(x-1)*bpp+y*bpp*w]+s[z+(x+1)*bpp+y*bpp*w])/2.0f;
-				
-				//If the resulting color is near... then replace with avg...
-				//if (fabs(avg - s[z+(x)*bpp+y*bpp*w]) < 20.0f)
-					s[z+(x)*bpp+y*bpp*w] = avg;
-			}
-		}
-	}
 	
 	//First, compute the curvature...
 	for (y=0; y<h; y++)
@@ -143,49 +128,11 @@
 			for (z=0; z<bpp; z++)
 			{
 				if (x== 0 || x == w-1)
-					curv[z + x*bpp + y*bpp*w] = s[z + x*bpp + y*bpp*w];
+					curv[z + x*bpp + y*bpp*w] = 0;
 				else
 				{
-					deriv[z + x*bpp + y*bpp*w] = ((float)s[z + (x+1)*bpp + y*bpp*w] - 
+					deriv[z + x*bpp + y*bpp*w] = ((float)s[z + (x+0)*bpp + y*bpp*w] - 
 												 (float)s[z + (x-1)*bpp + y*bpp*w]);
-					
-					if (y != 0 && y!= h-1)
-					{
-						deriv[z + x*bpp + y*bpp*w] += ((float)s[z + (x)*bpp + (y+1)*bpp*w] - 
-													  (float)s[z + (x)*bpp + (y-1)*bpp*w]);
-					}
-				}
-			}
-		}
-		
-		for (x=0; x<w; x++)
-		{
-			for (z=0; z<bpp; z++)
-			{
-				if (x== 0 || x == w-1)
-					curv[z + x*bpp + y*bpp*w] = s[z + x*bpp + y*bpp*w];
-				else
-				{
-					
-					if (fabs(deriv[z + (x+1)*bpp + y*bpp*w]) < 5.0f
-						&& fabs(deriv[z + (x-1)*bpp + y*bpp*w]) < 5.0f)
-						deriv[z + x*bpp + y*bpp*w] = 0.0f;
-				}
-			}
-		}
-		
-		for (x=0; x<w; x++)
-		{
-			for (z=0; z<bpp; z++)
-			{
-				if (x== 0 || x == w-1)
-					curv[z + x*bpp + y*bpp*w] = s[z + x*bpp + y*bpp*w];
-				else
-				{
-					
-					if (fabs(deriv[z + (x+1)*bpp + y*bpp*w]) < 5.0f
-						&& fabs(deriv[z + (x-1)*bpp + y*bpp*w]) < 5.0f)
-						deriv[z + x*bpp + y*bpp*w] = 0.0f;
 				}
 			}
 		}
@@ -194,13 +141,8 @@
 		{
 			for (z=0; z<bpp; z++)
 			{
-				curv[z + x*bpp + y*bpp*w] = (deriv[z + (x+1)*bpp + y*bpp*w] - 
+				curv[z + x*bpp + y*bpp*w] = (deriv[z + (x+0)*bpp + y*bpp*w] - 
 										  deriv[z + (x-1)*bpp + y*bpp*w]);
-				if (y != 0 && y!= h-1)
-				{
-					curv[z + x*bpp + y*bpp*w] += (deriv[z + (x)*bpp + (y+1)*bpp*w] - 
-												 deriv[z + (x)*bpp + (y-1)*bpp*w]);
-				}
 			}
 		}
 	}
@@ -208,17 +150,17 @@
 	//Loop through the data accumulating curvature.  Once curvature change
 	//exceeds a given threshold (on any component) create an entry.
 	int memUsageReal = 0;
-//	float threshold = 40*bpp;
-//	float minThresh = 20*bpp;
+	int mem8bit = 0;
 	
 	for (y=0; y<h; y++)
 	{
 		float cmp[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		indices[y*w] = 0;
 		for (z=0; z<bpp; z++)
-			data[y*bpp*w + z] = curv[y*bpp*w + z];
+			data[y*bpp*w + z] = s[y*bpp*w + z];
 		
 		memUsageReal += sizeof(int) + bpp*sizeof(float);
+		mem8bit += sizeof(short) + sizeof(char)*bpp;
 		
 		int lastNeedToWork = 0;
 		int skippedWork = 0;
@@ -227,7 +169,6 @@
 		for (x=1; x<w; x++)
 		{
 			int needToWork = 0;
-			float sum = 0;
 			float simpleSum = 0;
 			for (z=0; z<bpp; z++)
 			{
@@ -237,43 +178,26 @@
 					simpleSum += abs(curv[z + (x+1)*bpp + y*bpp*w])
 							+ abs(curv[z + (x-1)*bpp + y*bpp*w]);
 				
-				if (y != 0)
-					cmp[z] += (curv[z + x*bpp + (y-1)*bpp*w])/2;
-				
-				if (y != h-1)
-					cmp[z] += (curv[z + x*bpp + (y+1)*bpp*w])/2;
-				
-				sum+=cmp[z];
-				
-//				if (abs(curv[z + (x-1)*bpp + y*bpp*w] - curv[z+x*bpp + y*bpp*w])
-//						> 16.0f)
-//					needToWork = 1;
-				
-//				if (abs(curv[z + x*bpp + y*bpp*w]) > 8.0f)
-//					needToWork = 1;
-				
-				//if (abs(cmp[z]) > threshold)
-				//	needToWork = 1;
+				if (abs(cmp[z]) > 4.0f)
+					needToWork = 1;
 				
 			}
-//			if (abs(simpleSum) > 8.0f)
-//				needToWork = 1;
-			if (abs(sum) > 16.0f)
-				needToWork = 1;
 			
-			if (skippedWork)
-				needToWork = 1;
-			
-			if (justDidWork == 1)
+			if (needToWork == 0 && justDidWork > 1)
+				justDidWork--;
+			else if (justDidWork == 1 && needToWork == 0)
 			{
 				justDidWork = -1;
 				needToWork = 1;
 			}
 			
+			if (skippedWork)
+				needToWork = 1;
+			
 			if (x == w-1)	needToWork = 1;
 			else
 			{
-				if (x < lastNeedToWork + 1 && needToWork)
+				if (x < lastNeedToWork + 0  && needToWork)
 				{
 					needToWork = 0;
 				
@@ -300,16 +224,17 @@
 				}
 				
 				memUsageReal += sizeof(int) + bpp*sizeof(float);
+				mem8bit += sizeof(short) + bpp;
 				
-				if (justDidWork == -1)
+				/*if (justDidWork == -1)
 					justDidWork = 0;
 				else
-					justDidWork = 1;
+					justDidWork = 3;*/
 			}
 		}
 	}
-	printf("Compressed 32-bit: %ikb\nPotential 16-bit: %ikb\n",
-				memUsageReal/1024, memUsageReal/2048);
+	printf("Compressed 32-bit: %ikb\nPotential 16-bit: %ikb\nPotential 8-bit: %ikb\n",
+				memUsageReal/1024, memUsageReal/2048, mem8bit/1024);
 	
 	//Display the results...
 	for (y=0; y<h; y++)
