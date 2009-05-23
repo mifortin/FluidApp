@@ -116,8 +116,21 @@
 	int *indices = malloc(sizeof(int)*w*h);
 	float *data = malloc(sizeof(float)*w*h*bpp);
 	
-	float *deriv = malloc(sizeof(float)*w*h*bpp);
-	float *curv = malloc(sizeof(float)*w*h*bpp);
+	float *deriv = malloc(sizeof(float)*w*h);
+	float *curv = malloc(sizeof(float)*w*h);
+	
+	
+	//First, clean up the input?
+//	for (y=0; y<h; y++)
+//	{
+//		for (x=0; x<w; x++)
+//		{
+//			for (z=0; z<bpp; z++)
+//			{
+//				if
+//			}
+//		}
+//	}
 	
 	
 	//First, compute the curvature...
@@ -125,25 +138,25 @@
 	{
 		for (x=0; x<w; x++)
 		{
+			deriv[x + y*w] = 0;
 			for (z=0; z<bpp; z++)
 			{
 				if (x== 0 || x == w-1)
-					curv[z + x*bpp + y*bpp*w] = 0;
+					curv[x + y*w] = 0;
 				else
 				{
-					deriv[z + x*bpp + y*bpp*w] = ((float)s[z + (x+0)*bpp + y*bpp*w] - 
+					float diff = ((float)s[z + (x+0)*bpp + y*bpp*w] - 
 												 (float)s[z + (x-1)*bpp + y*bpp*w]);
+					deriv[x + y*w] += diff*diff;
 				}
 			}
+			deriv[x + y*w] = sqrtf(deriv[x + y*w]);
 		}
 		
 		for (x=w-2; x>=1; x--)
 		{
-			for (z=0; z<bpp; z++)
-			{
-				curv[z + x*bpp + y*bpp*w] = (deriv[z + (x+0)*bpp + y*bpp*w] - 
-										  deriv[z + (x-1)*bpp + y*bpp*w]);
-			}
+			curv[z + x + y*w] = (deriv[(x+0) + y*w]);// - 
+									  //deriv[(x-1) + y*w]);
 		}
 	}
 	
@@ -165,23 +178,21 @@
 		int lastNeedToWork = 0;
 		int skippedWork = 0;
 		int justDidWork = 0;
+		int px = 0;
 		
 		for (x=1; x<w; x++)
 		{
 			int needToWork = 0;
 			float simpleSum = 0;
-			for (z=0; z<bpp; z++)
-			{
-				cmp[z] += (curv[z + x*bpp + y*bpp*w]);
-				
-				if (x < w-1)
-					simpleSum += abs(curv[z + (x+1)*bpp + y*bpp*w])
-							+ abs(curv[z + (x-1)*bpp + y*bpp*w]);
-				
-				if (abs(cmp[z]) > 4.0f)
-					needToWork = 1;
-				
-			}
+			
+			cmp[0] += (curv[x + y*w]);
+			
+			if (x < w-1)
+				simpleSum += abs(curv[(x+1) + y*w])
+						+ abs(curv[(x-1) + y*w]);
+			
+			if (abs(cmp[0]) > 4.0f)
+				needToWork = 1;
 			
 			if (needToWork == 0 && justDidWork > 1)
 				justDidWork--;
@@ -207,6 +218,7 @@
 					skippedWork = 0;
 			}
 			
+			//if (px >= 255)		needToWork = 1;
 			if (needToWork)		lastNeedToWork = x;
 			
 			if (needToWork)
@@ -216,7 +228,8 @@
 				indices[y*w]++;
 				int ci = indices[y*w];
 				
-				indices[y*w+ci] = nx;
+				indices[y*w+ci] = nx - px;
+				px = nx;
 				for (z=0; z<bpp; z++)
 				{
 					data[ci*bpp + y*bpp*w + z] = s[nx*bpp + y*bpp*w + z];
@@ -247,7 +260,7 @@
 		
 		for (x=1; x<=sc; x++)
 		{
-			int curX = indices[y*w+x];
+			int curX = indices[y*w+x] + prevX;
 			
 			int x2;
 			for (x2=prevX; x2<=curX; x2++)
@@ -262,7 +275,7 @@
 					
 					if (x2 == prevX && z != 3)
 					{
-						//d[z + x2*bpp + y*bpp*w] = 0;
+						d[z + x2*bpp + y*bpp*w] = 0;
 					}
 				}
 			}
@@ -278,7 +291,10 @@
 //		{
 //			for (z=0; z<bpp; z++)
 //			{
-//				d[z + x*bpp + y*bpp*w] = curv[z+x*bpp+y*bpp*w]+127;
+//				d[z + x*bpp + y*bpp*w] = curv[x+y*w];
+//				
+//				if (z == 3)
+//					d[z + x*bpp + y*bpp*w] = 255;
 //			}
 //		}
 //	}
