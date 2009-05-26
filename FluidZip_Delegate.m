@@ -134,8 +134,39 @@
 	
 	
 	//First, compute the curvature...
+	
+	//Loop through the data accumulating curvature.  Once curvature change
+	//exceeds a given threshold (on any component) create an entry.
+	int memUsageReal = 0;
+	int mem8bit = 0;
 	for (y=0; y<h; y++)
 	{
+		//Clean up a bit
+//		for (x=1; x<w-1; x++)
+//		{
+//			float ds = 0;
+//			for (z=0; z<bpp; z++)
+//			{
+//				if (z != 3)
+//				{
+//					float diff = ((float)s[z + (x+1)*bpp + y*bpp*w] - 
+//												 (float)s[z + (x-1)*bpp + y*bpp*w]);
+//					ds += diff*diff;
+//				}
+//			}
+//			ds = sqrtf(ds);
+//			
+//			if (ds < 1.0f)
+//			{
+//				for (z=0; z<bpp; z++)
+//				{
+//					s[z + (x+0)*bpp + y*bpp*w]
+//						= (s[z + (x-1)*bpp + y*bpp*w] + s[z + (x+1)*bpp + y*bpp*w])/2;
+//				}
+//			}
+//		}
+		
+		//Take derivatives
 		for (x=0; x<w; x++)
 		{
 			deriv[x + y*w] = 0;
@@ -143,7 +174,7 @@
 			{
 				if (x== 0 || x == w-1)
 					curv[x + y*w] = 0;
-				else
+				else if (z != 3)
 				{
 					float diff = ((float)s[z + (x+0)*bpp + y*bpp*w] - 
 												 (float)s[z + (x-1)*bpp + y*bpp*w]);
@@ -155,18 +186,10 @@
 		
 		for (x=w-2; x>=1; x--)
 		{
-			curv[z + x + y*w] = (deriv[(x+0) + y*w]);// - 
-									  //deriv[(x-1) + y*w]);
+			curv[z + x + y*w] = (deriv[(x+0) + y*w]);
 		}
-	}
-	
-	//Loop through the data accumulating curvature.  Once curvature change
-	//exceeds a given threshold (on any component) create an entry.
-	int memUsageReal = 0;
-	int mem8bit = 0;
-	
-	for (y=0; y<h; y++)
-	{
+		
+		//Loop through and compress a single line
 		float cmp[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		indices[y*w] = 0;
 		for (z=0; z<bpp; z++)
@@ -192,7 +215,9 @@
 						+ abs(curv[(x-1) + y*w]);
 			
 			if (abs(cmp[0]) > 4.0f)
+			{
 				needToWork = 1;
+			}
 			
 			if (needToWork == 0 && justDidWork > 1)
 				justDidWork--;
@@ -245,6 +270,7 @@
 					justDidWork = 3;*/
 			}
 		}
+		
 	}
 	printf("Compressed 32-bit: %ikb\nPotential 16-bit: %ikb\nPotential 8-bit: %ikb\n",
 				memUsageReal/1024, memUsageReal/2048, mem8bit/1024);
@@ -275,7 +301,7 @@
 					
 					if (x2 == prevX && z != 3)
 					{
-						d[z + x2*bpp + y*bpp*w] = 0;
+						//d[z + x2*bpp + y*bpp*w] = 0;
 					}
 				}
 			}
