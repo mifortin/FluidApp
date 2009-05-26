@@ -78,6 +78,16 @@
 }
 
 
+unsigned char clamp(float f)
+{
+	if (f < 0)
+		return 0;
+	if (f > 255)
+		return 255;
+	
+	return (unsigned char)f;
+}
+
 - (IBAction)onMenuFormatImageCompress:(id)in_src
 {
 	if (m_focus == nil)		return;
@@ -112,7 +122,7 @@
 	int x,y,z;
 	int w = [i2 size].width, h = [i2 size].height, bpp = [bir bitsPerPixel]/8;
 	
-	printf("Uncompressed image size: %ikb\n", w*h*bpp/1024);
+	printf("Uncompressed image size: %ikb (32bit: %ikb)\n", w*h*bpp/1024, w*h*4*bpp/1024);
 	int *indices = malloc(sizeof(int)*w*h);
 	float *data = malloc(sizeof(float)*w*h*bpp);
 	
@@ -176,9 +186,24 @@
 					curv[x + y*w] = 0;
 				else if (z != 3)
 				{
-					float diff = ((float)s[z + (x+0)*bpp + y*bpp*w] - 
-												 (float)s[z + (x-1)*bpp + y*bpp*w]);
-					deriv[x + y*w] += diff*diff;
+					if (y == 0)
+					{
+						float diff = ((float)s[z + (x+0)*bpp + y*bpp*w] - 
+													 (float)s[z + (x-1)*bpp + y*bpp*w]);
+						deriv[x + y*w] += diff*diff;
+					}
+					else
+					{
+						float dy1 = (float)s[z + (x+0)*bpp + y*bpp*w] -
+									(float)d[z + (x+0)*bpp + (y-1)*bpp*w];
+						float dy2 = (float)s[z + (x-1)*bpp + y*bpp*w] -
+									(float)d[z + (x-1)*bpp + (y-1)*bpp*w];
+						
+						if (fabs(dy1) < 6) dy1 = 0;
+						if (fabs(dy2) < 6) dy2 = 0;
+						float diff = (dy1 - dy2);
+						deriv[x + y*w] += diff*diff;
+					}
 				}
 			}
 			deriv[x + y*w] = sqrtf(deriv[x + y*w]);
@@ -186,14 +211,19 @@
 		
 		for (x=w-2; x>=1; x--)
 		{
-			curv[z + x + y*w] = (deriv[(x+0) + y*w]);
+			curv[x + y*w] = (deriv[(x+0) + y*w]);
 		}
 		
 		//Loop through and compress a single line
 		float cmp[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		indices[y*w] = 0;
 		for (z=0; z<bpp; z++)
-			data[y*bpp*w + z] = s[y*bpp*w + z];
+		{
+			if (y == 0)
+				data[y*bpp*w + z] = s[y*bpp*w + z];
+			else
+				data[y*bpp*w + z] = s[y*bpp*w + z] - d[(y-1)*bpp*w + z];
+		}
 		
 		memUsageReal += sizeof(int) + bpp*sizeof(float);
 		mem8bit += sizeof(short) + sizeof(char)*bpp;
@@ -257,7 +287,12 @@
 				px = nx;
 				for (z=0; z<bpp; z++)
 				{
-					data[ci*bpp + y*bpp*w + z] = s[nx*bpp + y*bpp*w + z];
+					if (y == 0)
+						data[ci*bpp + y*bpp*w + z] = s[nx*bpp + y*bpp*w + z];
+					else
+						data[ci*bpp + y*bpp*w + z] = s[nx*bpp + y*bpp*w + z]
+													-d[nx*bpp + (y-1)*bpp*w + z];
+						
 					cmp[z] = 0;
 				}
 				
@@ -269,6 +304,44 @@
 				else
 					justDidWork = 3;*/
 			}
+		}
+		
+		//Pre-compute results...
+		int sc = indices[y*w];
+		int prevX = 0;
+		
+		for (z=0; z<bpp; z++)
+			d[z + y*bpp*w] = data[z+y*bpp*w];
+		
+		for (x=1; x<=sc; x++)
+		{
+			int curX = indices[y*w+x] + prevX;
+			
+			int x2;
+			for (x2=prevX; x2<=curX; x2++)
+			{
+				float scaleF = (float)(x2-prevX)/(float)(curX - prevX);
+				
+				for(z=0;z<bpp;z++)
+				{
+					if (y == 0)
+						d[z + x2*bpp + y*bpp*w] =
+								(scaleF)*data[x*bpp + y*bpp*w + z]
+								+ (1-scaleF)*data[(x-1)*bpp + y*bpp*w + z];
+					else
+						d[z + x2*bpp + y*bpp*w] =
+								clamp((scaleF)*data[x*bpp + y*bpp*w + z]
+								+ (1-scaleF)*data[(x-1)*bpp + y*bpp*w + z]
+								+ d[z +x2*bpp + (y-1)*bpp*w]);
+					
+					if (x2 == prevX && z != 3)
+					{
+						//d[z + x2*bpp + y*bpp*w] = 0;
+					}
+				}
+			}
+			
+			prevX = curX;
 		}
 		
 	}
@@ -291,17 +364,27 @@
 			int x2;
 			for (x2=prevX; x2<=curX; x2++)
 			{
-				float scaleF = (float)(x2-prevX)/(float)(curX - prevX);
+				//float scaleF = (float)(x2-prevX)/(float)(curX - prevX);
 				
 				for(z=0;z<bpp;z++)
 				{
-					d[z + x2*bpp + y*bpp*w] =
-						(scaleF)*data[x*bpp + y*bpp*w + z]
-						+ (1-scaleF)*data[(x-1)*bpp + y*bpp*w + z];
+					//if (y == 0)
+//						d[z + x2*bpp + y*bpp*w] =
+//						(scaleF)*data[x*bpp + y*bpp*w + z]
+//						+ (1-scaleF)*data[(x-1)*bpp + y*bpp*w + z];
+//					else
+//						d[z + x2*bpp + y*bpp*w] =
+//						(scaleF)*data[x*bpp + y*bpp*w + z]
+//						+ (1-scaleF)*data[(x-1)*bpp + y*bpp*w + z]
+//						+ d[z +x2*bpp + (y-1)*bpp*w];
 					
 					if (x2 == prevX && z != 3)
 					{
-						//d[z + x2*bpp + y*bpp*w] = 0;
+					//	d[z + x2*bpp + y*bpp*w] = 0;
+					}
+					else
+					{
+					//	d[z + x2*bpp + y*bpp*w] = 255;
 					}
 				}
 			}
