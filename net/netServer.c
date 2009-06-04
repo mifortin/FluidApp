@@ -25,28 +25,22 @@ void *netServerConnection(void *eData)
 {
 	netServer *sData = (netServer*)eData;
 	
-	error *e = mpMutexLock(sData->r_mutex);
-	if (e != NULL)	goto done;
+	mpMutexLock(sData->r_mutex);
 	
 	netClient *cur = sData->m_client;
 	sData->m_client = NULL;
 	
-	e = mpMutexUnlock(sData->r_mutex);
-	if (e != NULL) goto done;
+	mpMutexUnlock(sData->r_mutex);
 	
 	sData->m_userFunction(sData->m_userData, sData, cur);
 	
 done:
 
 	x_free(cur);
-
-	if (e != NULL)	x_free(e);
 	
-	e = mpMutexLock(sData->r_mutex);
-	if (e != NULL)	x_free(e);
+	mpMutexLock(sData->r_mutex);
 	sData->m_runningThreads--;
-	e = mpMutexUnlock(sData->r_mutex);
-	if (e != NULL)	x_free(e);
+	mpMutexUnlock(sData->r_mutex);
 	
 	return NULL;
 }
@@ -62,19 +56,19 @@ void *netServerThread(void *eData)
 	mpMutex *mtx = sData->r_mutex;
 	error *e = NULL;
 	
-	if (NULL != (e = mpMutexLock(mtx)))	goto done;
+	mpMutexLock(mtx);
 	
 	FD_ZERO(&selectSet);
 	FD_SET(sData->m_socket, &selectSet);
 	
-	if (NULL != (e = mpMutexUnlock(mtx)))	goto done;
+	mpMutexUnlock(mtx);
 	
 	for (;;)
 	{
 		FD_COPY(&selectSet, &copySet);
 		
 		//Wait for a bit of time, locking the mutex...
-		if (NULL != (e = mpMutexLock(mtx)))	goto done;
+		mpMutexLock(mtx);
 		
 		if (sData->m_client == NULL)
 		{
@@ -116,7 +110,7 @@ void *netServerThread(void *eData)
 				goto done;
 		}
 		
-		if (NULL != (e = mpMutexUnlock(mtx)))	goto done;
+		mpMutexUnlock(mtx);
 	}
 
 done:
@@ -148,19 +142,15 @@ void netServerFree(void *in_o)
 		pthread_t tmp = in_svr->m_serverThread;
 		pthread_join(tmp, NULL);
 
-		error *e = mpMutexLock(mtx);
-		if (e != NULL)	x_free(e);
+		mpMutexLock(mtx);
 		
 		while (in_svr->m_runningThreads != 0)
 		{
-			e = mpMutexUnlock(mtx);
-			if (e != NULL)	x_free(e);
+			mpMutexUnlock(mtx);
 			
-			e = mpMutexLock(mtx);
-			if (e != NULL)	x_free(e);
+			mpMutexLock(mtx);
 		}
-		e = mpMutexUnlock(mtx);
-		if (e != NULL)	x_free(e);
+		mpMutexUnlock(mtx);
 	}
 		
 	memset(in_svr, 0, sizeof(netServer));

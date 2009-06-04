@@ -6,6 +6,9 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include <setjmp.h>
+#include "error.h"
+
 //Provides a means to deal with the memory in the system.  That is, a simple
 //way to handle malloc/free where multiple objects may need this one to live
 //for a certain amount of time.
@@ -27,5 +30,26 @@ void x_free(void *in_o);
 
 //Retain (extension)
 void x_retain(void *in_o);
+
+
+//Initializes the memory model...
+void x_init();
+
+//try-catch-finally-throw mechanisms...
+//	Raised errors automatically GCed!
+#define x_try	sigjmp_buf __pvt_except;	\
+				sigjmp_buf *__pvt_except_p = x_setupBuff(&__pvt_except); \
+				int __exception; \
+				if ((__exception = _setjmp(__pvt_except)) == 0) {
+#define x_catch(o)	} else { error *o = (error*)__exception; o;
+#define x_finally	x_free((error*)__exception);}	\
+						x_setupBuff(__pvt_except_p); \
+						if (__pvt_except_p) _setjmp(*__pvt_except_p);
+
+//How to raise an exception
+void x_raise(error *e);
+
+//Used internally by exception system
+sigjmp_buf *x_setupBuff(sigjmp_buf *in_newBuff);
 
 #endif

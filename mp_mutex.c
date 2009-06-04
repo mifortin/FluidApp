@@ -21,12 +21,12 @@ void mpMutexDealloc(void *in_o)
 }
 
 
-mpMutex *mpMutexCreate(error **outError)
+mpMutex *mpMutexCreate()
 {
 	mpMutex *toRet = x_malloc(sizeof(mpMutex), mpMutexDealloc);
 	if (toRet == NULL)
 	{
-		*outError = errorCreate(NULL, error_memory, "Failed allocating for mutex");
+		x_raise(errorCreate(NULL, error_memory, "Failed allocating for mutex"));
 		return NULL;
 	}
 	
@@ -37,35 +37,13 @@ mpMutex *mpMutexCreate(error **outError)
 }
 
 
-error *mpMutexCodes(int in_code)
+void mpMutexLock(mpMutex *in_m)
 {
-	switch(in_code)
-	{
-		case 0:
-			return NULL;
-		
-		case EDEADLK:
-			return errorCreate(NULL, error_thread, "Mutex: A dead-lock has occured");
-			
-		case EINVAL:
-			return errorCreate(NULL, error_thread, "Mutex: Invalid value");
-			
-		case EPERM:
-			return errorCreate(NULL, error_thread, "Mutex: Attempt to unlock unlocked mutex");
-			
-		default:
-			return errorCreate(NULL, error_thread, "Mutex: Unknown error");
-	}
+	x_pthread_mutex_lock(&in_m->r_mutex);
 }
 
 
-error *mpMutexLock(mpMutex *in_m)
+void mpMutexUnlock(mpMutex *in_m)
 {
-	return mpMutexCodes(pthread_mutex_lock(&in_m->r_mutex));
-}
-
-
-error *mpMutexUnlock(mpMutex *in_m)
-{
-	return mpMutexCodes(pthread_mutex_unlock(&in_m->r_mutex));
+	x_pthread_mutex_unlock(&in_m->r_mutex);
 }

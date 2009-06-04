@@ -129,68 +129,31 @@ typedef short float16;
 
 int main(int argc, char *argv[])
 {
-	//Simple float/short conversion...
-	union {
-		float x;
-		int y;
-	} g;
-	g.x = 100.2;
+	x_init();
 	
-	//Loop over and display each bit...
-	int k;
-	double amt = 1.0;
-	for (k=31; k>=0; k--)
-	{
-		if (k == 30 || k == 22) printf(" ");
-		printf("%i", (g.y >> k)&0x00000001);
+	x_try
+		printf("\n\nFluid Server Launching\n");
+		pthread_mutex_init(&m, NULL);
 		
-		if (k < 22 && ((g.y >> k)&0x00000001))
+		error *err = NULL;
+		netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect, &err);
+		if (server)
 		{
-			//printf("%f %f\n",amt,1.0/pow(2,k));
-			//amt *= 1.0/pow(2,k);
+			printf("Server Launched\n");
+			
+			x_free(server);
+			
+			pthread_mutex_lock(&m);
+			printf("Value of tmp: %i\n", tmp);
+			pthread_mutex_unlock(&m);
 		}
-	}
-	
-	printf("\n");
-	
-	for (k=22; k>=0; k--)
-	{
-		//if (k == 30 || k == 22) printf(" ");
-		//printf("%i", (g.y >> k)&0x00000001);
+		else
+			printf("Failed launching: %s\n", errorMsg(err));
 		
-		if (((g.y >> k)&0x00000001))
-		{
-			printf("%f %f\n",amt,1.0/pow(2,k+1));
-			amt += 1.0/pow(2,k+1);
-		}
-	}
+		fflush(stdout);
+		return 0;
+	x_catch(e)
+		printf("In Handler: %s\n", errorMsg(e));
+	x_finally
 	
-	printf(" %i %i %f %f %i", (g.y >> 23) & 0x000000FF, g.y & 0x007FFFFF,amt,
-						(1+(double)(g.y & 0x007FFFFF)/(pow(2,23)))* pow(2,((g.y >> 23) & 0x000000FF)- 127),
-					//	amt  * pow(2,((g.y >> 23) & 0x000000FF)- 127),
-						 ((g.y >> 23) & 0x000000FF)-127);
-						//(double)(g.y & 0x007FFFFF) * pow(2,(g.y >> 22) & 0x000000FF - 127));
-	
-	//return 0;
-	
-	printf("\n\nFluid Server Launching\n");
-	pthread_mutex_init(&m, NULL);
-	
-	error *err = NULL;
-	netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect, &err);
-	if (server)
-	{
-		printf("Server Launched\n");
-		
-		x_free(server);
-		
-		pthread_mutex_lock(&m);
-		printf("Value of tmp: %i\n", tmp);
-		pthread_mutex_unlock(&m);
-	}
-	else
-		printf("Failed launching: %s\n", errorMsg(err));
-	
-	fflush(stdout);
-	return 0;
 }

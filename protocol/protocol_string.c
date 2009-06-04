@@ -118,8 +118,7 @@ protocolString *protocolStringCreate(	protocol *in_p,
 			return NULL;
 		}
 		
-		*out_error = mpMutexLock(in_luaLock);
-		if (*out_error) return NULL;
+		mpMutexLock(in_luaLock);
 		
 		protocolString **ld = lua_newuserdata(in_lua, sizeof(protocolString*));
 		*ld = toRet;
@@ -138,8 +137,7 @@ protocolString *protocolStringCreate(	protocol *in_p,
 		
 		lua_setglobal(in_lua, "net_log");
 		
-		*out_error = mpMutexUnlock(in_luaLock);
-		if (*out_error) return NULL;
+		mpMutexUnlock(in_luaLock);
 	}
 	
 	return toRet;

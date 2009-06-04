@@ -26,8 +26,7 @@ error *protocolLuaHandleData(protocol *in_proto,
 		return errorCreate(NULL, error_net, "Host did not NULL-terminate data");
 	
 	error *e = NULL;
-	if (NULL != (e = mpMutexLock(pvt->r_lock)))
-		return errorReply(e, error_thread, "Failed locking lua lock");
+	mpMutexLock(pvt->r_lock);
 	
 	error *err = NULL;
 	printf("Lua got script: %s\n", (char*)in_data);
@@ -39,8 +38,7 @@ error *protocolLuaHandleData(protocol *in_proto,
 			break;
 			
 		case LUA_ERRSYNTAX:
-			e = mpMutexUnlock(pvt->r_lock);
-			if (e) x_free(e);
+			mpMutexUnlock(pvt->r_lock);
 			e = protocolStringSend(in_proto, "\nLua syntax error: ");
 			if (e) return e;
 			e = protocolStringSend(in_proto, lua_tostring(pvt->m_lua,-1));
@@ -49,16 +47,14 @@ error *protocolLuaHandleData(protocol *in_proto,
 	
 	if (err != NULL)
 	{
-		e = mpMutexUnlock(pvt->r_lock);
-		if (e)	x_free(e);
+		mpMutexUnlock(pvt->r_lock);
 		return err;
 	}
 	
 	switch(lua_pcall(pvt->m_lua, 0, 0, 0))
 	{
 		case LUA_ERRRUN:
-			e = mpMutexUnlock(pvt->r_lock);
-			if (e) x_free(e);
+			mpMutexUnlock(pvt->r_lock);
 			e = protocolStringSend(in_proto, "\nLua runtime error: ");
 			if (e) return e;
 			e = protocolStringSend(in_proto, lua_tostring(pvt->m_lua,-1));
@@ -78,13 +74,10 @@ error *protocolLuaHandleData(protocol *in_proto,
 	
 	if (err != NULL)
 	{
-		e = mpMutexUnlock(pvt->r_lock);
-		if (e) x_free(e);
-		return err;
+		mpMutexUnlock(pvt->r_lock);
 	}
 	
-	if (NULL != (e = mpMutexUnlock(pvt->r_lock)))
-		return errorReply(e, error_thread, "Failed unlocking lua lock");
+	mpMutexUnlock(pvt->r_lock);
 	
 	return NULL;
 }

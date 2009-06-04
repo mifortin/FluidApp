@@ -157,13 +157,7 @@ protocolFloat *protocolFloatCreate(protocol *in_p,
 	
 	if (in_lua != NULL)
 	{
-		error *e = NULL;
-		if (NULL != (e = mpMutexLock(toRet->r_luaLock)))
-		{
-			x_free(toRet);
-			*out_error = errorReply(e, error_thread, "Failed locking mutex");
-			return NULL;
-		}
+		mpMutexLock(toRet->r_luaLock);
 		
 		protocolFloat **ld = lua_newuserdata(in_lua, sizeof(protocolFloat*));
 		*ld = toRet;
@@ -188,17 +182,7 @@ protocolFloat *protocolFloatCreate(protocol *in_p,
 		
 		x_retain(toRet);
 		
-		if (NULL != (e = mpMutexUnlock(toRet->r_luaLock)))
-		{
-			//Ensure a GC pass...
-			lua_pushnil(in_lua);
-			lua_setglobal(in_lua, "net_float");
-			
-			x_free(toRet);
-			
-			*out_error = errorReply(e, error_thread, "Failed unlocking mutex");
-			return NULL;
-		}
+		mpMutexUnlock(toRet->r_luaLock);
 	}
 	
 	error *err;

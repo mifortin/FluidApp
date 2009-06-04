@@ -97,6 +97,12 @@
 		4C1BA6930FBC6F9A00A74684 /* FluidZip_Window.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */; };
 		4C1BA69A0FBC709800A74684 /* FluidZip_Window.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6990FBC709800A74684 /* FluidZip_Window.m */; };
 		4C1BA6B70FBC720800A74684 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		4C30F9490FD853FA00B2B86D /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
+		4C30F94A0FD853FA00B2B86D /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
+		4C30F94B0FD853FA00B2B86D /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
+		4C30F9540FD86C3500B2B86D /* mp_x.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9530FD86C3500B2B86D /* mp_x.c */; };
+		4C30F9550FD86C3500B2B86D /* mp_x.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9530FD86C3500B2B86D /* mp_x.c */; };
+		4C30F9560FD86C3500B2B86D /* mp_x.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9530FD86C3500B2B86D /* mp_x.c */; };
 		4C7307A40F9BDA4300C6D0BD /* X_NumberFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */; };
 		4C7307C60F9BFC5E00C6D0BD /* FluidNumber.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C7307C40F9BFC5E00C6D0BD /* FluidNumber.nib */; };
 		4C8B36390F9E9F2D005D64F4 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
@@ -243,6 +249,8 @@
 		4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = FluidZip_Window.nib; sourceTree = "<group>"; };
 		4C1BA6980FBC709800A74684 /* FluidZip_Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidZip_Window.h; sourceTree = "<group>"; };
 		4C1BA6990FBC709800A74684 /* FluidZip_Window.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Window.m; sourceTree = "<group>"; };
+		4C30F9480FD853FA00B2B86D /* mp_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_queue.c; sourceTree = "<group>"; };
+		4C30F9530FD86C3500B2B86D /* mp_x.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_x.c; sourceTree = "<group>"; };
 		4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_NumberFormatter.h; sourceTree = "<group>"; };
 		4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_NumberFormatter.m; sourceTree = "<group>"; };
 		4C7307C50F9BFC5E00C6D0BD /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidNumber.nib; sourceTree = "<group>"; };
@@ -559,6 +567,8 @@
 				4CD6461E0FA7AB7D00073448 /* mpx.h */,
 				4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */,
 				4CFA695E0FAA950B00E6847C /* mp_task.c */,
+				4C30F9480FD853FA00B2B86D /* mp_queue.c */,
+				4C30F9530FD86C3500B2B86D /* mp_x.c */,
 			);
 			name = mp;
 			sourceTree = "<group>";
@@ -752,6 +762,8 @@
 				4CFA69710FAA952000E6847C /* fluid_jacobi_error.c in Sources */,
 				27BD78E70FB10B450077C0B0 /* half.c in Sources */,
 				27D59C5E0FB22CB200A56651 /* halfV.c in Sources */,
+				4C30F9490FD853FA00B2B86D /* mp_queue.c in Sources */,
+				4C30F9540FD86C3500B2B86D /* mp_x.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -765,6 +777,8 @@
 				27D59C5C0FB22CB200A56651 /* halfV.c in Sources */,
 				4C8E16440FC44AD90051397F /* Test_Half.c in Sources */,
 				4C8E16820FC4544D0051397F /* Test_Locality.c in Sources */,
+				4C30F94A0FD853FA00B2B86D /* mp_queue.c in Sources */,
+				4C30F9550FD86C3500B2B86D /* mp_x.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -837,6 +851,8 @@
 				4CFA696D0FAA952000E6847C /* fluid_jacobi_error.c in Sources */,
 				27BD78E60FB10B450077C0B0 /* half.c in Sources */,
 				27D59C5D0FB22CB200A56651 /* halfV.c in Sources */,
+				4C30F94B0FD853FA00B2B86D /* mp_queue.c in Sources */,
+				4C30F9560FD86C3500B2B86D /* mp_x.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,7 +7,7 @@
 #define MP_H
 
 #include "error.h"
-
+#include <pthread.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 //File dealing with the general multiprocessing issues.  Namely, a wrapper
@@ -19,10 +19,42 @@
 
 typedef struct mpMutex mpMutex;
 
-mpMutex *mpMutexCreate(error **out_error);
+mpMutex *mpMutexCreate();
 
-error *mpMutexLock(mpMutex *in_m);
-error *mpMutexUnlock(mpMutex *in_m);
+void mpMutexLock(mpMutex *in_m);
+void mpMutexUnlock(mpMutex *in_m);
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	The Queue - a way for threads to communicate by queing up messages.
+//		Essentially the core of a basic message-passing API.
+//
+//		Each worker thread as a queue, as well as the main thread.  This allows
+//		for easy communication.
+//
+//		Note - stalls may occur if these queues get filled to the brim.
+//				At the moment, everything is done using pthreads, however
+//				spinlocks might do a better job...
+typedef struct mpQueue mpQueue;
+
+mpQueue *mpQueueCreate(int maxSize);
+
+void mpQueuePush(mpQueue *in_q, void *in_dat);
+void *mpQueuePop(mpQueue *in_q);
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	An updated version of the used threading paradigm to better suit the cell
+//	processor.  What we have are 'n' worker threads.  Each of these threads
+//	has some work to do.  The number is determined at initialization of the
+//	system.
+//
+//	Exception handling is safe across an arbitrary number of threads since
+//	data used for exceptions is stored within the stack.
+typedef struct mpTaskWorld mpTaskWorld;
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,5 +88,12 @@ error *mpTaskSetLeaveCriticalSection(mpTaskSet *in_ts);
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
+//	PThread utilities / wrappers...
+
+void x_pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+void x_pthread_mutex_lock(pthread_mutex_t *mutex);
+void x_pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+void x_pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
+
 #endif
