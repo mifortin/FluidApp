@@ -53,8 +53,10 @@ void *mpQueuePop(mpQueue *in_q);
 //	data used for exceptions is stored within the stack.
 typedef struct mpTaskWorld mpTaskWorld;
 
-
-
+//Initialize core MP - essentially the task world as an opaque global...
+//	Call mpTerminate to join all threads...
+void mpInit(int in_workers);		//# of worker threads
+void mpTerminate();
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,11 +91,15 @@ error *mpTaskSetLeaveCriticalSection(mpTaskSet *in_ts);
 
 ////////////////////////////////////////////////////////////////////////////////
 //	PThread utilities / wrappers...
+void x_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void*arg), void *arg);
+void *x_pthread_join(pthread_t thread);
 
 void x_pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
 void x_pthread_mutex_lock(pthread_mutex_t *mutex);
 void x_pthread_mutex_unlock(pthread_mutex_t *mutex);
 
 void x_pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
+void x_pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+void x_pthread_cond_signal(pthread_cond_t *cond);
 
 #endif

@@ -28,23 +28,26 @@ void errorFree(void *in_o)
 }
 
 
-error *errorCreate(error *in_prev, int in_code, const char *in_text, ...)
+error *errorCreatePvt(error *in_prev, int in_code, const char *in_text, va_list v)
 {
 	error *toRet = x_malloc(sizeof(error), errorFree);
 	
-	if (toRet)
-	{
-		memset(toRet, 0, sizeof(error));
-		toRet->m_code = in_code;
-		toRet->m_next = in_prev;
-		
-		va_list v;
-		va_start(v, in_text);
-		vasprintf(&toRet->m_string, in_text, v);
-		va_end(v);
-	}
-	else
-		return &errorDefault;
+	memset(toRet, 0, sizeof(error));
+	toRet->m_code = in_code;
+	toRet->m_next = in_prev;
+	
+	vasprintf(&toRet->m_string, in_text, v);
+	
+	return toRet;
+}
+
+
+error *errorCreate(error *in_prev, int in_code, const char *in_text, ...)
+{
+	va_list v;
+	va_start(v, in_text);
+	error *toRet = errorCreatePvt(in_prev, in_code, in_text, v);
+	va_end(v);
 	
 	return toRet;
 }
@@ -73,6 +76,27 @@ error *errorReply(error *in_error, int in_reply_code, const char *in_text, ...)
 		return &errorDefault;
 	
 	return toRet;
+}
+
+
+void errorRaise(int in_code, const char *in_text, ...)
+{
+	va_list v;
+	va_start(v, in_text);
+	x_raise(errorCreatePvt(NULL, in_code, in_text, v));
+	va_end(v);
+}
+
+
+void errorAssert(int condition, int in_code, const char *in_text, ...)
+{
+	if (!condition)
+	{
+		va_list v;
+		va_start(v, in_text);
+		x_raise(errorCreatePvt(NULL, in_code, in_text, v));
+		va_end(v);
+	}
 }
 
 error *errorNext(error *in_error)

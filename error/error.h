@@ -31,4 +31,9 @@ error *errorReplyTo(error *in_error);
 
 int errorCode(error *in_error);
 const char *errorMsg(error *in_error);
+
+//Extensions to raise exceptions more easily
+void errorRaise(int in_code, const char *in_text, ...);
+void errorAssert(int condition, int in_code, const char *in_text, ...);
+
 #endif
