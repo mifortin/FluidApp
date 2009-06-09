@@ -21,7 +21,7 @@
 #include "memory.h"
 
 
-error *netClientSendBinary(netClient *client, const void *base, int cnt)
+void netClientSendBinary(netClient *client, const void *base, int cnt)
 {
 	int totalSent = 0;
 	
@@ -30,16 +30,14 @@ error *netClientSendBinary(netClient *client, const void *base, int cnt)
 		int sent = send(client->m_socket, (char*)base+totalSent, cnt-totalSent, 0);
 		
 		if (sent == -1)
-			return errorCreate(NULL, error_net, "failed sending data over network");
+			errorRaise(error_net, "Failed sending data over the network");
 		
 		totalSent += sent;
 	}
-	
-	return NULL;
 }
 
 
-error *netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
+void netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 {
 	fd_set selectSet;
 	fd_set copySet;
@@ -59,7 +57,7 @@ error *netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 	int sel = select(client->m_socket+1, &copySet, NULL, NULL, &to);
 	
 	if (sel == -1)
-		return errorCreate(NULL, error_net, "Network error while waiting for data");
+		errorRaise(error_net, "Network error while waiting for data");
 	
 	if (sel != 0)
 	{
@@ -68,13 +66,11 @@ error *netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 	}
 	
 	if (*cnt == -1)
-		return errorCreate(NULL, error_net, "Network error while reading data");
-	
-	return NULL;
+		errorRaise(error_net, "Network error while reading data");
 }
 
 
-error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
+void netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 {
 	int curRead = 0;
 	
@@ -83,17 +79,12 @@ error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 		int curCnt = cnt - curRead;
 		//printf("Requesting %i -- ", curCnt);
 		
-		error *tmp = netClientReadBinary(client,
-							 (char*)dest + curRead, &curCnt, timeout);
-		
-		if (tmp != NULL)
-			return tmp;
+		netClientReadBinary(client, (char*)dest + curRead, &curCnt, timeout);
 		
 		if (curCnt == 0 && curRead == 0)
-			return errorCreate(NULL, error_timeout,
-							   "Timed out while receiving data...");
+			errorRaise(error_timeout, "Timed out while receiving data...");
 		else if (curCnt == 0)
-			return errorCreate(NULL, error_net,
+			errorRaise(error_net,
 				"Timed out while waiting for remaining data Got (%i/%i)",
 					curRead, cnt);
 		
@@ -101,7 +92,7 @@ error *netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 		//printf("Read %i (%i of %i)\n", curCnt, curRead, cnt);
 		//printf("Read %i (%i of %i)\n", curRead, cnt, curCnt);
 		if (curRead == cnt)
-			return NULL;
+			return;
 	}
 }
 
@@ -118,23 +109,19 @@ void netClientFree(void *in_o)
 netClient *netClientFromSocket(int in_socket)
 {
 	netClient *toRet = x_malloc(sizeof(netClient), netClientFree);
-	if (toRet)
-	{
-		memset(toRet, 0, sizeof(netClient));
-		toRet->m_socket = in_socket;
-	}
+	
+	memset(toRet, 0, sizeof(netClient));
+	toRet->m_socket = in_socket;
 	return toRet;
 }
 
 
-netClient *netClientCreate(const char *address, char *port, int flags,
-						   error **out_e)
+netClient *netClientCreate(const char *address, char *port, int flags)
 {
 	if (!(flags&NETS_UDP) && !(flags&NETS_TCP))
 	{
-		*out_e = errorCreate(NULL, error_flags,
+		errorRaise(error_flags,
 					"Client needs at least UDP or TCP communication");
-		return NULL;
 	}
 	
 	struct addrinfo hints;
@@ -147,9 +134,7 @@ netClient *netClientCreate(const char *address, char *port, int flags,
 	
 	if (getaddrinfo(address, port, &hints, &servinfo) != 0)
 	{
-		*out_e = errorCreate(NULL, error_net,
-					"Client unable to resolve remote host");
-		return NULL;
+		errorRaise(error_net, "Client unable to resolve remote host");
 	}
 	
 	int mySocket = socket(	servinfo->ai_family,
@@ -157,19 +142,15 @@ netClient *netClientCreate(const char *address, char *port, int flags,
 							servinfo->ai_protocol);
 	if (mySocket == -1)
 	{
-		*out_e = errorCreate(NULL, error_create,
-					"Client unable to create socket");
 		freeaddrinfo(servinfo);
-		return NULL;
+		errorRaise(error_create, "Client unable to create socket");
 	}
 	
 	if (connect(mySocket, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 	{
-		*out_e = errorCreate(NULL, error_net,
-					"Client unable to connect to remote server");
 		freeaddrinfo(servinfo);
 		close(mySocket);
-		return NULL;
+		errorRaise(error_net, "Client unable to connect to remote server");
 	}
 	
 	freeaddrinfo(servinfo);

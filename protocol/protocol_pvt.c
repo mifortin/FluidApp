@@ -18,7 +18,6 @@ void *protocolReadThread(void *threadData)
 	protocol *p = (protocol*)threadData;
 	for (;;)
 	{
-retryConnect:
 		if (pthread_mutex_lock(&p->m_mutex) != 0)	goto done;
 		int quitFlag = p->m_bQuit;
 		if (pthread_mutex_unlock(&p->m_mutex) != 0)	goto done;
@@ -29,20 +28,7 @@ retryConnect:
 		int name;
 		int length;
 		error *log;
-		log = netClientGetBinary(p->m_client, &name, sizeof(int), 10);
-		if (log != NULL)
-		{
-			if (errorCode(log) == error_timeout)
-			{
-				x_free(log);
-				goto retryConnect;
-			}
-			else
-			{
-				printf("netClient: %s\n", errorMsg(log));
-				return log;
-			}
-		}
+		netClientGetBinary(p->m_client, &name, sizeof(int), 10);
 		
 		if (pthread_mutex_lock(&p->m_mutex) != 0)	goto done;
 		protocolPvt *tmp = protocolFindClosest(p->m_root, name);
@@ -56,12 +42,7 @@ retryConnect:
 			return errorCreate(NULL, error_net, "Unsupported host operation");
 		}
 		
-		log = netClientGetBinary(p->m_client, &length, sizeof(int), 10);
-		if (log != NULL)
-		{
-			printf("netClient: %s\n", errorMsg(log));
-			return log;
-		}
+		netClientGetBinary(p->m_client, &length, sizeof(int), 10);
 		
 		//Prevent buffer errors
 		length = ntohl(length);
@@ -73,12 +54,7 @@ retryConnect:
 		
 		//Read the buffer
 		if (pthread_mutex_lock(&p->m_bufferMutex) != 0)	goto done;
-		log = netClientGetBinary(p->m_client, p->m_readBuffer, length, 10);
-		if (log != NULL)
-		{
-			printf("netClient: %s\n", errorMsg(log));
-			return log;
-		}
+		netClientGetBinary(p->m_client, p->m_readBuffer, length, 10);
 		
 		//Invoke the proper function...
 		log = tmp->m_fn(p, tmp->m_data, length, p->m_readBuffer);
@@ -134,31 +110,18 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 	protocol *toRet = NULL;
 	
 	//Compute the maximum size negociating with the remote end (use the smallest)
-	error *work = NULL;
 	int header = 'fana';
-	if ((work = netClientSendBinary(in_client, &header, sizeof(int))) != NULL)
-	{
-		*out_error = errorCreate(work, error_specify, "Procol failed sending header");
-		return NULL;
-	}
+	netClientSendBinary(in_client, &header, sizeof(int));
 	
 	//For now assume same host/client byte ordering...
 	
 	//Send the maxDataSize
 	int sendMaxSize = htonl(in_maxDataSize);
-	if ((work = netClientSendBinary(in_client, &sendMaxSize, sizeof(int))) != NULL)
-	{
-		*out_error = errorCreate(work, error_specify, "Protocol failed sending size");
-		return NULL;
-	}
+	netClientSendBinary(in_client, &sendMaxSize, sizeof(int));
 	
 	//Read in - let's see what happens...
 	int remoteHeader;
-	if ((work = netClientGetBinary(in_client, &remoteHeader, sizeof(int), 10)) != NULL)
-	{
-		*out_error = errorCreate(work, error_specify, "Failed getting header");
-		return NULL;
-	}
+	netClientGetBinary(in_client, &remoteHeader, sizeof(int), 10);
 	
 	if (remoteHeader != header)
 	{
@@ -167,13 +130,7 @@ protocol *protocolCreate(netClient *in_client, int in_maxDataSize,
 	}
 	
 	int remote_maxDataSize;
-	if ((work = netClientGetBinary(in_client, &remote_maxDataSize, sizeof(int), 10))
-			!= NULL)
-	{
-		*out_error = errorCreate(NULL, error_net,
-								 "Failed confirming remote packet size");
-		return NULL;
-	}
+	netClientGetBinary(in_client, &remote_maxDataSize, sizeof(int), 10);
 	remote_maxDataSize = ntohl(remote_maxDataSize);
 	
 	
@@ -264,17 +221,13 @@ error *protocolSend(protocol *in_p, int in_protoID, int in_size,
 								0, in_p->m_maxSize);
 	
 	//First send the protocol ID.
-	error *tmp;
-	if (tmp = netClientSendBinary(in_p->m_client, &in_protoID, sizeof(int)))
-		return errorCreate(tmp, error_specify, "Failed sending protocol ID");
+	netClientSendBinary(in_p->m_client, &in_protoID, sizeof(int));
 	
 	//Now the size
 	int toSendSize = htonl(in_size);
-	if (tmp = netClientSendBinary(in_p->m_client, &toSendSize, sizeof(int)))
-		return errorCreate(tmp, error_specify, "Failed sending data size");
+	netClientSendBinary(in_p->m_client, &toSendSize, sizeof(int));
 	
-	if (tmp = netClientSendBinary(in_p->m_client, in_data, in_size))
-		return errorCreate(tmp, error_specify, "Failed sending data");
+	netClientSendBinary(in_p->m_client, in_data, in_size);
 	
 	return NULL;
 }

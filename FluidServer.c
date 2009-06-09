@@ -138,20 +138,14 @@ int main(int argc, char *argv[])
 		printf("\n\nFluid Server Launching\n");
 		pthread_mutex_init(&m, NULL);
 		
-		error *err = NULL;
 		netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect);
-		if (server)
-		{
-			printf("Server Launched\n");
-			
-			x_free(server);
-			
-			pthread_mutex_lock(&m);
-			printf("Value of tmp: %i\n", tmp);
-			pthread_mutex_unlock(&m);
-		}
-		else
-			printf("Failed launching: %s\n", errorMsg(err));
+		printf("Server Launched\n");
+		
+		x_free(server);
+		
+		x_pthread_mutex_lock(&m);
+		printf("Value of tmp: %i\n", tmp);
+		x_pthread_mutex_unlock(&m);
 		
 		fflush(stdout);
 		return 0;
