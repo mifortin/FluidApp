@@ -17,6 +17,7 @@
 #include "error.h"
 #include "memory.h"
 #include "field.h"
+#include "mpx.h"
 
 volatile int tmp = 0;
 
@@ -129,14 +130,16 @@ typedef short float16;
 
 int main(int argc, char *argv[])
 {
-	x_init();
+	x_init();			//Setup exception handling / memory management.
 	
 	x_try
+		mpInit(3);		//Start up enough threads for system
+		
 		printf("\n\nFluid Server Launching\n");
 		pthread_mutex_init(&m, NULL);
 		
 		error *err = NULL;
-		netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect, &err);
+		netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect);
 		if (server)
 		{
 			printf("Server Launched\n");
@@ -156,4 +159,5 @@ int main(int argc, char *argv[])
 		printf("In Handler: %s\n", errorMsg(e));
 	x_finally
 	
+	mpTerminate();
 }

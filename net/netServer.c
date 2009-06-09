@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "memory.h"
+#include "mpx.h"
 
 void *netServerConnection(void *eData)
 {
@@ -32,10 +33,12 @@ void *netServerConnection(void *eData)
 	
 	mpMutexUnlock(sData->r_mutex);
 	
-	sData->m_userFunction(sData->m_userData, sData, cur);
+	x_try
+		sData->m_userFunction(sData->m_userData, sData, cur);
+	x_catch(e)
+		printf("Server Connection Died: %s\n", errorMsg(e));
+	x_finally
 	
-done:
-
 	x_free(cur);
 	
 	mpMutexLock(sData->r_mutex);
@@ -48,77 +51,75 @@ done:
 
 void *netServerThread(void *eData)
 {
-	netServer *sData = (netServer*)eData;
-	
-	fd_set selectSet;
-	fd_set copySet;
-	
-	mpMutex *mtx = sData->r_mutex;
-	error *e = NULL;
-	
-	mpMutexLock(mtx);
-	
-	FD_ZERO(&selectSet);
-	FD_SET(sData->m_socket, &selectSet);
-	
-	mpMutexUnlock(mtx);
-	
-	for (;;)
-	{
-		FD_COPY(&selectSet, &copySet);
+	x_try
+		netServer *sData = (netServer*)eData;
 		
-		//Wait for a bit of time, locking the mutex...
+		fd_set selectSet;
+		fd_set copySet;
+		
+		mpMutex *mtx = sData->r_mutex;
+		
 		mpMutexLock(mtx);
 		
-		if (sData->m_client == NULL)
+		FD_ZERO(&selectSet);
+		FD_SET(sData->m_socket, &selectSet);
+		
+		mpMutexUnlock(mtx);
+		
+		for (;;)
 		{
-			if (sData->m_socket != -1)
+			FD_COPY(&selectSet, &copySet);
+			
+			//Wait for a bit of time, locking the mutex...
+			mpMutexLock(mtx);
+			
+			if (sData->m_client == NULL)
 			{
-				struct timeval to;
-				to.tv_sec = 5;
-				to.tv_usec = 0;
-				int sel = select(sData->m_socket+1, &copySet, NULL, NULL, &to);
-				
-				if (sel == -1)
-					goto done;
-				
-				if (sel != 0)			//Not timed out
+				if (sData->m_socket != -1)
 				{
-					struct sockaddr remoteAddress;
-					socklen_t remoteSize;
-					remoteSize = sizeof(remoteAddress);
-					int clientSock = accept(sData->m_socket,
-											&remoteAddress,
-											&remoteSize);
-					if (clientSock != -1)
+					struct timeval to;
+					to.tv_sec = 5;
+					to.tv_usec = 0;
+					int sel = select(sData->m_socket+1, &copySet, NULL, NULL, &to);
+					
+					if (sel == -1)
+						goto done;
+					
+					if (sel != 0)			//Not timed out
 					{
-						printf("Server got connection\n");
-						netClient *client = netClientFromSocket(clientSock);
-						if (client != NULL)
+						struct sockaddr remoteAddress;
+						socklen_t remoteSize;
+						remoteSize = sizeof(remoteAddress);
+						int clientSock = accept(sData->m_socket,
+												&remoteAddress,
+												&remoteSize);
+						if (clientSock != -1)
 						{
-							pthread_t tmp;
-							sData->m_client = client;
-							sData->m_runningThreads++;
-							
-							pthread_create(&tmp, NULL, netServerConnection,
-											eData);
+							printf("Server got connection\n");
+							netClient *client = netClientFromSocket(clientSock);
+							if (client != NULL)
+							{
+								pthread_t tmp;
+								sData->m_client = client;
+								sData->m_runningThreads++;
+								
+								x_pthread_create(&tmp, NULL, netServerConnection,
+												eData);
+							}
 						}
 					}
 				}
+				else
+					goto done;
 			}
-			else
-				goto done;
+			
+			mpMutexUnlock(mtx);
 		}
-		
-		mpMutexUnlock(mtx);
-	}
+	x_catch(e)
+		printf("%s",errorMsg(e));
+	x_finally
 
 done:
-	if (e != NULL)
-	{
-		printf("%s",errorMsg(e));
-		x_free(e);
-	}
 	printf("Killed Server!\n");
 	return NULL;
 }
@@ -129,18 +130,18 @@ void netServerFree(void *in_o)
 	netServer *in_svr = (netServer*)in_o;
 	mpMutex *mtx = in_svr->r_mutex;
 	
-	//pthread_mutex_lock(&mtx);
-	//	
-	//	if (in_svr->m_socket != -1)
-	//		close(in_svr->m_socket);
-	//	in_svr->m_socket = -1;
-	//	
-	//	pthread_mutex_unlock(&mtx);
+//	mpMutexLock(mtx);
+//		
+//	if (in_svr->m_socket != -1)
+//		close(in_svr->m_socket);
+//	in_svr->m_socket = -1;
+//		
+//	mpMutexUnlock(mtx);
 
 	if (mtx != NULL)
 	{
 		pthread_t tmp = in_svr->m_serverThread;
-		pthread_join(tmp, NULL);
+		x_pthread_join(tmp);
 
 		mpMutexLock(mtx);
 		
@@ -156,20 +157,15 @@ void netServerFree(void *in_o)
 	memset(in_svr, 0, sizeof(netServer));
 	
 	if (mtx) x_free(mtx);
-	free(in_svr);
+	x_free(in_svr);
 }
 
 
 netServer *netServerCreate(char *port, int flags, void *in_d,
-									netServerFn_onConnect fn_oConn,
-									error **out_error)
+									netServerFn_onConnect fn_oConn)
 {
-	if (!(flags&NETS_UDP) && !(flags&NETS_TCP))
-	{
-		*out_error = errorCreate(NULL, error_flags,
-					"Need to specify either TCP or UDP when creating server");
-		return NULL;
-	}
+	errorAssert((flags&NETS_UDP) || (flags&NETS_TCP), error_flags, 
+					"Need to specify either TCP or UDP when creating a server");
 	
 	struct addrinfo hints;
 	struct addrinfo *servinfo;
@@ -188,72 +184,47 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 							servinfo->ai_protocol);
 	if (mySocket == -1)
 	{
-		*out_error = errorCreate(NULL, error_create,
-					"Unable to create socket for server");
 		freeaddrinfo(servinfo);
-		return NULL;
+		errorRaise(error_create, "Unable to create socket for server");
 	}
 	
 	int one = 1;
 	if (setsockopt(mySocket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) == -1)
 	{
-		*out_error = errorCreate(NULL, error_create, 
-					"Unable to set address reuse on server");
 		close(mySocket);
 		freeaddrinfo(servinfo);
-		return NULL;
+		errorRaise(error_create, "Unable to set address reuse on server");
 	}
 	
 	if (bind(mySocket, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 	{
-		*out_error = errorCreate(NULL, error_create, 
-					"Serverfailed binding socket");
 		close(mySocket);
 		freeaddrinfo(servinfo);
-		return NULL;
+		errorRaise(error_create, "Server failed binding socket");
 	}
 	
 	freeaddrinfo(servinfo);
 	
 	if (listen(mySocket, 5) == -1)
 	{
-		*out_error = errorCreate(NULL, error_create,
-					"Server failed listening on socket");
 		close(mySocket);
-		printf("Failed listening on port\n");
-		return NULL;
+		errorRaise(error_create, "Server failed listening on socket");
 	}
 
 	netServer *toRet = x_malloc(sizeof(netServer), netServerFree);
 	
-	if (toRet)
-	{
-		memset(toRet, 0, sizeof(netServer));
-		
-		toRet->m_runningThreads = 0;
-		toRet->m_flags = flags;
-		toRet->m_socket = mySocket;
-		toRet->m_userData = in_d;
-		toRet->m_userFunction = fn_oConn;
-		toRet->r_mutex = NULL;
-		
-		toRet->r_mutex = mpMutexCreate(out_error);
-		if (toRet->r_mutex == NULL)
-		{
-			*out_error = errorReply(*out_error, error_create,
-						"Failed creating server mutex");
-			x_free(toRet);
-			return NULL;
-		}
-		
-		if (pthread_create(&toRet->m_serverThread, NULL, netServerThread, toRet) != 0)
-		{
-			*out_error = errorCreate(NULL, error_create,
-						"Failed creating server thread");
-			x_free(toRet);
-			return NULL;
-		}
-	}
+	memset(toRet, 0, sizeof(netServer));
+	
+	toRet->m_runningThreads = 0;
+	toRet->m_flags = flags;
+	toRet->m_socket = mySocket;
+	toRet->m_userData = in_d;
+	toRet->m_userFunction = fn_oConn;
+	toRet->r_mutex = NULL;
+	
+	toRet->r_mutex = mpMutexCreate();
+	
+	x_pthread_create(&toRet->m_serverThread, NULL, netServerThread, toRet);
 	
 	return toRet;
 }

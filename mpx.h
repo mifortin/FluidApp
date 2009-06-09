@@ -42,6 +42,9 @@ mpQueue *mpQueueCreate(int maxSize);
 void mpQueuePush(mpQueue *in_q, void *in_dat);
 void *mpQueuePop(mpQueue *in_q);
 
+void mpQueuePushInt(mpQueue *in_q, int in_dat);
+int mpQueuePopInt(mpQueue *in_q);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	An updated version of the used threading paradigm to better suit the cell
@@ -51,12 +54,26 @@ void *mpQueuePop(mpQueue *in_q);
 //
 //	Exception handling is safe across an arbitrary number of threads since
 //	data used for exceptions is stored within the stack.
-typedef struct mpTaskWorld mpTaskWorld;
 
 //Initialize core MP - essentially the task world as an opaque global...
 //	Call mpTerminate to join all threads...
 void mpInit(int in_workers);		//# of worker threads
 void mpTerminate();
+
+//Function for a task... (obj points to something passed in on launch that
+//can be retained)
+typedef void(*mpTaskFn)(void *in_obj);
+
+//Start a new task.  Note - the main thread is the controller, and these are
+//the workers.  A set number of workers exist from the start of the app
+//	("optimal" number based on number of cores).
+void mpTaskLaunch(mpTaskFn in_task, void *in_obj);
+
+
+//Start a task parallelized over the number of cores.  Differs from mpTaskLaunch
+//by setting up a queue entry for each core.  Useful when simple sync methods
+//can be used (eg. atomic instructions and the like)
+void mpTaskFlood(mpTaskFn in_task, void *in_obj);
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -38,7 +38,6 @@ typedef int(*netServerFn_onConnect)(void *d, netServer *in_svr,
 //Creates a server listening on port, with flags.  With a connection, calls
 //fn_oConn on a new thread...	The server is on a new thread...
 netServer *netServerCreate(char *port, int flags, void *in_d,
-												netServerFn_onConnect fn_oConn,
-												error **out_error);
+												netServerFn_onConnect fn_oConn);
 
 #endif

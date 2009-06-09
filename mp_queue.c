@@ -98,3 +98,28 @@ void *mpQueuePop(mpQueue *in_q)
 	
 	return toRet;
 }
+
+
+typedef union {
+	void *v;
+	int i;
+} mpQueueConv;
+
+
+void mpQueuePushInt(mpQueue *in_q, int in_dat)
+{
+	mpQueueConv a;
+	a.i = in_dat;
+	
+	mpQueuePush(in_q, a.v);
+}
+
+
+int mpQueuePopInt(mpQueue *in_q)
+{
+	mpQueueConv a;
+	a.v = mpQueuePop(in_q);
+	
+	return a.i;
+}
+
