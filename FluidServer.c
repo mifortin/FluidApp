@@ -126,8 +126,6 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 }
 
 
-typedef short float16;
-
 int main(int argc, char *argv[])
 {
 	x_init();			//Setup exception handling / memory management.
@@ -141,11 +139,8 @@ int main(int argc, char *argv[])
 		netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect);
 		printf("Server Launched\n");
 		
-		x_free(server);
-		
-		x_pthread_mutex_lock(&m);
-		printf("Value of tmp: %i\n", tmp);
-		x_pthread_mutex_unlock(&m);
+		x_free(server);		//This blocks the current thread waiting for other
+							//threads!
 		
 		fflush(stdout);
 		return 0;
