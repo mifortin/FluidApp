@@ -15,35 +15,13 @@
 //Dealing with a single field...
 typedef struct field field;
 
-field *fieldCreate(protocol *in_proto,
-				   int in_width, int in_height, int in_components,
-				   lua_State *in_lua, mpMutex *in_luaLock,
-				   error **out_err);
+field *fieldCreate(protocol *in_proto, int in_width, int in_height, int in_components);
 
 int fieldWidth(field *in_f);
 int fieldHeight(field *in_f);
 int fieldComponents(field *in_f);
 
-//Lock/unlock the field (note the threading)
-float *fieldDataLock(field *in_f, error **out_err);
-error *fieldDataUnlock(field *in_f);
-
-//Sends a field over the network.
-//	srcPlane and dstPlane are teh source and destination plane.
-//		(the client and server are expected to have different purposes
-//		for each plane).
-//
-//	in_c is the compression level.  The higher, the better the compression.
-//		basic compression is gzip, however bz2 may be presented as an option.
-//
-//	This is a very lossy process.  (which will be rectified in due time...)
-error *fieldSend(field *in_f, int in_srcPlane, int in_dstPlane, int in_c);
-
-
-//Methods used to register a handler whenever a new field is received
-//over the network.
-typedef error*(*fieldReceiveHandler)(field *in_f, int in_plane, void *in_obj);
-error *fieldSetReceiveHandler(field *in_f, void *in_obj,
-							  fieldReceiveHandler in_rh);
+//Be careful with thread safety!!!
+float *fieldData(field *in_f);
 
 #endif

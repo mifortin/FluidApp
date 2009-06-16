@@ -74,25 +74,8 @@ fluid *fluidCreate(protocol *in_proto, lua_State *in_ls, char *in_globName,
 	
 	memset(toRet, 0, sizeof(fluid));
 	
-	error *tmpError = NULL;
-	toRet->fluidData[0] = fieldCreate(in_proto, in_width, in_height, 8,NULL,NULL, &tmpError);
-	if (toRet->fluidData[0] == NULL)
-	{
-		*out_err = errorReply(tmpError, error_create,
-									"Failed creating fluid data");
-		free(toRet);
-		return NULL;
-	}
-	
-	toRet->fluidData[1] = fieldCreate(in_proto, in_width, in_height, 8,NULL,NULL, &tmpError);
-	if (toRet->fluidData[1] == NULL)
-	{
-		*out_err = errorReply(tmpError, error_create,
-									"Failed creating fluid data");
-		x_free(toRet->fluidData[0]);
-		free(toRet);
-		return NULL;
-	}
+	toRet->fluidData[0] = fieldCreate(in_proto, in_width, in_height, 8);
+	toRet->fluidData[1] = fieldCreate(in_proto, in_width, in_height, 8);
 	
 	if (in_ls)
 	{

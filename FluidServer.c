@@ -68,11 +68,11 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	protocolFloatCreate(p, 10, L, mtx, &pError);
 	protocolStringCreate(p, L, mtx, mtx, hndlr, &pError);
 	
-	field *f = fieldCreate(p, 512, 512, 16, L, mtx, &pError);
+	field *f = fieldCreate(p, 512, 512, 16);
 	
 	protocolSetReadyState(p);
 	
-	float *t = (float*)fieldDataLock(f, &pError);
+	float *t = fieldData(f);
 	int x;
 	for (x=0; x<512*512*16; x++)
 		t[x] = 1;
@@ -88,12 +88,6 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 			t[x*16 + y*512*16 + 2] = 0.5;
 		}
 	}
-	
-	fieldDataUnlock(f);
-	
-	fieldSend(f, 0, 0, 9);
-	fieldSend(f, 1, 1, 9);
-	fieldSend(f, 2, 2, 9);
 	
 	if (p == NULL)
 	{
