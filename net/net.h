@@ -26,7 +26,12 @@ void netClientReadBinary(netClient *client, void *dest, int *cnt, int timeout);
 
 //We read (and wait) until the entire buffer is filled.  A nice abstraction
 //to simplify things.
-void netClientGetBinary(netClient *client, void *dest, int cnt, int timeout);
+//
+//	Return 0 if a timeout occured, else non-zero.
+//
+//	An exception is thrown if a timeout is detected mid-stream.  (eg.
+//	a data request for a chunk does not complete)
+int netClientGetBinary(netClient *client, void *dest, int cnt, int timeout);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,24 +61,27 @@ typedef struct netStream netStream;
 //netStream is built on top of a newClient.  Note that once a client is
 //bound to a netStream - all input from the stream will be read by the
 //netStream.  (unexpected behaviour may occur on two readers)
-netStream *netStreamCreate(netClient *in_client);
+//
+//	buffSize is the size of the internal buffer.
+//
+//	This implies that netStream must be in control of sending and receiving
+//	data as it will prepend/append a chunk size.
+netStream *netStreamCreate(netClient *in_client, int buffSize);
 
-//Number of bytes waiting to be consumed
-int netStreamWaiting(netStream *in_strm);
+//Is there a chunk of data loaded up and ready to be consumed?
+//	NULL if no chunk of data present.
+const void *netStreamChunk(netClient *in_client);
 
-//Returns a pointer to 'n' bytes in the stream.  The pointer
-//is invalidated on the next call to a netStream function.
-//No data is consumed, thus it remains in the buffer until further
-//notice.
-void *netStreamPeek(netStream *in_strm, int n_bytes);
+//Tell that we're done with the chunk.  Then it gets recycled for another
+//network read.
+void netStreamDoneChunk(netClient *in_client);
 
-//Actually reads data from the stream.  The data is marked as 'consumed'
-//and will be used eventually.
-void *netStreamRead(netStream *in_strm, int n_bytes);
+//Request a buffer to write to (for the case of sending...)
+void *netStreamBuffer(netClient *in_client);
 
-//Tell the system that a pending netStreamRead has completed, and that the
-//data can be used again.  (As long as there are pending reads, no writes
-//are done).
-void netStreamDone(netStream *in_strm);
+//Sends data across the network.  n_bytes of data stored in in_dat.
+//	(could netStream be responsible for the underlying buffer?)
+//	Sends the 'send' buffer...
+void netStreamSend(netStream *in_strm, int n_bytes);
 
 #endif
