@@ -26,7 +26,7 @@ void netClientReadBinary(netClient *client, void *dest, int *cnt, int timeout);
 
 //We read (and wait) until the entire buffer is filled.  A nice abstraction
 //to simplify things.
-void netClientGetBinary(netClient *client, void *dest, int cnt, int timeout);
+int netClientGetBinary(netClient *client, void *dest, int cnt, int timeout);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,6 +51,10 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 //	netStreams are not supposed to do any blocking.  An operation that would
 //	normally result in blocking will throw an exception.  EG. Poll for data,
 //	and make sure enough of the data is already loaded up and ready!
+//
+//	NOTE: netInStream & netOutStream may use multiple threads internally,
+//	the exported API is not thread safe.  (Only use these functions on a single
+//	thread, or put in guards to make sure that they work as expected)
 typedef struct netInStream netInStream;
 typedef struct netOutStream netOutStream;
 
@@ -63,7 +67,7 @@ netOutStream *netOutStreamCreate(netClient *in_client, int in_buffSize);
 void *netInStreamRead(netInStream *in_stream, int *out_datSize);
 void netInStreamDoneRead(netInStream *in_stream);
 
-//Obtain a pointer to a send buffer
+//Obtain a pointer to a send buffer (potentially blocking if not done sending)
 void *netOutStreamBuffer(netOutStream *in_oStream, int in_buffSize);
 void netOutStreamSend(netOutStream *in_oStream);
 

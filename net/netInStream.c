@@ -64,7 +64,7 @@ void *netInStreamReader(void *v)
 		for (;;)
 		{
 			int size;
-			netClientGetBinary(o->r_client, &size, sizeof(int), 9000);
+			while (netClientGetBinary(o->r_client, &size, sizeof(int), 9000) == 0);
 			
 			size = htonl(size);
 			
@@ -100,11 +100,13 @@ void *netInStreamReader(void *v)
 				}
 			x_pthread_mutex_unlock(&o->r_mutex);
 			
+			errorAssert(size <= 0, error_net, "Size of data chunk need be positive");
+			
 			//Good, now write the size and load up the data...
 			*((int*)(buff + o->nBuffWrite)) = size;
 			
-			netClientGetBinary(o->r_client, buff + o->nBuffWrite + sizeof(int),
-							   size, 9000);
+			while (netClientGetBinary(o->r_client, buff + o->nBuffWrite + sizeof(int),
+							   size, 9000) == 0);
 			
 			//Update our write index...
 			if (o->nBuffWrite == o->nBuffEnd)
@@ -125,9 +127,12 @@ void *netInStreamReader(void *v)
 
 netInStream *netInStreamCreate(netClient *in_client, int in_buffSize)
 {
-	netInStream *o = x_malloc(sizeof(netInStream), netInStreamOnFree);
+	errorAssert(in_buffSize > sizeof(int), error_flags,
+				"Buffer size must exceed sizeof(int)!");
+	errorAssert(in_client != NULL, error_flags,
+				"Need a valid netClient to bind to.");
 	
-	errorAssert(in_buffSize > 0, error_flags, "Buffer size must be positive!");
+	netInStream *o = x_malloc(sizeof(netInStream), netInStreamOnFree);
 	
 	o->r_client = in_client;
 	x_retain(in_client);
@@ -135,7 +140,7 @@ netInStream *netInStreamCreate(netClient *in_client, int in_buffSize)
 	o->r_buffer = malloc(in_buffSize);
 	o->nBuffSize = in_buffSize;
 	o->nBuffStart = 0;
-	o->nBuffEnd = 100;
+	o->nBuffEnd = 0;
 	o->nBuffWrite = 0;
 	
 	x_pthread_mutex_init(&o->r_mutex, NULL);
