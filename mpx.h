@@ -37,7 +37,7 @@ void mpMutexUnlock(mpMutex *in_m);
 //				spinlocks might do a better job...
 typedef struct mpQueue mpQueue;
 
-mpQueue *mpQueueCreate(int maxSize);
+mpQueue *mpQueueCreate(int in_maxSize);
 
 void mpQueuePush(mpQueue *in_q, void *in_dat);
 void *mpQueuePop(mpQueue *in_q);

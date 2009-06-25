@@ -19,11 +19,4 @@ float half2float(float16 in_half);
 void half2bin(float16 in_half);
 void float2bin(float in_float);
 
-//Supprt for basic compression.  (Take in a list of floats, transform into
-//halfs, and vice-versa.  There can potentially be quite lossy.
-//
-//	Organized like the gZip library, but faster, and lossy!
-typedef struct halfV halfV;
-halfV *halfVCreate();
-
 #endif

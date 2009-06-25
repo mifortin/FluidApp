@@ -226,15 +226,15 @@ error *myFieldHandler(field *in_f, int in_id, void *in_o)
 		
 		//Add to the sideBar a custom view...
 		int x;
-		error *err;
 		netClient *nc = netClientCreate([[i_netAddress stringValue] UTF8String],
-										"2048", NETS_TCP, &err);
+										"2048", NETS_TCP);
 		if (nc == NULL)
 		{
 			NSLog(@"Failed connecting!");
 			return;
 		}
 		
+		error *err;
 		r_proto = protocolCreate(nc, 1024*32, &err);
 		if (r_proto == NULL)
 		{
@@ -253,9 +253,7 @@ error *myFieldHandler(field *in_f, int in_id, void *in_o)
 		r_pf = protocolFloatCreate(r_proto, 10, NULL,
 											   NULL, &err);
 		protocolFloatSetChangeHandler(r_pf, self, myFloatHandler);
-		r_field = fieldCreate(r_proto, 512, 512, 3, NULL, NULL, &err);
-		
-		fieldSetReceiveHandler(r_field, self, myFieldHandler);
+		r_field = fieldCreate(r_proto, 512, 512, 3);
 		
 		for (x=0; x<10; x++)
 		{
@@ -316,17 +314,17 @@ error *myFieldHandler(field *in_f, int in_id, void *in_o)
 		
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		error *err;
+	//	error *err;
 		if (r_field)
 		{
-			float *d = fieldDataLock(r_field, &err);
+			//float *d = fieldDataLock(r_field, &err);
 			
 			assert(glGetError() == GL_NO_ERROR);
 			glEnable(GL_TEXTURE_2D);
 			assert(glGetError() == GL_NO_ERROR);
 			glBindTexture(GL_TEXTURE_2D, r_texture);
 			assert(glGetError() == GL_NO_ERROR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_FLOAT, d);
+			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_FLOAT, d);
 			assert(glGetError() == GL_NO_ERROR);
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			assert(glGetError() == GL_NO_ERROR);
@@ -348,7 +346,7 @@ error *myFieldHandler(field *in_f, int in_id, void *in_o)
 			glVertex3f(-1, 1, 0);
 			glEnd();
 			
-			fieldDataUnlock(r_field);
+			//fieldDataUnlock(r_field);
 		}
 		
 		[m_context flushBuffer];

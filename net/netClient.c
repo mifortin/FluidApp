@@ -70,7 +70,7 @@ void netClientReadBinary(netClient *client, void *base, int *cnt, int timeout)
 }
 
 
-void netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
+int netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 {
 	int curRead = 0;
 	
@@ -82,7 +82,8 @@ void netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 		netClientReadBinary(client, (char*)dest + curRead, &curCnt, timeout);
 		
 		if (curCnt == 0 && curRead == 0)
-			errorRaise(error_timeout, "Timed out while receiving data...");
+			//errorRaise(error_timeout, "Timed out while receiving data...");
+			return 0;
 		else if (curCnt == 0)
 			errorRaise(error_net,
 				"Timed out while waiting for remaining data Got (%i/%i)",
@@ -92,7 +93,7 @@ void netClientGetBinary(netClient *client, void *dest, int cnt, int timeout)
 		//printf("Read %i (%i of %i)\n", curCnt, curRead, cnt);
 		//printf("Read %i (%i of %i)\n", curRead, cnt, curCnt);
 		if (curRead == cnt)
-			return;
+			return 1;
 	}
 }
 
