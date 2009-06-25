@@ -118,6 +118,12 @@
 		4C8E16820FC4544D0051397F /* Test_Locality.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E16810FC4544D0051397F /* Test_Locality.c */; };
 		4CAC8CF00F9FC8FC0081249A /* protocol_string.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CAC8CEF0F9FC8FC0081249A /* protocol_string.c */; };
 		4CAC8CF10F9FC8FC0081249A /* protocol_string.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CAC8CEF0F9FC8FC0081249A /* protocol_string.c */; };
+		4CC021330FEABF22005BFB70 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC021320FEABF22005BFB70 /* netInStream.c */; };
+		4CC021340FEABF22005BFB70 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC021320FEABF22005BFB70 /* netInStream.c */; };
+		4CC021350FEABF22005BFB70 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC021320FEABF22005BFB70 /* netInStream.c */; };
+		4CC021570FEADE05005BFB70 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC021560FEADE05005BFB70 /* netOutStream.c */; };
+		4CC021580FEADE05005BFB70 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC021560FEADE05005BFB70 /* netOutStream.c */; };
+		4CC021590FEADE05005BFB70 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC021560FEADE05005BFB70 /* netOutStream.c */; };
 		4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
@@ -266,6 +272,8 @@
 		4C8E16430FC44AD90051397F /* Test_Half.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Test_Half.c; sourceTree = "<group>"; };
 		4C8E16810FC4544D0051397F /* Test_Locality.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Test_Locality.c; sourceTree = "<group>"; };
 		4CAC8CEF0F9FC8FC0081249A /* protocol_string.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_string.c; sourceTree = "<group>"; };
+		4CC021320FEABF22005BFB70 /* netInStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netInStream.c; sourceTree = "<group>"; };
+		4CC021560FEADE05005BFB70 /* netOutStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netOutStream.c; sourceTree = "<group>"; };
 		4CC5E7270F697C4900CE7928 /* lagrange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange.h; sourceTree = "<group>"; };
 		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
 		4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lagrange_pvt.c; sourceTree = "<group>"; };
@@ -453,6 +461,8 @@
 				27A661DE0F64292E009AC619 /* netServer.h */,
 				27A661DF0F64292E009AC619 /* netServer.c */,
 				27A661E40F642960009AC619 /* net.h */,
+				4CC021320FEABF22005BFB70 /* netInStream.c */,
+				4CC021560FEADE05005BFB70 /* netOutStream.c */,
 			);
 			path = net;
 			sourceTree = "<group>";
@@ -770,6 +780,8 @@
 				4C30F9490FD853FA00B2B86D /* mp_queue.c in Sources */,
 				4C30F9540FD86C3500B2B86D /* mp_x.c in Sources */,
 				4C76D4ED0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */,
+				4CC021340FEABF22005BFB70 /* netInStream.c in Sources */,
+				4CC021580FEADE05005BFB70 /* netOutStream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -786,6 +798,8 @@
 				4C30F94A0FD853FA00B2B86D /* mp_queue.c in Sources */,
 				4C30F9550FD86C3500B2B86D /* mp_x.c in Sources */,
 				4C76D4EE0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */,
+				4CC021330FEABF22005BFB70 /* netInStream.c in Sources */,
+				4CC021570FEADE05005BFB70 /* netOutStream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -861,6 +875,8 @@
 				4C30F94B0FD853FA00B2B86D /* mp_queue.c in Sources */,
 				4C30F9560FD86C3500B2B86D /* mp_x.c in Sources */,
 				4C76D4EF0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */,
+				4CC021350FEABF22005BFB70 /* netInStream.c in Sources */,
+				4CC021590FEADE05005BFB70 /* netOutStream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
