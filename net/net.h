@@ -51,20 +51,29 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 //	netStreams are not supposed to do any blocking.  An operation that would
 //	normally result in blocking will throw an exception.  EG. Poll for data,
 //	and make sure enough of the data is already loaded up and ready!
-typedef struct netInStream netInStream;
-typedef struct netOutStream netOutStream;
+typedef struct netStream netStream;
 
-//Input streams and output streams are very similar.  Main difference is
-//that one sends while looping over a buffer, the other receives.
-netInStream *netInStreamCreate(netClient *in_client, int in_buffSize);
-netOutStream *netOutStreamCreate(netClient *in_client, int in_buffSize);
+//netStream is built on top of a newClient.  Note that once a client is
+//bound to a netStream - all input from the stream will be read by the
+//netStream.  (unexpected behaviour may occur on two readers)
+netStream *netStreamCreate(netClient *in_client);
 
-//Obtain a pointer to a buffer	(Reads data from the stream / closes stream)
-void *netInStreamRead(netInStream *in_stream, int *out_datSize);
-void netInStreamDoneRead(netInStream *in_stream);
+//Number of bytes waiting to be consumed
+int netStreamWaiting(netStream *in_strm);
 
-//Obtain a pointer to a send buffer
-void *netOutStreamBuffer(netOutStream *in_oStream, int in_buffSize);
-void netOutStreamSend(netOutStream *in_oStream);
+//Returns a pointer to 'n' bytes in the stream.  The pointer
+//is invalidated on the next call to a netStream function.
+//No data is consumed, thus it remains in the buffer until further
+//notice.
+void *netStreamPeek(netStream *in_strm, int n_bytes);
+
+//Actually reads data from the stream.  The data is marked as 'consumed'
+//and will be used eventually.
+void *netStreamRead(netStream *in_strm, int n_bytes);
+
+//Tell the system that a pending netStreamRead has completed, and that the
+//data can be used again.  (As long as there are pending reads, no writes
+//are done).
+void netStreamDone(netStream *in_strm);
 
 #endif
