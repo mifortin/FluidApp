@@ -8,6 +8,7 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 struct mpQueue
 {
@@ -29,7 +30,7 @@ struct mpQueue
 void mpQueueFree(void *in_o)
 {
 	mpQueue *in_q = (mpQueue*)in_o;
-	x_free(in_q->r_queueData);
+	free(in_q->r_queueData);
 	
 	pthread_mutex_destroy(&in_q->m_mutex);
 	pthread_cond_destroy(&in_q->m_readCond);
@@ -43,7 +44,7 @@ mpQueue *mpQueueCreate(int maxSize)
 	
 	mpQueue *toRet = x_malloc(sizeof(mpQueue), mpQueueFree);
 	
-	toRet->r_queueData = x_malloc(sizeof(void*) * maxSize, mpQueueFree);
+	toRet->r_queueData = malloc(sizeof(void*) * maxSize);
 	toRet->m_queueSize = maxSize;
 	
 	toRet->m_readerPos = 0;

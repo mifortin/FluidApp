@@ -66,41 +66,45 @@ void *netInStreamReader(void *v)
 			int size;
 			while (netClientGetBinary(o->r_client, &size, sizeof(int), 9000) == 0);
 			
-			size = htonl(size);
+			size = ntohl(size);
 			
 			//If size + 4 exceeds the amount of space left, then block...
 			x_pthread_mutex_lock(&o->r_mutex);
 			
 				if (o->nBuffWrite == -1)
-					return NULL;
-			
-				if (o->nBuffWrite == o->nBuffEnd)
 				{
-					//At end of the stream - enough space or wrap?
-					if (o->nBuffWrite + size + sizeof(int) > o->nBuffSize)
-						o->nBuffWrite = 0;
+					x_pthread_mutex_unlock(&o->r_mutex);
+					return NULL;
 				}
 				
-				if (o->nBuffWrite <= o->nBuffStart && o->nBuffStart < o->nBuffEnd)
-				{
-					while (o->nBuffWrite + size + sizeof(int) > o->nBuffStart)
+			
+				while ((o->nBuffWrite <  o->nBuffEnd && o->nBuffWrite + size + sizeof(int) >= o->nBuffStart)
+					|| (o->nBuffWrite ==  o->nBuffEnd && o->nBuffWrite + size + sizeof(int) > o->nBuffSize))
+				{			
+					if (o->nBuffWrite == o->nBuffEnd)
+					{				
+						//At end of the stream - enough space or wrap?
+						if (o->nBuffWrite + size + sizeof(int) > o->nBuffSize)
+						{
+							o->nBuffWrite = 0;
+						}
+					}
+					else
 					{
 						//Block this thread until there's space...
 						x_pthread_cond_wait(&o->r_cond, &o->r_mutex);
 					}
 					
-					if (o->nBuffStart == o->nBuffSize)
-					{
-						o->nBuffStart = 0;
-						o->nBuffEnd = o->nBuffWrite;
-					}
-					
 					if (o->nBuffWrite == -1)
+					{
+						x_pthread_mutex_unlock(&o->r_mutex);
 						return NULL;
+					}
 				}
+				
 			x_pthread_mutex_unlock(&o->r_mutex);
 			
-			errorAssert(size <= 0, error_net, "Size of data chunk need be positive");
+			errorAssert(size > 0, error_net, "Size of data chunk need be positive");
 			
 			//Good, now write the size and load up the data...
 			*((int*)(buff + o->nBuffWrite)) = size;
@@ -109,14 +113,14 @@ void *netInStreamReader(void *v)
 							   size, 9000) == 0);
 			
 			//Update our write index...
-			if (o->nBuffWrite == o->nBuffEnd)
-			{
-				x_pthread_mutex_lock(&o->r_mutex);
-					o->nBuffEnd += size + sizeof(int);
-				x_pthread_mutex_unlock(&o->r_mutex);
-			}
+			x_pthread_mutex_lock(&o->r_mutex);
+				if (o->nBuffWrite == o->nBuffEnd)
+				{
+						o->nBuffEnd += size + sizeof(int);
+				}
 			
-			o->nBuffWrite += size + sizeof(int);
+				o->nBuffWrite += size + sizeof(int);
+			x_pthread_mutex_unlock(&o->r_mutex);
 		}
 	x_catch(e)
 	x_finally
@@ -157,10 +161,20 @@ void *netInStreamRead(netInStream *in_stream, int *out_datSize)
 	void *toRet = NULL;
 	
 	x_pthread_mutex_lock(&in_stream->r_mutex);
+		
+		//Should we loop around?
+		if (in_stream->nBuffStart == in_stream->nBuffEnd
+			&& in_stream->nBuffWrite < in_stream->nBuffEnd)
+		{
+			in_stream->nBuffStart = 0;
+			in_stream->nBuffEnd = in_stream->nBuffWrite;
+		}
+		
+		//Can we allow the user to read?
 		if (in_stream->nBuffStart < in_stream->nBuffEnd)
 		{
 			*out_datSize = *((int*)((char*)in_stream->r_buffer+in_stream->nBuffStart));
-			toRet = (void*)((char*)in_stream->r_buffer+sizeof(int));
+			toRet = (void*)((char*)in_stream->r_buffer+in_stream->nBuffStart+sizeof(int));
 		}
 	x_pthread_mutex_unlock(&in_stream->r_mutex);
 	
@@ -177,10 +191,6 @@ void netInStreamDoneRead(netInStream *in_stream)
 		{
 			in_stream->nBuffStart += sizeof(int)
 					+ *((int*)((char*)in_stream->r_buffer+in_stream->nBuffStart));
-			
-			if (in_stream->nBuffStart == in_stream->nBuffEnd &&
-				in_stream->nBuffWrite <= in_stream->nBuffStart)
-				in_stream->nBuffStart = in_stream->nBuffSize;
 		}
 		else
 		{

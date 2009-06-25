@@ -21,100 +21,21 @@
 
 volatile int tmp = 0;
 
-#define LUA_HEAP	(64*1024)
-
-pthread_mutex_t m;
-
-void * luaAlloc (void *ud,
-                             void *ptr,
-                             size_t osize,
-                             size_t nsize)
-{
-	if (nsize == 0)
-	{
-		free(ptr);
-		return NULL;
-	}
-	
-	if (osize != 0 && nsize < LUA_HEAP)
-		return ptr;
-	else if (osize != 0)
-		return NULL;
-	
-	if (nsize < LUA_HEAP)
-		return malloc(LUA_HEAP);
-	else
-		return NULL;
-}
-
-
-error *hndlr(void *o, const char *d)
-{
-	return NULL;
-}
-
 
 int onConnect(void *d, netServer *in_vr, netClient *in_remote)
-{	
-	lua_State *L = lua_newstate(luaAlloc, NULL);
-	luaopen_base(L);
-	luaopen_string(L);
-	luaopen_math(L);
+{
+	netInStream *s = netInStreamCreate(in_remote, 256);
 	
-	error *pError = NULL;
-	mpMutex *mtx = mpMutexCreate(&pError);
-	protocol *p = protocolCreate(in_remote, 1024*4, &pError);
-	protocolLua *pl = protocolLuaCreate(p, L, mtx, &pError);
-	protocolFloatCreate(p, 10, L, mtx, &pError);
-	protocolStringCreate(p, L, mtx, mtx, hndlr, &pError);
-	
-	field *f = fieldCreate(p, 512, 512, 16);
-	
-	protocolSetReadyState(p);
-	
-	float *t = fieldData(f);
-	int x;
-	for (x=0; x<512*512*16; x++)
-		t[x] = 1;
-		
-
-	int y;
-	for (x=0; x<512; x++)
+	int x,ds;
+	for (x=0; x<10000000; x++)
 	{
-		for (y=0; y<512; y++)
-		{
-			t[x*16 + y*512*16 + 0] = (float)x/512.0;
-			t[x*16 + y*512*16 + 1] = (float)y/512.0;
-			t[x*16 + y*512*16 + 2] = 0.5;
-		}
-	}
-	
-	if (p == NULL)
-	{
-		printf("Failed creating protocol: %s\n", errorMsg(pError));
-		x_free(pError);
-		return 0;
-	}
-	
-	for (;;)
-	{
-		mpMutexLock(mtx);
+		void *dat;
+		while ((dat = netInStreamRead(s, &ds)) == NULL) {}
 		
-		lua_getglobal(L, "eventLoop");
-		if (lua_isfunction(L, -1) && !lua_isnone(L,-1) && !lua_isnil(L,-1))
-		{
-			lua_pcall(L,0,0,0);
-		}
-		else
-			lua_pop(L,1);
+		printf("%i: '%s'\n", x, (char*)dat);
 		
-		mpMutexUnlock(mtx);
+		netInStreamDoneRead(s);
 	}
-	
-	x_free(mtx);
-	x_free(pl);
-	x_free(p);
-	lua_close(L);
 	
 	return 0;
 }
@@ -128,10 +49,20 @@ int main(int argc, char *argv[])
 		mpInit(3);		//Start up enough threads for system
 		
 		printf("\n\nFluid Server Launching\n");
-		pthread_mutex_init(&m, NULL);
 		
 		netServer *server = netServerCreate("2048", NETS_TCP, NULL, onConnect);
 		printf("Server Launched\n");
+		
+		netClient *c = netClientCreate("localhost", "2048", NETS_TCP);
+		netOutStream *s = netOutStreamCreate(c, 256);
+		
+		int x;
+		for (x=0; x<10000000; x++)
+		{
+			void *d = netOutStreamBuffer(s, 19);
+			sprintf(d, "Testing %i",x);
+			netOutStreamSend(s);
+		}
 		
 		x_free(server);		//This blocks the current thread waiting for other
 							//threads!
