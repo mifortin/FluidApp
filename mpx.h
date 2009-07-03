@@ -107,13 +107,36 @@ error *mpTaskSetLeaveCriticalSection(mpTaskSet *in_ts);
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//	Atomic utility / wrappers
+#ifndef CELL
+
+//Mac OS specific atomics
+#include <libkern/OSAtomic.h>
+
+#define AtomicAdd32Barrier(x,y)				OSAtomicAddBarrier(y, &x)
+#define AtomicCompareAndSwapInt(d, o, n)	OSAtomicCompareAndSwapIntBarrier(o, n, &d)
+#define AtomicCompareAndSwapPtr(d, o, n)	OSAtomicCompareAndSwapPtrBarrier(o, n, &d)
+
+#else
+
+//Other atomics  (GCC 4.2+)
+#define AtomicAdd32Barrier(x,y)				__sync_add_and_fetch(&x, y)
+#define AtomicCompareAndSwapInt(d, o, n)	__sync_bool_compare_and_swap(&d, o, n)
+#define AtomicCompareAndSwapPtr(d, o, n)	__sync_bool_compare_and_swap(&d, o, n)
+
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
 //	PThread utilities / wrappers...
 void x_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void*arg), void *arg);
 void *x_pthread_join(pthread_t thread);
 
 void x_pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
-void x_pthread_mutex_lock(pthread_mutex_t *mutex);
-void x_pthread_mutex_unlock(pthread_mutex_t *mutex);
+void x_pthread_raise(int errValue, char *context);
+#define x_pthread_mutex_lock(X) { int e = pthread_mutex_lock(X); if (e) x_pthread_raise(e,"Mutex Lock");}
+
+#define x_pthread_mutex_unlock(X) { int e = pthread_mutex_unlock(X); if (e) x_pthread_raise(e,"Mutex Unlock");}
 
 void x_pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
 void x_pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
