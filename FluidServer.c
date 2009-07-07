@@ -22,6 +22,8 @@
 
 volatile int tmp = 0;
 
+#define SERVER_PORT		"2045"
+
 double dTime()
 {
 	struct timeval t;
@@ -36,7 +38,7 @@ int onConnect(void *d, netServer *in_vr, netClient *in_remote)
 	
 	int x,ds;
 	double st = dTime();
-	for (x=0; x<10000; x++)
+	for (x=0; x<100; x++)
 	{
 		void *dat;
 		while ((dat = netInStreamRead(s, &ds)) == NULL) {}
@@ -60,20 +62,23 @@ int main(int argc, char *argv[])
 		
 		printf("\n\nFluid Server Launching\n");
 		
-		netServer *server = netServerCreate("2045", NETS_TCP, NULL, onConnect);
+		netServer *server = netServerCreate(SERVER_PORT, NETS_TCP, NULL, onConnect);
 		printf("Server Launched\n");
 		
-		netClient *c = netClientCreate("localhost", "2045", NETS_TCP);
+		netClient *c = netClientCreate("localhost", SERVER_PORT, NETS_TCP);
 		netOutStream *s = netOutStreamCreate(c, 1024*1024*5);
 		
 		int x;
-		for (x=0; x<10000; x++)
+		for (x=0; x<100; x++)
 		{
 			void *d = netOutStreamBuffer(s, 1024*1024*2);
 			sprintf(d, "Testing %i",x);
 			netOutStreamSend(s);
 		}
 		printf("SENT!\n\n");
+		
+		//Now stress the queue structure...
+		
 		
 		x_free(server);		//This blocks the current thread waiting for other
 							//threads!
