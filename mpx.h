@@ -70,11 +70,6 @@ int mpQueuePopInt(mpQueue *in_q);
 //
 typedef struct mpCoherence mpCoherence;
 
-//Description of a function used for coherence operations
-//	We're passed in the object and a 'cacheID'
-//		cacheID identifies a computation on a given set of memory addresses.
-typedef void(*mpCFn)(void *o, int cacheID);
-
 //Creates a new coherence object.  This is seperate from the threading
 //engine for simplicity.
 //	data is the number of data sets to work with
@@ -83,6 +78,27 @@ typedef void(*mpCFn)(void *o, int cacheID);
 //	NOTE: values will need tuning...
 mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache);
 
+//Coherence engine is essentially a very compact pseudo-tree representation
+//of the data.  Out of coherence engine, we get references to the internal
+//data.
+//	in_fn		The function that will be called to execute the given task
+//				once per data
+//	depStart	From the previous task, how many tasks to the "left" must
+//				be completed before another can start. (normally negative)
+//	depEnd		From the previous task, how many tasks to the "right" must
+//				be completed.  (0 means fall through)
+//	depLeft		From tasks on the same row, how many must be completed to
+//				continue?  (0 means none / fall through any order)
+//
+//		Note: This can be safely called while tasks are executing,
+//				however calling this function at the same time on two
+//				different threads is not safe.
+void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
+								int in_depLeft);
+
+void mpCTaskObtain(mpCoherence *o);
+
+void mpCTaskComplete(mpCoherence *o);
 
 
 ////////////////////////////////////////////////////////////////////////////////
