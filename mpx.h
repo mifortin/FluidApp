@@ -47,6 +47,45 @@ int mpQueuePopInt(mpQueue *in_q);
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//	Data forms the basis of optimizations for data-bound software.  As the
+//	number of cores increases, the more "data-bound" the software becomes.
+//
+//	This is essentially a way to "organize" data.  Data is a container of
+//	tasks.  Tasks depend upon other tasks.
+//
+//	There is a "fixed" amount of "data".  A "datum" is defined as a
+//	set of memory that is worked upon by a task.  "datum" can be complex
+//	and include multiple records.
+//
+//	Each "datum" also resides on seperate cache lines.
+//
+//	For a fluid simulation, there is at least 8*row "datum"
+//
+//	These datum are mapped to 8*row*(40+40+10) = 8*row*(90) tasks
+//	(19 is an approximation for non-iterative tasks).
+//
+//	For each task, we have at least 2 "ready" tasks, 4 max.  Each ready task
+//	gets it's counters reduced.  The one whose most memory is in cache and
+//	all dependencies met gets executed.
+//
+typedef struct mpCoherence mpCoherence;
+
+//Description of a function used for coherence operations
+//	We're passed in the object and a 'cacheID'
+//		cacheID identifies a computation on a given set of memory addresses.
+typedef void(*mpCFn)(void *o, int cacheID);
+
+//Creates a new coherence object.  This is seperate from the threading
+//engine for simplicity.
+//	data is the number of data sets to work with
+//	tasks is the number of tasks that will be run (usually about 90-100)
+//	cache is the amount of data that can be loaded into the proc's cache,
+//	NOTE: values will need tuning...
+mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache);
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 //	An updated version of the used threading paradigm to better suit the cell
 //	processor.  What we have are 'n' worker threads.  Each of these threads
 //	has some work to do.  The number is determined at initialization of the
@@ -107,13 +146,44 @@ error *mpTaskSetLeaveCriticalSection(mpTaskSet *in_ts);
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//	Atomic utility / wrappers
+#ifndef CELL
+
+//Mac OS specific atomics
+#include <libkern/OSAtomic.h>
+
+#define atomic_int32	int32_t
+
+#define AtomicAdd32Barrier(x,y)				OSAtomicAdd32Barrier((y), &(x))
+#define AtomicCompareAndSwapInt(d, o, n)	OSAtomicCompareAndSwap32Barrier((o), (n), &(d))
+#define AtomicCompareAndSwapPtr(d, o, n)	OSAtomicCompareAndSwapPtrBarrier((o), (n), &(d))
+#define AtomicCompareInt(d, o)				OSAtomicCompareAndSwap32Barrier((o), (o), &(d))
+#define AtomicExtract(d)					OSAtomicAdd32Barrier(0, &(d))
+
+#else
+
+#define atomic_int32	int32_t
+
+//Other atomics  (GCC 4.2+)
+#define AtomicAdd32Barrier(x,y)				__sync_add_and_fetch(&(x), (y))
+#define AtomicCompareAndSwapInt(d, o, n)	__sync_bool_compare_and_swap(&(d), (o), (n))
+#define AtomicCompareAndSwapPtr(d, o, n)	__sync_bool_compare_and_swap(&(d), (o), (n))
+#define AtomicCompareInt(d, o)				__sync_bool_compare_and_swap(&(d), (o), (o))
+#define AtomicExtract(d)					__sync_add_and_fetch(&(d), 0)
+
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
 //	PThread utilities / wrappers...
 void x_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void*arg), void *arg);
 void *x_pthread_join(pthread_t thread);
 
 void x_pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
-void x_pthread_mutex_lock(pthread_mutex_t *mutex);
-void x_pthread_mutex_unlock(pthread_mutex_t *mutex);
+void x_pthread_raise(int errValue, char *context);
+#define x_pthread_mutex_lock(X) { int e = pthread_mutex_lock(X); if (e) x_pthread_raise(e,"Mutex Lock");}
+
+#define x_pthread_mutex_unlock(X) { int e = pthread_mutex_unlock(X); if (e) x_pthread_raise(e,"Mutex Unlock");}
 
 void x_pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
 void x_pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);

@@ -88,6 +88,9 @@
 		27BD78E70FB10B450077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD791E0FB111C60077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD79250FB112070077C0B0 /* FluidTest.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD79240FB112070077C0B0 /* FluidTest.c */; };
+		4C0ABB2F0FFFA43300FC5680 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0ABB2E0FFFA43300FC5680 /* mp_coherence.c */; };
+		4C0ABB300FFFA43300FC5680 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0ABB2E0FFFA43300FC5680 /* mp_coherence.c */; };
+		4C0ABB310FFFA43300FC5680 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0ABB2E0FFFA43300FC5680 /* mp_coherence.c */; };
 		4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */; };
 		4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */; };
 		4C1BA6840FBC6EC400A74684 /* FluidZip.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C1BA6830FBC6EC400A74684 /* FluidZip.nib */; };
@@ -245,6 +248,7 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
+		4C0ABB2E0FFFA43300FC5680 /* mp_coherence.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_coherence.c; sourceTree = "<group>"; };
 		4C1BA6700FBC6D3900A74684 /* FluidZip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidZip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C1BA6720FBC6D3A00A74684 /* FluidZip-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FluidZip-Info.plist"; sourceTree = "<group>"; };
 		4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_main.m; sourceTree = "<group>"; };
@@ -589,6 +593,7 @@
 				4C30F9480FD853FA00B2B86D /* mp_queue.c */,
 				4C30F9530FD86C3500B2B86D /* mp_x.c */,
 				4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */,
+				4C0ABB2E0FFFA43300FC5680 /* mp_coherence.c */,
 			);
 			name = mp;
 			sourceTree = "<group>";
@@ -786,6 +791,7 @@
 				4C76D4ED0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */,
 				4CF825050FEB30E3003AEE44 /* netInStream.c in Sources */,
 				4CF825060FEB30E3003AEE44 /* netOutStream.c in Sources */,
+				4C0ABB300FFFA43300FC5680 /* mp_coherence.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -803,6 +809,7 @@
 				4C76D4EE0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */,
 				4CF825070FEB30E3003AEE44 /* netInStream.c in Sources */,
 				4CF825080FEB30E3003AEE44 /* netOutStream.c in Sources */,
+				4C0ABB310FFFA43300FC5680 /* mp_coherence.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -879,6 +886,7 @@
 				4C76D4EF0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */,
 				4CF825090FEB30E3003AEE44 /* netInStream.c in Sources */,
 				4CF8250A0FEB30E3003AEE44 /* netOutStream.c in Sources */,
+				4C0ABB2F0FFFA43300FC5680 /* mp_coherence.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -928,8 +936,12 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
+<<<<<<< HEAD:FluidApp.xcodeproj/project.pbxproj
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_VERSION = "";
+=======
+				GCC_OPTIMIZATION_LEVEL = 3;
+>>>>>>> 92251e56919f775a277750658b4f4c0a505f0f77:FluidApp.xcodeproj/project.pbxproj
 				INSTALL_PATH = "$(HOME)/bin";
 				PREBINDING = NO;
 				PRODUCT_NAME = FluidServer;
@@ -1071,6 +1083,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;

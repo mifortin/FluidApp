@@ -83,7 +83,10 @@ void *netServerThread(void *eData)
 					int sel = select(sData->m_socket+1, &copySet, NULL, NULL, &to);
 					
 					if (sel == -1)
+					{
+						mpMutexUnlock(mtx);
 						goto done;
+					}
 					
 					if (sel != 0)			//Not timed out
 					{
@@ -110,7 +113,10 @@ void *netServerThread(void *eData)
 					}
 				}
 				else
+				{
+					mpMutexUnlock(mtx);
 					goto done;
+				}
 			}
 			
 			mpMutexUnlock(mtx);
@@ -129,15 +135,11 @@ void netServerFree(void *in_o)
 {
 	netServer *in_svr = (netServer*)in_o;
 	mpMutex *mtx = in_svr->r_mutex;
-	
-//	mpMutexLock(mtx);
-//		
-//	if (in_svr->m_socket != -1)
-//		close(in_svr->m_socket);
-//	in_svr->m_socket = -1;
-//		
-//	mpMutexUnlock(mtx);
 
+	mpMutexLock(mtx);
+	in_svr->m_socket = -1;
+	mpMutexUnlock(mtx);
+	
 	if (mtx != NULL)
 	{
 		pthread_t tmp = in_svr->m_serverThread;
@@ -153,6 +155,11 @@ void netServerFree(void *in_o)
 		}
 		mpMutexUnlock(mtx);
 	}
+	
+	mpMutexLock(mtx);
+	if (in_svr->m_socket != -1)
+		close(in_svr->m_socket);
+	mpMutexUnlock(mtx);
 		
 	memset(in_svr, 0, sizeof(netServer));
 	
