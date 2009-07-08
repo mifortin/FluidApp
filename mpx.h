@@ -96,9 +96,17 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache);
 void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 								int in_depLeft);
 
-void mpCTaskObtain(mpCoherence *o);
-
-void mpCTaskComplete(mpCoherence *o);
+//This is so that the CBE task manager can snoop and commence DMA transfers
+//within the proc to get data ready for the next round.  On regular PCs,
+//these are run within a flooded task world.
+//	The function and task are output in the first, and input in the second.
+//	out_tid is -1 if there are no more tasks.  The function will block if
+//	pending tasks are waiting on dependencies.
+//	out_tid is a handle to the task	- for internal maintenance
+void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk);
+//	Tells of our completed task and gets the next one!
+void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
+									 int *out_tid, int *out_fn, int *out_tsk);
 
 
 ////////////////////////////////////////////////////////////////////////////////

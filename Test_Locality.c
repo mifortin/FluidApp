@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sys/time.h>
+#include "memory.h"
 
 //This file will test the difference in performance that arises due to locality
 //of accesses.
@@ -220,6 +221,37 @@ void localityBadTest(float *in_data)
 	}
 }
 
+#include "mpx.h"
+
+void localityTestCoherence(float *in_data)
+{
+	x_try
+	mpCoherence *o = mpCCreate(4094, 40, 10);
+	
+	int x;
+	for (x=0; x<40; x++)
+		mpCTaskAdd(o, 0, 0, 1, 1);
+	
+	int tid, fn, data;
+	mpCTaskObtain(o, &tid, &fn, &data);
+	
+	while (tid != -1)
+	{
+		int y = data+1;
+		//printf("Doing: %i %i\n", tid, data);
+		for (x=1; x<4095; x++)
+		{
+			in_data[x+y*4096] =
+				(in_data[x+1+y*4096] - in_data[x-1+y*4096] +
+				in_data[x+(y+1)*4096] - in_data[x+(y-1)*4096]);
+		}
+		mpCTaskComplete(o, tid, fn, data, &tid, &fn, &data);
+	}
+	x_catch(e)
+		printf("ERROR: %s\n", errorMsg(e));
+	x_finally
+}
+
 
 void testLocality()
 {
@@ -237,9 +269,9 @@ void testLocality()
 	localityDataInit(data);
 	
 	double start = localityTimeFunc();
-	localityBadTest(data);
+	/*localityBadTest(data);
 	printf("  Out Of Order: %f\n", localityTimeFunc() - start);
-	
+	*/
 	localityDataInit(data);
 	start = localityTimeFunc();
 	localityInOrderTest(data);
@@ -259,6 +291,12 @@ void testLocality()
 	start = localityTimeFunc();
 	localityHybridHitTest2(data);
 	printf("  Hybrid Hit2: %f\n", localityTimeFunc() - start);
+	
+	x_init();
+	localityDataInit(data);
+	start = localityTimeFunc();
+	localityTestCoherence(data);
+	printf("  Coherence Engine (uniproc) :%f\n", localityTimeFunc() - start);
 	
 	free(data);
 }

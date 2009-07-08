@@ -88,6 +88,8 @@
 		27BD78E70FB10B450077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD791E0FB111C60077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD79250FB112070077C0B0 /* FluidTest.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD79240FB112070077C0B0 /* FluidTest.c */; };
+		4C0B4AC8100422F100C7C081 /* error_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18BB10F6700DF0023F24B /* error_pvt.c */; };
+		4C0B4ACA1004230700C7C081 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */; };
 		4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */; };
 		4C1BA6840FBC6EC400A74684 /* FluidZip.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C1BA6830FBC6EC400A74684 /* FluidZip.nib */; };
@@ -799,6 +801,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C0B4AC8100422F100C7C081 /* error_pvt.c in Sources */,
 				4C8E16540FC44B450051397F /* memory.c in Sources */,
 				27BD791E0FB111C60077C0B0 /* half.c in Sources */,
 				27BD79250FB112070077C0B0 /* FluidTest.c in Sources */,
@@ -810,6 +813,7 @@
 				4CF825070FEB30E3003AEE44 /* netInStream.c in Sources */,
 				4CF825080FEB30E3003AEE44 /* netOutStream.c in Sources */,
 				4C54726B1003A3EF0069EB93 /* mp_coherence.c in Sources */,
+				4C0B4ACA1004230700C7C081 /* netClient.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
