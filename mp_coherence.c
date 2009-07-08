@@ -61,6 +61,10 @@ struct mpCoherence
 	//Amount of data each task must process
 	int				m_nData;
 	
+	//Cache size + start  (cache is small "region")
+	int				m_cacheSize;
+	atomic_int32	m_nCacheStart;
+	
 	//Min/max in task list (always incrementing)
 	atomic_int32	m_min, m_max;
 	
@@ -75,6 +79,9 @@ struct mpCoherence
 	//Mutex and conditional
 	pthread_mutex_t	m_mutex;
 	pthread_cond_t	m_cond;
+	
+	//Quit variable
+	int m_quit;
 };
 
 
@@ -103,12 +110,14 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	x_pthread_cond_init(&o->m_cond, NULL);
 	
 	o->r_tasks = malloc(sizeof(mpCoTask) * in_tasks);
+	memset(o->r_tasks, 0, sizeof(mpCoTask) * in_tasks);
 	errorAssert(o->r_tasks != NULL, error_memory,
 							"Failed allocating %i bytes for tasks",
 							sizeof(mpCoTask) * in_tasks);
 	
 	o->m_nMaxTasks = in_tasks;
 	o->m_nData = in_data;
+	o->m_cacheSize = in_cache;
 	
 	return o;
 }
@@ -150,6 +159,9 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 	if (tmp.data.completed == tmp.data.working
 		&& tmp.data.completed != o->m_nData)
 	{
+		int cacheStart = AtomicExtract(o->m_nCacheStart);
+		if (tmp.data.working+1 < AtomicExtract(o->m_nCacheStart))
+			return 0;
 
 		if (x != 0)
 		{
@@ -173,6 +185,8 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 		if (AtomicCompareAndSwapInt(o->r_tasks[x].progress.atom,
 									tmp.atom, t2.atom))
 		{
+			if (t2.data.working > cacheStart + o->m_cacheSize)
+				AtomicCompareAndSwapInt(o->m_nCacheStart, cacheStart, cacheStart+1);
 			*out_tid = x;
 			*out_fn = o->r_tasks[x].description.data.function;
 			*out_tsk = tmp.data.completed;
@@ -188,6 +202,7 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 
 void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 {
+	int i = 0;
 	for (;;)
 	{
 		//Done?
@@ -197,6 +212,15 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		if (tmp.data.completed == o->m_nData)
 		{
 			*out_tid = -1;
+			x_pthread_mutex_lock(&o->m_mutex);
+				o->m_quit = 1;
+				
+				while (o->m_nBlocking > 0)
+				{
+					x_pthread_cond_signal(&o->m_cond);
+					o->m_nBlocking--;
+				}
+			x_pthread_mutex_unlock(&o->m_mutex);
 			return;
 		}
 	
@@ -212,11 +236,21 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 				return;
 		}
 		
+		i++;
+		
 		//BLOCK HERE (use pthread conditions to not waste CPU)!
-		AtomicAdd32Barrier(o->m_nBlocking, 1);
-		x_pthread_mutex_lock(&o->m_mutex);
-		x_pthread_cond_wait(&o->m_cond, &o->m_mutex);
-		x_pthread_mutex_unlock(&o->m_mutex);
+		if (i > 100)
+		{
+			x_pthread_mutex_lock(&o->m_mutex);
+			
+			if (o->m_quit == 0)
+			{
+				AtomicAdd32Barrier(o->m_nBlocking, 1);
+				x_pthread_cond_wait(&o->m_cond, &o->m_mutex);
+			}
+			x_pthread_mutex_unlock(&o->m_mutex);
+			i = 0;
+		}
 	}
 }
 
@@ -231,8 +265,12 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	if (tmp.data.working == o->m_nData)
 	{
 		if (min == in_tid)
+		{
 			errorAssert(AtomicCompareAndSwapInt(o->m_min, min, min+1),
 						error_thread, "Failed incrementing min!");
+			while (!AtomicCompareAndSwapInt(o->m_nCacheStart,
+						AtomicExtract(o->m_nCacheStart), 0));
+		}
 		min++;
 	}
 	
@@ -276,9 +314,13 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	int v = AtomicExtract(o->m_nBlocking);
 	while (v > 0)
 	{
+		x_pthread_mutex_lock(&o->m_mutex);
+		
 		if (AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1))
 			x_pthread_cond_signal(&o->m_cond);
 		
 		v = AtomicExtract(o->m_nBlocking);
+		
+		x_pthread_mutex_unlock(&o->m_mutex);
 	}
 }

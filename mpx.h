@@ -205,9 +205,9 @@ void *x_pthread_join(pthread_t thread);
 
 void x_pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
 void x_pthread_raise(int errValue, char *context);
-#define x_pthread_mutex_lock(X) { int e = pthread_mutex_lock(X); if (e) x_pthread_raise(e,"Mutex Lock");}
+#define x_pthread_mutex_lock(X) { int __pvt_e = pthread_mutex_lock(X); if (__pvt_e) x_pthread_raise(__pvt_e,"Mutex Lock");}
 
-#define x_pthread_mutex_unlock(X) { int e = pthread_mutex_unlock(X); if (e) x_pthread_raise(e,"Mutex Unlock");}
+#define x_pthread_mutex_unlock(X) { int __pvt_e = pthread_mutex_unlock(X); if (__pvt_e) x_pthread_raise(__pvt_e,"Mutex Unlock");}
 
 void x_pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
 void x_pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);

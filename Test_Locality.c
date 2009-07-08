@@ -188,7 +188,7 @@ void localityInOrderTest(float *in_data)
 {
 	int x,y;
 	int itr;
-	for (itr=0; itr<40; itr++)
+	for (itr=0; itr<800; itr++)
 	{
 		for (y=1; y<4095; y++)
 		{
@@ -223,14 +223,10 @@ void localityBadTest(float *in_data)
 
 #include "mpx.h"
 
-void localityTestCoherence(float *in_data)
+void localityTestCoherence(float *in_data, mpCoherence *o)
 {
 	x_try
-	mpCoherence *o = mpCCreate(4094, 40, 10);
-	
 	int x;
-	for (x=0; x<40; x++)
-		mpCTaskAdd(o, 0, 0, 1, 1);
 	
 	int tid, fn, data;
 	mpCTaskObtain(o, &tid, &fn, &data);
@@ -253,6 +249,45 @@ void localityTestCoherence(float *in_data)
 }
 
 
+float *g_data;
+mpQueue *q;
+atomic_int32	i = 0;
+
+void localityNCoherence(void *in_o)
+{
+	mpCoherence *o = (mpCoherence*)in_o;
+	float *in_data = g_data;
+	//int proc = AtomicAdd32Barrier(i, 1);
+	x_try
+	int x;
+	
+	
+	int tid, fn, data;
+	//printf("On proc %i\n", proc);
+	mpCTaskObtain(o, &tid, &fn, &data);
+	
+	while (tid != -1)
+	{
+		int y = data+1;
+		//printf("%i", proc);
+		//printf("Doing on %i: %i %i\n", proc, tid, data);
+		for (x=1; x<4095; x++)
+		{
+			in_data[x+y*4096] =
+				(in_data[x+1+y*4096] - in_data[x-1+y*4096] +
+				in_data[x+(y+1)*4096] - in_data[x+(y-1)*4096]);
+		}
+		mpCTaskComplete(o, tid, fn, data, &tid, &fn, &data);
+	}
+	x_catch(e)
+		printf("ERROR: %s\n", errorMsg(e));
+	x_finally
+	
+	//printf("Done proc %i\n", proc);
+	mpQueuePush(q, NULL);
+}
+
+
 void testLocality()
 {
 	//L1 cache is 32k on Intel (we'll use this as a base).  
@@ -260,6 +295,8 @@ void testLocality()
 	//
 	//	Therefore, 4096x4096 seems like a good grid size for demonstration
 	//	purposes.  This is 64MB, too big to fit into any cache.
+
+	q = mpQueueCreate(4);
 
 	printf(" Benching Locality:\n");
 	
@@ -272,11 +309,11 @@ void testLocality()
 	/*localityBadTest(data);
 	printf("  Out Of Order: %f\n", localityTimeFunc() - start);
 	*/
-	localityDataInit(data);
-	start = localityTimeFunc();
-	localityInOrderTest(data);
-	printf("  In Order: %f\n", localityTimeFunc() - start);
-	
+//	localityDataInit(data);
+//	start = localityTimeFunc();
+//	localityInOrderTest(data);
+//	printf("  In Order: %f\n", localityTimeFunc() - start);
+	/*
 	localityDataInit(data);
 	start = localityTimeFunc();
 	localitySimpleHitTest(data);
@@ -290,13 +327,58 @@ void testLocality()
 	localityDataInit(data);
 	start = localityTimeFunc();
 	localityHybridHitTest2(data);
-	printf("  Hybrid Hit2: %f\n", localityTimeFunc() - start);
+	printf("  Hybrid Hit2: %f\n", localityTimeFunc() - start);*/
 	
+	int z = 128;
 	x_init();
-	localityDataInit(data);
-	start = localityTimeFunc();
-	localityTestCoherence(data);
-	printf("  Coherence Engine (uniproc) :%f\n", localityTimeFunc() - start);
+	/*for (z=1; z<=1024; z+=z)
+	{
+		mpCoherence *o = mpCCreate(4094, 800, z);
+		
+		int x;
+		for (x=0; x<800; x++)
+			mpCTaskAdd(o, 0, 0, 1, 1);
+		
+		localityDataInit(data);
+		start = localityTimeFunc();
+		localityTestCoherence(data, o);
+		printf("  Coherence Engine (uniproc cache=%i) :%f\n", 
+					z, localityTimeFunc() - start);
+		
+		x_free(o);
+	}/**/
+	
+	
+	mpInit(8);
+	for (z=1; z<=1024; z+=z)
+	{
+		mpCoherence *o = mpCCreate(4094, 800, z);
+		
+		int x;
+		for (x=0; x<800; x++)
+			mpCTaskAdd(o, 0, 0, 1, 1);
+		
+		localityDataInit(data);
+		start = localityTimeFunc();
+		g_data = data;
+		
+		mpTaskFlood(localityNCoherence, o);
+		
+		mpQueuePop(q);
+		mpQueuePop(q);
+		mpQueuePop(q);
+		mpQueuePop(q);
+		mpQueuePop(q);
+		mpQueuePop(q);
+		mpQueuePop(q);
+		mpQueuePop(q);
+		
+		printf("  Coherence Engine (2-proc cache=%i) :%f\n", 
+					z, localityTimeFunc() - start);
+		
+		x_free(o);
+	}
+	mpTerminate();
 	
 	free(data);
 }
