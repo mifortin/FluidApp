@@ -257,7 +257,7 @@ void localityNCoherence(void *in_o)
 {
 	mpCoherence *o = (mpCoherence*)in_o;
 	float *in_data = g_data;
-	//int proc = AtomicAdd32Barrier(i, 1);
+	int proc = AtomicAdd32Barrier(i, 1);
 	x_try
 	int x;
 	
@@ -270,7 +270,7 @@ void localityNCoherence(void *in_o)
 	{
 		int y = data+1;
 		//printf("%i", proc);
-		//printf("Doing on %i: %i %i\n", proc, tid, data);
+		printf("Doing on %i: %i %i\n", proc, tid, data);
 		for (x=1; x<4095; x++)
 		{
 			in_data[x+y*4096] =
@@ -350,12 +350,12 @@ void testLocality()
 	
 	
 	mpInit(8);
-	for (z=1; z<=1024; z+=z)
+	for (z=1024; z<=1024; z+=z)
 	{
-		mpCoherence *o = mpCCreate(4094, 800, z);
+		mpCoherence *o = mpCCreate(5, 5, z);
 		
 		int x;
-		for (x=0; x<800; x++)
+		for (x=0; x<5; x++)
 			mpCTaskAdd(o, 0, 0, 1, 1);
 		
 		localityDataInit(data);
