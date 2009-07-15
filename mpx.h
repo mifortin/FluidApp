@@ -75,8 +75,9 @@ typedef struct mpCoherence mpCoherence;
 //	data is the number of data sets to work with
 //	tasks is the number of tasks that will be run (usually about 90-100)
 //	cache is the amount of data that can be loaded into the proc's cache,
+//	proc is the theorhetical # of processors.  (we can do 'software hyperthreading')
 //	NOTE: values will need tuning...
-mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache);
+mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache, int in_proc);
 
 //Coherence engine is essentially a very compact pseudo-tree representation
 //of the data.  Out of coherence engine, we get references to the internal
