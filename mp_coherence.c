@@ -78,10 +78,7 @@ struct mpCoherence
 	
 	//Mutex and conditional
 	pthread_mutex_t	m_mutex;
-	pthread_cond_t	m_cond;
-	
-	//Quit variable
-	int m_quit;
+	mpQueue			*r_q;
 };
 
 
@@ -90,9 +87,9 @@ void mpCFree(void *in_o)
 {
 	mpCoherence *o = (mpCoherence*)in_o;
 	if (o->r_tasks)		free(o->r_tasks);
+	if (o->r_q)			x_free(o->r_q);
 	
 	pthread_mutex_destroy(&o->m_mutex);
-	pthread_cond_destroy(&o->m_cond);
 }
 
 
@@ -107,7 +104,6 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	memset(o, 0, sizeof(mpCoherence));
 	
 	x_pthread_mutex_init(&o->m_mutex, NULL);
-	x_pthread_cond_init(&o->m_cond, NULL);
 	
 	o->r_tasks = malloc(sizeof(mpCoTask) * in_tasks);
 	memset(o->r_tasks, 0, sizeof(mpCoTask) * in_tasks);
@@ -118,6 +114,7 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	o->m_nMaxTasks = in_tasks;
 	o->m_nData = in_data;
 	o->m_cacheSize = in_cache;
+	o->r_q = mpQueueCreate(16);		//Nice temp value
 	
 	return o;
 }
@@ -161,7 +158,12 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 	{
 		int cacheStart = AtomicExtract(o->m_nCacheStart);
 		if (tmp.data.working+1 < AtomicExtract(o->m_nCacheStart))
-			return 0;
+		{
+			int cs2 = cacheStart - o->m_nData + o->m_cacheSize;
+			
+			if (tmp.data.working+1 >= cs2)
+				return 0;
+		}
 
 		if (x != 0)
 		{
@@ -202,55 +204,45 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 
 void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 {
-	int i = 0;
-	for (;;)
+	//Scan from min->max for a task to obtain...  (loop a bit before blocking)
+	int last = AtomicExtract(o->m_nTasks);
+
+	int min = AtomicExtract(o->m_min);
+	int max = AtomicExtract(o->m_max)+1;
+	if (max >= last)
+		max = last-1;
+	int x;
+	for (x=min; x<=max; x++)
 	{
-		//Done?
-		int last = AtomicExtract(o->m_nTasks);
-		mpCoProgress tmp;
-		tmp.atom = AtomicExtract(o->r_tasks[last-1].progress.atom);
-		if (tmp.data.completed == o->m_nData)
-		{
-			*out_tid = -1;
-			x_pthread_mutex_lock(&o->m_mutex);
-				o->m_quit = 1;
-				
-				while (o->m_nBlocking > 0)
-				{
-					x_pthread_cond_signal(&o->m_cond);
-					o->m_nBlocking--;
-				}
-			x_pthread_mutex_unlock(&o->m_mutex);
+		if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x))
 			return;
-		}
+	}
 	
-		//Scan from min->max for a task to obtain...
-		int min = AtomicExtract(o->m_min);
-		int max = AtomicExtract(o->m_max)+1;
-		if (max >= last)
-			max = last-1;
-		int x;
-		for (x=min; x<=max; x++)
-		{
-			if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x))
-				return;
-		}
-		
-		i++;
-		
-		//BLOCK HERE (use pthread conditions to not waste CPU)!
-		if (i > 100)
-		{
-			x_pthread_mutex_lock(&o->m_mutex);
-			
-			if (o->m_quit == 0)
-			{
-				AtomicAdd32Barrier(o->m_nBlocking, 1);
-				x_pthread_cond_wait(&o->m_cond, &o->m_mutex);
-			}
-			x_pthread_mutex_unlock(&o->m_mutex);
-			i = 0;
-		}
+	//Done?
+	mpCoProgress tmp;
+	tmp.atom = AtomicExtract(o->r_tasks[last-1].progress.atom);
+	if (tmp.data.completed == o->m_nData)
+	{
+		*out_tid = -1;
+		int v;
+		do {
+			v = AtomicExtract(o->m_nBlocking);
+		} while (!AtomicCompareAndSwapInt(o->m_nBlocking, v, 0));
+		for (x=0; x<=v; x++)
+			mpQueuePushInt(o->r_q, -1);
+		return;
+	}
+	
+	//BLOCK HERE (use pthread conditions to not waste CPU)!
+	x_pthread_mutex_lock(&o->m_mutex);
+		AtomicAdd32Barrier(o->m_nBlocking, 1);
+	x_pthread_mutex_unlock(&o->m_mutex);
+	*out_tid = mpQueuePopInt(o->r_q);
+	if (*out_tid != -1)
+	{
+		tmp.atom = AtomicExtract(o->r_tasks[*out_tid].progress.atom);
+		*out_fn = o->r_tasks[*out_tid].description.data.function;
+		*out_tsk = tmp.data.completed;
 	}
 }
 
@@ -294,33 +286,61 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	if (max >= totalTasks)
 		max = totalTasks-1;
 	
-	int s = in_tid - 1;
+	int s = in_tid;
 	if (s < min)	s = min;
 	if (s > max)	s = max;
-	int e = in_tid + 1;
-	if (e < min)	e = min;
+	int e = s+1;
+	//if (e < min)	e = min;
 	if (e > max)	e = max;
 	
 	int x;
-	for (x=e; x>=e; x--)
+	for (x=e; x>=s; x--)
 	{
 		if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x))
 			break;
 	}
-	if (x < e)
+	if (x < s)
+	{
 		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
+		//printf("BEST GUESS FAILED %i - %i ==> %i - %i\n", in_tid, in_tsk,
+		//									*out_tid, *out_tsk);
+	}
 
 	//Signal another thread to awake
 	int v = AtomicExtract(o->m_nBlocking);
-	while (v > 0)
+	if (v > 0)
 	{
+		//printf("Recuperating from cache misses!\n");
 		x_pthread_mutex_lock(&o->m_mutex);
 		
-		if (AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1))
-			x_pthread_cond_signal(&o->m_cond);
-		
 		v = AtomicExtract(o->m_nBlocking);
+		if (v == 0)
+		{
+			x_pthread_mutex_unlock(&o->m_mutex);
+			return;
+		}
+		mpQueuePushInt(o->r_q,*out_tid);
+		AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
+		
+		
+		for (x=max;x>=min;x--)
+		{
+			v = AtomicExtract(o->m_nBlocking);
+			if (v == 0)
+				break;
+		
+			int tmp_tid, tmp_fn, tmp_tsk;
+			if (mpCTaskObtainPvt(o, &tmp_tid, &tmp_fn, &tmp_tsk, x))
+			{
+				AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
+				mpQueuePushInt(o->r_q,x);
+			}
+		}
+		
 		
 		x_pthread_mutex_unlock(&o->m_mutex);
+		
+		//Finally worry about this thread...
+		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
 	}
 }

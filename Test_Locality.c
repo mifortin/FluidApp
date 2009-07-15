@@ -8,6 +8,9 @@
 #include <math.h>
 #include <sys/time.h>
 #include "memory.h"
+#include "mpx.h"
+
+#define ITERATIONS 800
 
 //This file will test the difference in performance that arises due to locality
 //of accesses.
@@ -188,7 +191,7 @@ void localityInOrderTest(float *in_data)
 {
 	int x,y;
 	int itr;
-	for (itr=0; itr<800; itr++)
+	for (itr=0; itr<ITERATIONS; itr++)
 	{
 		for (y=1; y<4095; y++)
 		{
@@ -202,12 +205,55 @@ void localityInOrderTest(float *in_data)
 	}
 }
 
+atomic_int32 atom = 1;
+volatile int completed = 0;
+int totalThreads = 0;
+pthread_mutex_t myMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t myCond = PTHREAD_COND_INITIALIZER;
+
+void *localityInOrderTestMP(void *in)
+{
+	float *in_data = (float*)in;
+	int x,y;
+	int itr;
+	for (itr=0; itr<ITERATIONS; itr++)
+	{
+		y = AtomicAdd32Barrier(atom,1);
+		for (; y<4095;)
+		{
+			for (x=1; x<4095; x++)
+			{
+				in_data[x+y*4096] =
+				(in_data[x+1+y*4096] - in_data[x-1+y*4096] +
+				 in_data[x+(y+1)*4096] - in_data[x+(y-1)*4096]);
+			}
+			y = AtomicAdd32Barrier(atom,1);
+		}
+		
+		x_pthread_mutex_lock(&myMutex);
+			if (completed < totalThreads-1)
+			{
+				completed++;
+				x_pthread_cond_wait(&myCond, &myMutex);
+			}
+			else
+			{
+				atom=1;
+				completed = 0;
+				for (x=0; x<totalThreads-1; x++)
+					x_pthread_cond_signal(&myCond);
+			}
+		x_pthread_mutex_unlock(&myMutex);
+	}
+	return NULL;
+}
+
 
 void localityBadTest(float *in_data)
 {
 	int x,y;
 	int itr;
-	for (itr=0; itr<40; itr++)
+	for (itr=0; itr<ITERATIONS; itr++)
 	{
 		for (x=1; x<4095; x++)
 		{
@@ -257,7 +303,7 @@ void localityNCoherence(void *in_o)
 {
 	mpCoherence *o = (mpCoherence*)in_o;
 	float *in_data = g_data;
-	int proc = AtomicAdd32Barrier(i, 1);
+	//int proc = AtomicAdd32Barrier(i, 1);
 	x_try
 	int x;
 	
@@ -270,7 +316,7 @@ void localityNCoherence(void *in_o)
 	{
 		int y = data+1;
 		//printf("%i", proc);
-		printf("Doing on %i: %i %i\n", proc, tid, data);
+		//printf("Doing on %i: %i %i\n", proc, tid, data);
 		for (x=1; x<4095; x++)
 		{
 			in_data[x+y*4096] =
@@ -308,12 +354,12 @@ void testLocality()
 	double start = localityTimeFunc();
 	/*localityBadTest(data);
 	printf("  Out Of Order: %f\n", localityTimeFunc() - start);
-	*/
-//	localityDataInit(data);
-//	start = localityTimeFunc();
-//	localityInOrderTest(data);
-//	printf("  In Order: %f\n", localityTimeFunc() - start);
-	/*
+	/**/
+	/*localityDataInit(data);
+	start = localityTimeFunc();
+	localityInOrderTest(data);
+	printf("  In Order: %f\n", localityTimeFunc() - start);
+	/**//*
 	localityDataInit(data);
 	start = localityTimeFunc();
 	localitySimpleHitTest(data);
@@ -349,36 +395,52 @@ void testLocality()
 	}/**/
 	
 	
-	mpInit(8);
-	for (z=1024; z<=1024; z+=z)
+	int k;
+	pthread_t pt[16];
+	for (k=4; k>=1; k--)
 	{
-		mpCoherence *o = mpCCreate(5, 5, z);
-		
-		int x;
-		for (x=0; x<5; x++)
-			mpCTaskAdd(o, 0, 0, 1, 1);
-		
+		//Test ideal conditions first...
 		localityDataInit(data);
+		totalThreads = k;
 		start = localityTimeFunc();
-		g_data = data;
+		for (z=0; z<k; z++)
+		{
+			x_pthread_create(&pt[z], NULL, localityInOrderTestMP, data);
+		}
 		
-		mpTaskFlood(localityNCoherence, o);
+		for (z=0; z<k; z++)
+		{
+			x_pthread_join(pt[z]);
+		}
+		printf("  Simple Loop (%i-proc) :%f\n", 
+			   k,localityTimeFunc() - start);
 		
-		mpQueuePop(q);
-		mpQueuePop(q);
-		mpQueuePop(q);
-		mpQueuePop(q);
-		mpQueuePop(q);
-		mpQueuePop(q);
-		mpQueuePop(q);
-		mpQueuePop(q);
-		
-		printf("  Coherence Engine (2-proc cache=%i) :%f\n", 
-					z, localityTimeFunc() - start);
-		
-		x_free(o);
+		mpInit(k);
+		for (z=128; z<=1024; z+=z)
+		{
+			localityDataInit(data);
+			g_data = data;
+			
+			start = localityTimeFunc();
+			mpCoherence *o = mpCCreate(4094, ITERATIONS, z);
+			
+			int x;
+			for (x=0; x<ITERATIONS; x++)
+				mpCTaskAdd(o, 0, 0, 1, 1);
+						
+			mpTaskFlood(localityNCoherence, o);
+			
+			int u;
+			for (u=0; u<k; u++)
+				mpQueuePop(q);
+			
+			printf("  Coherence Engine (%i-proc cache=%i) :%f\n", 
+						k,z, localityTimeFunc() - start);
+			
+			x_free(o);
+		}
+		mpTerminate();
 	}
-	mpTerminate();
 	
 	free(data);
 }

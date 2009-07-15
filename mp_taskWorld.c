@@ -34,7 +34,7 @@ struct mpTaskWorld
 	pthread_t *rr_threads;		//All that threading...
 };
 
-mpTaskWorld *g_mpTaskWorld;
+mpTaskWorld *g_mpTaskWorld = NULL;
 
 //Task engine
 void *mpTaskEngine(void *in_o)
@@ -120,6 +120,7 @@ void mpInit(int in_workers)
 void mpTerminate()
 {
 	x_free(g_mpTaskWorld);
+	g_mpTaskWorld = NULL;
 }
 
 
