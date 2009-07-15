@@ -22,19 +22,6 @@ union mpCoProgress
 	} data;
 };
 
-//Union used to pack 2 shorts into a single int.
-//	Essentially used for compression.
-typedef union mpCoI2SS mpCoI2SS;
-union mpCoI2SS
-{
-	atomic_int32	i32;
-	struct
-	{
-		uint16_t	s1;
-		uint16_t	s2;
-	} s16;
-};
-
 #define DEPEND_INORDER	0			//Dependency that is in order. (left->right)
 #define DEPEND_ANY_0	1			//Index to list of completed dependencies
 
@@ -81,12 +68,6 @@ struct mpCoherence
 	//Min/max in task list (always incrementing)
 	atomic_int32	m_min, m_max;
 	
-	//Ready queue - what tasks do we have?	(queue as a stack would be too slow)
-	atomic_int32	*r_readyQueue;
-	atomic_int32	m_readyStart;		//Next item to ready in ready queue
-	atomic_int32	m_readyEnd;			//last item inserted into ready queue
-	int				m_queueSize;		//Size of the ready queue
-	
 	//------------------------------------------------------ NOT USED AT RUNTIME
 	
 	//Max number of tasks
@@ -108,8 +89,7 @@ struct mpCoherence
 void mpCFree(void *in_o)
 {
 	mpCoherence *o = (mpCoherence*)in_o;
-	if (o->r_tasks)			free(o->r_tasks);
-	if (o->r_readyQueue)	free(o->r_readyQueue);
+	if (o->r_tasks)		free(o->r_tasks);
 	
 	pthread_mutex_destroy(&o->m_mutex);
 	pthread_cond_destroy(&o->m_cond);
@@ -117,12 +97,11 @@ void mpCFree(void *in_o)
 
 
 //Creates a new coherence engine
-mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache, int in_proc)
+mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 {
 	errorAssert(in_data > 0, error_flags, "Need positive number of data sets");
 	errorAssert(in_tasks > 0, error_flags, "Need positive number of tasks");
 	errorAssert(in_cache > 0, error_flags, "Need positive number of caches");
-	errorAssert(in_proc > 0, error_flags, "Need positive number of processors");
 	
 	mpCoherence *o = x_malloc(sizeof(mpCoherence), mpCFree);
 	memset(o, 0, sizeof(mpCoherence));
@@ -139,16 +118,6 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache, int in_proc)
 	o->m_nMaxTasks = in_tasks;
 	o->m_nData = in_data;
 	o->m_cacheSize = in_cache;
-	
-	o->m_queueSize = in_proc*2;
-	o->m_readyStart = 0;
-	o->m_readyEnd = 0;
-	o->r_readyQueue = malloc(sizeof(atomic_int32)*o->m_queueSize);
-	errorAssert(o->r_readyQueue != NULL, error_memory,
-							"Failed allocating ready queue!");
-	int x;
-	for (x=0; x<o->m_queueSize; x++)
-		o->r_readyQueue[x] = -1;
 	
 	return o;
 }
@@ -181,12 +150,6 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 }
 
 
-//The return values for this function are one of the following:
-#define MPCTO_Success		0		//Success!!!!
-#define MPCTO_Working		1		//The row is being worked on
-#define MPCTO_Dependency	2		//Can't process row due to dependency
-#define MPCTO_NoAtomic		3		//Can't atomically assign
-#define MPCTO_CacheMiss		4		//This would have caused a cache miss
 int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 									int x)
 {
@@ -197,19 +160,8 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 		&& tmp.data.completed != o->m_nData)
 	{
 		int cacheStart = AtomicExtract(o->m_nCacheStart);
-		
-		if (tmp.data.working+1 < cacheStart)
-		{
-			if (cacheStart + o->m_cacheSize > o->m_nData)
-			{
-				int cSTmp = cacheStart - o->m_nData + o->m_cacheSize;
-				
-				if (cSTmp < tmp.data.completed)
-					return MPCTO_CacheMiss;
-			}
-			else
-				return MPCTO_CacheMiss;
-		}
+		if (tmp.data.working+1 < AtomicExtract(o->m_nCacheStart))
+			return 0;
 
 		if (x != 0)
 		{
@@ -224,7 +176,7 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 			
 			if (tM1.data.completed
 				<= prevLimit)
-				return MPCTO_Dependency;
+				return 0;
 		}
 
 		mpCoProgress t2;
@@ -238,13 +190,13 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 			*out_tid = x;
 			*out_fn = o->r_tasks[x].description.data.function;
 			*out_tsk = tmp.data.completed;
-			return MPCTO_Success;
+			return 1;
 		}
 		else
-			return MPCTO_NoAtomic;
+			return 0;
 	}
 	
-	return MPCTO_Working;
+	return 0;
 }
 
 
@@ -280,7 +232,7 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		int x;
 		for (x=min; x<=max; x++)
 		{
-			if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x) == MPCTO_Success)
+			if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x))
 				return;
 		}
 		
@@ -301,22 +253,6 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		}
 	}
 }
-
-
-void mpCTaskInsert(mpCoherence *o, int in_tid)
-{
-	int idx,nidx,oldVal;
-	do {	
-		idx = AtomicExtract(o->m_readyEnd);
-		oldVal = AtomicExtract(o->r_readyQueue[idx]);
-		
-		nidx = idx+1;
-		if (nidx >= o->m_queueSize)
-			nidx = 0;
-	} while (	!AtomicCompareAndSwapInt(o->r_readyQueue[idx], oldVal, in_tid)
-			||	!AtomicCompareAndSwapInt(o->m_readyEnd, idx, nidx));
-}
-
 
 void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 									 int *out_tid, int *out_fn, int *out_tsk)
@@ -353,31 +289,26 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 										tmp.atom, newVal.atom),
 						error_thread, "Only 1 thread per task!!!");
 	
-	
 	int totalTasks = AtomicExtract(o->m_nTasks);
-	max = in_tid + 1;
+	max++;
+	if (max >= totalTasks)
+		max = totalTasks-1;
 	
-	//Most of the time, execution occurs in a step-life fashion.  Either we
-	//manage to get the next task or we don't.
+	int s = in_tid - 1;
+	if (s < min)	s = min;
+	if (s > max)	s = max;
+	int e = in_tid + 1;
+	if (e < min)	e = min;
+	if (e > max)	e = max;
 	
-	if (max >= totalTasks || 
-		mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, max) != MPCTO_Success)
+	int x;
+	for (x=e; x>=e; x--)
 	{
-		//If we were to execute something but didn't...
-		if (max < totalTasks)
-		{
-			mpCoDescription tDesc;
-			tDesc.atom = AtomicExtract(o->r_tasks[max].description.atom);
-			
-			if (tDesc.data.bottom >= tmp.data.completed &&
-				tmp.data.completed - tDesc.data.bottom >= AtomicExtract(o->m_nCacheStart) )
-			{
-				//TODO: Add code to insert into 'resume' list.
-				printf("Proc Conflict\n");
-			}
-		}
-		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
+		if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x))
+			break;
 	}
+	if (x < e)
+		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
 
 	//Signal another thread to awake
 	int v = AtomicExtract(o->m_nBlocking);
