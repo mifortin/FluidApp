@@ -416,7 +416,7 @@ void testLocality()
 			   k,localityTimeFunc() - start);
 		
 		mpInit(k);
-		for (z=128; z<=1024; z+=z)
+		for (z=32; z<=1024; z+=z)
 		{
 			localityDataInit(data);
 			g_data = data;

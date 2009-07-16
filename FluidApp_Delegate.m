@@ -42,12 +42,11 @@ error *myFieldHandler(field *in_f, int in_id, void *in_o)
 	return NULL;
 }
 
-
 @implementation FluidApp_Delegate
 	
 	
 	- (void)awakeFromNib
-	{
+	{	
 		if (allObjs == nil)
 		{
 			allObjs = [[NSMutableArray alloc] initWithCapacity:10];
