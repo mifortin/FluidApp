@@ -8,6 +8,43 @@
 
 @implementation FluidAppDocument
 
+- (void)windowControllerDidLoadNib:(NSWindowController *)windowController
+{
+	r_toolbarItems = [[NSArray alloc] initWithObjects:@"FluidTools", nil];
+	
+	r_toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier:@"FluidTools"];
+	[r_toolbarItem setView:ib_toolbarView];
+	
+	r_toolbar = [[NSToolbar alloc] initWithIdentifier:@"FluidSimWindow"];
+	[r_toolbar setDelegate:self];
+	[r_toolbar setAllowsUserCustomization:NO];
+	[r_toolbar setAutosavesConfiguration:NO];
+	[r_toolbar setVisible:NO];
+	[r_toolbar setDisplayMode:NSToolbarDisplayModeIconOnly];
+	[ib_window setToolbar:r_toolbar];
+	
+	r_gl = [[FluidAppGL alloc] init];
+	r_timer = [NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f
+											   target:self
+											 selector:@selector(onFrame:)
+											 userInfo:nil
+											  repeats:YES];
+}
+
+- (BOOL)windowShouldClose:(id)window
+{
+	[r_timer invalidate];
+	return YES;
+}
+
+- (void)dealloc
+{
+	[r_gl release];
+	[r_toolbarItems release];
+	[r_toolbar release];
+	[super dealloc];
+}
+
 - (NSString *)windowNibName
 {
     return @"FluidAppDocument";
@@ -21,6 +58,40 @@
 - (BOOL)loadDataRepresentation:(NSData *)data ofType:(NSString *)type {
     // Implement to load a persistent data representation of your document OR remove this and implement the file-wrapper or file path based load methods.
     return YES;
+}
+
+
+- (void)onFrame:(NSTimer*)theTimer
+{
+	[[ib_glView openGLContext] makeCurrentContext];
+	[[ib_glView openGLContext] update];
+	[r_gl onFrame];
+	[[ib_glView openGLContext] flushBuffer];
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Toolbar code follows!
+//
+- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
+			itemForItemIdentifier:(NSString *)itemIdentifier
+			willBeInsertedIntoToolbar:(BOOL)flag
+{
+	if ([[r_toolbarItem itemIdentifier] compare:itemIdentifier] == NSOrderedSame)
+		return r_toolbarItem;
+	else
+		return nil;
+}
+
+- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar
+{
+	return r_toolbarItems;
+}
+
+- (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
+{
+	return r_toolbarItems;
 }
 
 @end
