@@ -227,7 +227,8 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		int v;
 		do {
 			v = AtomicExtract(o->m_nBlocking);
-		} while (!AtomicCompareAndSwapInt(o->m_nBlocking, v, 0));
+		} while (!AtomicCompareAndSwapInt(o->m_nBlocking, v, -100));
+		if (v >= 0) v = 15;
 		for (x=0; x<=v; x++)
 			mpQueuePushInt(o->r_q, -1);
 		return;

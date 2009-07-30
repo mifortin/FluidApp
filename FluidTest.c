@@ -14,7 +14,7 @@ void testLocality();
 
 int main(int argc, char **argv)
 {
-	testHalfFloat();
+	//testHalfFloat();
 	testLocality();
 	
 	return 0;

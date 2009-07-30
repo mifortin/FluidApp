@@ -334,6 +334,26 @@ void localityNCoherence(void *in_o)
 }
 
 
+void testDiningPhilosophers(void *in_o)
+{
+	mpCoherence *o = (mpCoherence*)in_o;
+	x_try
+		int tid, fn, data;
+		mpCTaskObtain(o, &tid, &fn, &data);
+		
+		while (tid != -1)
+		{
+			printf("Philosopher %i picks up utencils\n", data);
+			
+			printf("Philosopher %i puts down utencils\n", data);
+			
+			mpCTaskComplete(o, tid, fn, data, &tid, &fn, &data);
+		}
+	x_catch(e)
+	x_finally
+}
+
+
 void testLocality()
 {
 	//L1 cache is 32k on Intel (we'll use this as a base).  
@@ -396,11 +416,33 @@ void testLocality()
 	
 	
 	int k;
-	pthread_t pt[16];
-	for (k=4; k>=1; k--)
+	/*
+	for (k=2; k<=7; k++)
+	{
+		printf("Attempting philosophers: %i\n", k);
+		mpInit(k);
+		localityDataInit(data);
+		g_data = data;
+		
+		start = localityTimeFunc();
+		mpCoherence *o = mpCCreate(3+k, 10, z);
+		
+		int x;
+		for (x=0; x<10; x++)
+			mpCTaskAdd(o, 0, 0, 1, 1);
+					
+		mpTaskFlood(testDiningPhilosophers, o);
+		
+		mpTerminate();
+		x_free(o);
+		printf("==============================================================\n");
+	}/***/
+	
+	for (k=2; k>=2; k--)
 	{
 		//Test ideal conditions first...
-		localityDataInit(data);
+		/*localityDataInit(data);
+		pthread_t pt[16];
 		totalThreads = k;
 		start = localityTimeFunc();
 		for (z=0; z<k; z++)
@@ -413,10 +455,10 @@ void testLocality()
 			x_pthread_join(pt[z]);
 		}
 		printf("  Simple Loop (%i-proc) :%f\n", 
-			   k,localityTimeFunc() - start);
+			   k,localityTimeFunc() - start);/**/
 		
 		mpInit(k);
-		for (z=32; z<=1024; z+=z)
+		for (z=256; z<=256; z+=z)
 		{
 			localityDataInit(data);
 			g_data = data;
@@ -440,6 +482,7 @@ void testLocality()
 			x_free(o);
 		}
 		mpTerminate();
+		/**/
 	}
 	
 	free(data);

@@ -255,7 +255,7 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
 		4C1BA6700FBC6D3900A74684 /* FluidZip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidZip.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4C1BA6720FBC6D3A00A74684 /* FluidZip-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "FluidZip-Info.plist"; sourceTree = "<group>"; };
+		4C1BA6720FBC6D3A00A74684 /* FluidZip-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FluidZip-Info.plist"; sourceTree = "<group>"; };
 		4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_main.m; sourceTree = "<group>"; };
 		4C1BA67F0FBC6EA300A74684 /* FluidZip_Delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidZip_Delegate.h; sourceTree = "<group>"; };
 		4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Delegate.m; sourceTree = "<group>"; };
