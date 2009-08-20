@@ -22,8 +22,7 @@ void fieldFree(void *in_o)
 
 
 
-field *fieldCreate(protocol *in_proto,
-				   int in_width, int in_height, int in_components)
+field *fieldCreate(int in_width, int in_height, int in_components)
 {
 	int numData = in_width * in_height * in_components * sizeof(float);
 	
@@ -46,20 +45,24 @@ field *fieldCreate(protocol *in_proto,
 	return toRet;
 }
 
+
 int fieldWidth(field *in_f)
 {
 	return in_f->m_width;
 }
+
 
 int fieldHeight(field *in_f)
 {
 	return in_f->m_height;
 }
 
+
 int fieldComponents(field *in_f)
 {
 	return in_f->m_components;
 }
+
 
 float *fieldData(field *in_f)
 {

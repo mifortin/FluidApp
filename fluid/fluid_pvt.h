@@ -11,31 +11,24 @@
 
 struct fluid
 {
-	//	0 - velocity
-	//	1 -
-	//	2 - pressure
-	//	3 - free surfaces
-	//	4 - collisions
-	//	5 - 
-	//	6 - position/repos
-	//	7 -
-	field *fluidData[2];
+	//Pointers to current buffers
+	field *r_velocityX;
+	field *r_velocityY;
+	field *r_density;
+	field *r_pressure;
+	
+	//Temporary buffers used as needed (we want to minimize memory footprint
+	//to maximize cache usage)
 	
 	int m_curField;
 	
-	lua_State *m_ls;
-	char *m_szGlobName;
+	//Used for working...
+	mpCoherence *r_coherence;
+	
+	//Used to stall the system until an iteration completes
+	mpQueue		*r_blocker;
 };
 
-//functions (utilities)
-field *fluid_curField(fluid *in_f);
-field *fluid_destField(fluid *in_f);
-void fluid_swapField(fluid *in_f);
 
-//functions (public to lua)
-void fluid_advection_stam(fluid *in_f);
-
-//Lua interop functions
-int fluid_advection_lua(lua_State *in_l);
 
 #endif

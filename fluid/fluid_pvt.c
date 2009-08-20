@@ -10,104 +10,68 @@
 #include <string.h>
 #include "memory.h"
 
-int fluid_advection_lua(lua_State *in_l)
+
+void fluidFree(void *in_o)
 {
-	int n = lua_gettop(in_l);
+	fluid *o = (fluid*)in_o;
 	
-	if (n != 2)
-	{
-		lua_pushstring(in_l, "advection takes two parameters");
-		lua_error(in_l);
-	}
+	if (o->r_coherence)		x_free(o->r_coherence);
 	
-	if (!lua_isuserdata(in_l,1))
-	{
-		lua_pushstring(in_l, "First parameter must be userdata");
-		lua_error(in_l);
-	}
+	if (o->r_blocker)		x_free(o->r_blocker);
 	
-	if (!lua_isstring(in_l,2))
-	{
-		lua_pushstring(in_l, "Second parameter must be a string");
-		lua_error(in_l);
-	}
-	
-	const char *c = lua_tostring(in_l, 2);
-	if (strcmp(c, "stam") == 0)
-	{
-		fluid_advection_stam((fluid*)lua_touserdata(in_l,1));
-	}
-	
-	return 0;
+	if (o->r_pressure)		x_free(o->r_pressure);
+	if (o->r_density)		x_free(o->r_density);
+	if (o->r_velocityX)		x_free(o->r_velocityX);
+	if (o->r_velocityY)		x_free(o->r_velocityY);
 }
 
 
-field *fluid_curField(fluid *in_f)
+fluid *fluidCreate(int in_width, int in_height)
 {
-	return in_f->fluidData[in_f->m_curField];
-}
-
-
-field *fluid_destField(fluid *in_f)
-{
-	return in_f->fluidData[1-in_f->m_curField];
-}
-
-
-void fluid_swapField(fluid *in_f)
-{
-	in_f->m_curField = 1.0f - in_f->m_curField;
-}
-
-
-fluid *fluidCreate(protocol *in_proto, lua_State *in_ls, char *in_globName,
-					int in_width, int in_height, error **out_err)
-{
-	fluid *toRet = malloc(sizeof(fluid));
-	
-	if (toRet == NULL)
-	{
-		*out_err = errorCreate(NULL, error_memory,
-									"Out of memory creating fluid object");
-		return NULL;
-	}
-	
+	fluid *toRet = x_malloc(sizeof(fluid), fluidFree);
 	memset(toRet, 0, sizeof(fluid));
 	
-	toRet->fluidData[0] = fieldCreate(in_proto, in_width, in_height, 8);
-	toRet->fluidData[1] = fieldCreate(in_proto, in_width, in_height, 8);
+	toRet->r_velocityX = fieldCreate(in_width, in_height, 1);
+	toRet->r_velocityY = fieldCreate(in_width, in_height, 1);
+	toRet->r_density = fieldCreate(in_width, in_height, 1);
+	toRet->r_pressure = fieldCreate(in_width, in_height, 1);
 	
-	if (in_ls)
-	{
-		toRet->m_szGlobName = malloc(strlen(in_globName)+1);
-		strcpy(toRet->m_szGlobName, in_globName);
+	toRet->r_blocker = mpQueueCreate(2);
 	
-		//Setup lua...
-		lua_newtable(in_ls);
-		lua_setglobal(in_ls, in_globName);
-		
-		toRet->m_ls = in_ls;
-	}
+	//NOTE: Make this configurable????
+	toRet->r_coherence = mpCCreate(in_height, 128, 64);
+	
+	toRet->m_curField = 0;
 	
 	return toRet;
 }
 
 
-void fluidFree(fluid *in_fluid)
+//Called on each processor to do a specified amount of work.
+void fluidMP(void *in_o)
 {
-	if (in_fluid)
-	{
-		if (in_fluid->fluidData[0])	x_free(in_fluid->fluidData[0]);
-		if (in_fluid->fluidData[1]) x_free(in_fluid->fluidData[1]);
-		
-		if (in_fluid->m_ls)
-		{
-			lua_pushnil(in_fluid->m_ls);
-			lua_setglobal(in_fluid->m_ls, in_fluid->m_szGlobName);
-		}
-		
-		if (in_fluid->m_szGlobName)	free(in_fluid->m_szGlobName);
-		
-		free(in_fluid);
-	}
+	fluid *o = (fluid*)in_o;
+	mpCoherence *c = o->r_coherence;
+	
+	
+	
+	mpQueuePush(o->r_blocker, NULL);
+}
+
+
+//Called every frame to advance the fluid simulation...
+void fluidAdvance(fluid *in_f)
+{
+	//Add in the basic fluid simulation as it was before - except with SIMPLE
+	//boundary conditions
+
+	//We just need to run the tasks that have already been setup...
+	int spawned = mpTaskFlood(fluidMP, in_f);
+	
+	int i;
+	for (i=0; i<spawned; i++)
+		mpQueuePop(in_f->r_blocker);
+	
+	//Clear the scheduler (for the next pass)
+	mpCReset(in_f->r_coherence);
 }

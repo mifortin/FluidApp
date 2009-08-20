@@ -58,6 +58,25 @@ mpQueue *mpQueueCreate(int maxSize)
 }
 
 
+void mpQueueClear(mpQueue *in_q)
+{
+	x_pthread_mutex_lock(&in_q->m_mutex);
+	
+	//Clear the list
+	in_q->m_readerPos = 0;
+	in_q->m_writerPos = 0;
+	
+	//Notify all the pending writers
+	while (in_q->m_writers > 0)
+	{
+		in_q->m_writers--;
+		x_pthread_cond_signal(&in_q->m_writeCond);
+	}
+	
+	x_pthread_mutex_unlock(&in_q->m_mutex);
+}
+
+
 void mpQueuePush(mpQueue *in_q, void *in_dat)
 {
 	x_pthread_mutex_lock(&in_q->m_mutex);

@@ -476,6 +476,16 @@ void testLocality()
 			for (u=0; u<k; u++)
 				mpQueuePop(q);
 			
+			mpCReset(o);
+			
+			for (x=0; x<ITERATIONS; x++)
+				mpCTaskAdd(o, 0, 0, 1, 1);
+						
+			mpTaskFlood(localityNCoherence, o);
+			
+			for (u=0; u<k; u++)
+				mpQueuePop(q);
+			
 			printf("  Coherence Engine (%i-proc cache=%i) :%f\n", 
 						k,z, localityTimeFunc() - start);
 			

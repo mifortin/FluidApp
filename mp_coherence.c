@@ -114,9 +114,20 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	o->m_nMaxTasks = in_tasks;
 	o->m_nData = in_data;
 	o->m_cacheSize = in_cache;
-	o->r_q = mpQueueCreate(16);		//Nice temp value
+	o->r_q = mpQueueCreate(4);		//Nice temp value
 	
 	return o;
+}
+
+
+void mpCReset(mpCoherence *o)
+{
+	o->m_nTasks = 0;
+	o->m_min = 0;
+	o->m_max = 0;
+	o->m_nBlocking = 0;
+	o->m_nCacheStart = 0;
+	mpQueueClear(o->r_q);
 }
 
 
@@ -138,6 +149,9 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 		o->r_tasks[rowToAddAt].description.data.depend = DEPEND_ANY_0;
 	
 	o->r_tasks[rowToAddAt].description.data.function = in_fn;
+	
+	o->r_tasks[rowToAddAt].progress.data.completed = 0;
+	o->r_tasks[rowToAddAt].progress.data.working = 0;
 	
 	if (in_depEnd < 0)	in_depEnd = 0;
 	o->r_tasks[rowToAddAt].description.data.bottom = in_depEnd;
@@ -228,9 +242,10 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		do {
 			v = AtomicExtract(o->m_nBlocking);
 		} while (!AtomicCompareAndSwapInt(o->m_nBlocking, v, -100));
-		if (v >= 0) v = 15;
-		for (x=0; x<=v; x++)
+		if (v >= 0)
+		{
 			mpQueuePushInt(o->r_q, -1);
+		}
 		return;
 	}
 	
@@ -245,6 +260,8 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		*out_fn = o->r_tasks[*out_tid].description.data.function;
 		*out_tsk = tmp.data.completed;
 	}
+	else
+		mpQueuePushInt(o->r_q, -1);		//Unlock next thread...
 }
 
 void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
@@ -255,6 +272,11 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	tmp.atom = AtomicExtract(o->r_tasks[in_tid].progress.atom);
 	int min = AtomicExtract(o->m_min);
 	int max = AtomicExtract(o->m_max);
+	
+	mpCoProgress newVal;
+	newVal.atom = tmp.atom;
+	newVal.data.completed = newVal.data.working;
+	
 	if (tmp.data.working == o->m_nData)
 	{
 		if (min == in_tid)
@@ -273,11 +295,8 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	
 	errorAssert(tmp.data.completed+1 == tmp.data.working,
 					error_thread, "Already marked as completed (%i %i)!",
-						tmp.data.completed, tmp.data.working);
+						tmp.data.completed+1, tmp.data.working);
 
-	mpCoProgress newVal;
-	newVal.atom = tmp.atom;
-	newVal.data.completed = newVal.data.working;
 	errorAssert(AtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
 										tmp.atom, newVal.atom),
 						error_thread, "Only 1 thread per task!!!");

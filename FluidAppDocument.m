@@ -4,7 +4,7 @@
 //
 
 #import "FluidAppDocument.h"
-
+#include <OpenGL/gl.h>
 
 @implementation FluidAppDocument
 
@@ -65,8 +65,15 @@
 {
 	[[ib_glView openGLContext] makeCurrentContext];
 	[[ib_glView openGLContext] update];
+	glLoadIdentity();
+	glViewport(0, 0, [ib_glView frame].size.width, [ib_glView frame].size.height);
 	[r_gl onFrame];
 	[[ib_glView openGLContext] flushBuffer];
+}
+
+- (void)windowDidResize:(NSNotification *)notification
+{
+	[self onFrame:nil];
 }
 
 

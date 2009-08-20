@@ -15,7 +15,7 @@
 //Dealing with a single field...
 typedef struct field field;
 
-field *fieldCreate(protocol *in_proto, int in_width, int in_height, int in_components);
+field *fieldCreate(int in_width, int in_height, int in_components);
 
 int fieldWidth(field *in_f);
 int fieldHeight(field *in_f);

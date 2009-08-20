@@ -134,7 +134,7 @@ void mpTaskLaunch(mpTaskFn in_task, void *in_obj)
 }
 
 
-void mpTaskFlood(mpTaskFn in_task, void *in_obj)
+int mpTaskFlood(mpTaskFn in_task, void *in_obj)
 {
 	int i;
 	for (i=0; i<g_mpTaskWorld->m_workers; i++)
@@ -145,4 +145,6 @@ void mpTaskFlood(mpTaskFn in_task, void *in_obj)
 		cur->data = in_obj;
 		mpQueuePush(g_mpTaskWorld->r_sendQueue, cur);
 	}
+	
+	return g_mpTaskWorld->m_workers;
 }

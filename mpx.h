@@ -45,6 +45,8 @@ void *mpQueuePop(mpQueue *in_q);
 void mpQueuePushInt(mpQueue *in_q, int in_dat);
 int mpQueuePopInt(mpQueue *in_q);
 
+void mpQueueClear(mpQueue *in_q);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Data forms the basis of optimizations for data-bound software.  As the
@@ -107,7 +109,9 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk);
 //	Tells of our completed task and gets the next one!
 void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 									 int *out_tid, int *out_fn, int *out_tsk);
-
+//Resets the task scheduler (so we can re-add tasks and execute them happily!)
+//	Not thread safe - all tasks must be completed before calling
+void mpCReset(mpCoherence *o);
 
 ////////////////////////////////////////////////////////////////////////////////
 //	An updated version of the used threading paradigm to better suit the cell
@@ -136,7 +140,8 @@ void mpTaskLaunch(mpTaskFn in_task, void *in_obj);
 //Start a task parallelized over the number of cores.  Differs from mpTaskLaunch
 //by setting up a queue entry for each core.  Useful when simple sync methods
 //can be used (eg. atomic instructions and the like)
-void mpTaskFlood(mpTaskFn in_task, void *in_obj);
+//	Returns number of created tasks
+int mpTaskFlood(mpTaskFn in_task, void *in_obj);
 
 
 ////////////////////////////////////////////////////////////////////////////////
