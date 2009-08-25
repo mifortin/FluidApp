@@ -40,6 +40,9 @@ field *fieldCreate(int in_width, int in_height, int in_components)
 	toRet->m_height = in_height;
 	toRet->m_components = in_components;
 	
+	toRet->m_strideX = in_components * sizeof(float);
+	toRet->m_strideY = in_components * sizeof(float)*in_width;
+	
 	memset(toRet->r_data.i, 0, numData);
 	
 	return toRet;
@@ -63,6 +66,16 @@ int fieldComponents(field *in_f)
 	return in_f->m_components;
 }
 
+
+int fieldStrideX(field *in_f)
+{
+	return in_f->m_strideX;
+}
+
+int fieldStrideY(field *in_f)
+{
+	return in_f->m_strideY;
+}
 
 float *fieldData(field *in_f)
 {

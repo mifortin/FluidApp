@@ -16,6 +16,9 @@ struct field
 	int m_width, m_height;
 	int m_components;
 	
+	//In bytes  - forward looking - that's it!
+	int m_strideX, m_strideY;
+	
 	union {
 		float *f;
 		int *i;

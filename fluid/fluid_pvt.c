@@ -11,6 +11,25 @@
 #include "memory.h"
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
+//		Read-only set of data describing function pointers to the various
+//		components...		(fluid object for pointers, rowID for dataset)
+//
+typedef void(*pvtFluidFn)(fluid *in_f, int rowID);
+
+const pvtFluidFn g_pvtFunctions[]
+	=	{
+			fluid_advection_stam_velocity,
+		};
+
+#define pvtFluidFnCount (sizeof(g_pvtFunctions)/sizeof(pvtFluidFn))
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Private data structure and methods to operate on it
+//
 void fluidFree(void *in_o)
 {
 	fluid *o = (fluid*)in_o;
@@ -53,6 +72,16 @@ void fluidMP(void *in_o)
 	fluid *o = (fluid*)in_o;
 	mpCoherence *c = o->r_coherence;
 	
+	int tid, fn, tsk;
+	mpCTaskObtain(c, &tid, &fn, &tsk);
+	while (tid != -1)
+	{
+		//Execute the desired function from the list of functions...
+		
+	
+		mpCTaskComplete(c, tid, fn, tsk,
+								&tid, &fn, &tsk);
+	}
 	
 	
 	mpQueuePush(o->r_blocker, NULL);

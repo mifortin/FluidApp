@@ -21,6 +21,10 @@ int fieldWidth(field *in_f);
 int fieldHeight(field *in_f);
 int fieldComponents(field *in_f);
 
+//These two are in bytes.  (distance between each Y and each X)
+int fieldStrideX(field *in_f);
+int fieldStrideY(field *in_f);
+
 //Be careful with thread safety!!!
 float *fieldData(field *in_f);
 

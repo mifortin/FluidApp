@@ -72,6 +72,7 @@ void mpQueueClear(mpQueue *in_q);
 //
 typedef struct mpCoherence mpCoherence;
 
+
 //Creates a new coherence object.  This is seperate from the threading
 //engine for simplicity.
 //	data is the number of data sets to work with
@@ -80,11 +81,12 @@ typedef struct mpCoherence mpCoherence;
 //	NOTE: values will need tuning...
 mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache);
 
+
 //Coherence engine is essentially a very compact pseudo-tree representation
 //of the data.  Out of coherence engine, we get references to the internal
 //data.
 //	in_fn		The function that will be called to execute the given task
-//				once per data
+//				once per data	(truncated to 8-bits!!!!)
 //	depStart	From the previous task, how many tasks to the "left" must
 //				be completed before another can start. (normally negative)
 //	depEnd		From the previous task, how many tasks to the "right" must
