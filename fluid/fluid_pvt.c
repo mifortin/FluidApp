@@ -20,6 +20,8 @@ typedef void(*pvtFluidFn)(fluid *in_f, int rowID);
 
 const pvtFluidFn g_pvtFunctions[]
 	=	{
+
+#define STAM_VELOCITY		0
 			fluid_advection_stam_velocity,
 		};
 
@@ -42,6 +44,12 @@ void fluidFree(void *in_o)
 	if (o->r_density)		x_free(o->r_density);
 	if (o->r_velocityX)		x_free(o->r_velocityX);
 	if (o->r_velocityY)		x_free(o->r_velocityY);
+	
+	if (o->r_tmpVelX)		x_free(o->r_tmpVelX);
+	if (o->r_tmpVelY)		x_free(o->r_tmpVelY);
+	
+	if (o->r_reposX)		x_free(o->r_reposX);
+	if (o->r_reposY)		x_free(o->r_reposY);
 }
 
 
@@ -52,6 +60,10 @@ fluid *fluidCreate(int in_width, int in_height)
 	
 	toRet->r_velocityX = fieldCreate(in_width, in_height, 1);
 	toRet->r_velocityY = fieldCreate(in_width, in_height, 1);
+	toRet->r_tmpVelX = fieldCreate(in_width, in_height, 1);
+	toRet->r_tmpVelY = fieldCreate(in_width, in_height, 1);
+	toRet->r_reposX = fieldCreate(in_width, in_height, 1);
+	toRet->r_reposY = fieldCreate(in_width, in_height, 1);
 	toRet->r_density = fieldCreate(in_width, in_height, 1);
 	toRet->r_pressure = fieldCreate(in_width, in_height, 1);
 	
@@ -77,8 +89,9 @@ void fluidMP(void *in_o)
 	while (tid != -1)
 	{
 		//Execute the desired function from the list of functions...
-		
+		g_pvtFunctions[fn](o, tsk);
 	
+		//Fetch another function!
 		mpCTaskComplete(c, tid, fn, tsk,
 								&tid, &fn, &tsk);
 	}
@@ -93,7 +106,7 @@ void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
-	mpCTaskAdd(in_f->r_coherence, 0, 0, 1, 1);
+	mpCTaskAdd(in_f->r_coherence, STAM_VELOCITY, -10, 10, 10);
 
 	//We just need to run the tasks that have already been setup...
 	int spawned = mpTaskFlood(fluidMP, in_f);

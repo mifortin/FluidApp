@@ -24,7 +24,7 @@
 	[ib_window setToolbar:r_toolbar];
 	
 	r_gl = [[FluidAppGL alloc] init];
-	r_timer = [NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f
+	r_timer = [NSTimer scheduledTimerWithTimeInterval:1.0f/512.0f
 											   target:self
 											 selector:@selector(onFrame:)
 											 userInfo:nil
