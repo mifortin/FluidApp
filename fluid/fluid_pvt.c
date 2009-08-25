@@ -93,6 +93,7 @@ void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
+	mpCTaskAdd(in_f->r_coherence, 0, 0, 1, 1);
 
 	//We just need to run the tasks that have already been setup...
 	int spawned = mpTaskFlood(fluidMP, in_f);

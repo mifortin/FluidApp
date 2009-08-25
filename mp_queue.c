@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 struct mpQueue
 {
@@ -50,6 +51,9 @@ mpQueue *mpQueueCreate(int maxSize)
 	toRet->m_readerPos = 0;
 	toRet->m_writerPos = 0;
 	
+	toRet->m_readers = 0;
+	toRet->m_writers = 0;
+	
 	x_pthread_mutex_init(&toRet->m_mutex, NULL);
 	x_pthread_cond_init(&toRet->m_readCond, NULL);
 	x_pthread_cond_init(&toRet->m_writeCond, NULL);
@@ -61,6 +65,8 @@ mpQueue *mpQueueCreate(int maxSize)
 void mpQueueClear(mpQueue *in_q)
 {
 	x_pthread_mutex_lock(&in_q->m_mutex);
+//	assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//	assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	
 	//Clear the list
 	in_q->m_readerPos = 0;
@@ -69,9 +75,13 @@ void mpQueueClear(mpQueue *in_q)
 	//Notify all the pending writers
 	while (in_q->m_writers > 0)
 	{
+//		assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//		assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 		in_q->m_writers--;
 		x_pthread_cond_signal(&in_q->m_writeCond);
 	}
+//	assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//	assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	
 	x_pthread_mutex_unlock(&in_q->m_mutex);
 }
@@ -80,12 +90,18 @@ void mpQueueClear(mpQueue *in_q)
 void mpQueuePush(mpQueue *in_q, void *in_dat)
 {
 	x_pthread_mutex_lock(&in_q->m_mutex);
+//	assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//	assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	
 	while ((in_q->m_writerPos+1)%in_q->m_queueSize == in_q->m_readerPos)
 	{
 		in_q->m_writers++;
-		//printf("mpQueuePush: Blocked!\n");
+//		assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//		assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
+//		printf("mpQueuePush: Blocked %i!\n", in_q->m_writers);
 		x_pthread_cond_wait(&in_q->m_writeCond, &in_q->m_mutex);
+//		assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//		assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	}
 	
 	in_q->r_queueData[in_q->m_writerPos] = in_dat;
@@ -93,9 +109,13 @@ void mpQueuePush(mpQueue *in_q, void *in_dat)
 	
 	if (in_q->m_readers > 0)
 	{
+//		assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//		assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 		in_q->m_readers--;
 		x_pthread_cond_signal(&in_q->m_readCond);
 	}
+//	assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//	assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	
 	x_pthread_mutex_unlock(&in_q->m_mutex);
 }
@@ -104,12 +124,18 @@ void mpQueuePush(mpQueue *in_q, void *in_dat)
 void *mpQueuePop(mpQueue *in_q)
 {
 	x_pthread_mutex_lock(&in_q->m_mutex);
+//	assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//	assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	
 	while (in_q->m_readerPos == in_q->m_writerPos)
 	{
 		in_q->m_readers++;
-		//printf("mpQueuePop: Blocked!\n");
+//		assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//		assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
+//		printf("mpQueuePop: Blocked %i!\n", in_q->m_readers);
 		x_pthread_cond_wait(&in_q->m_readCond, &in_q->m_mutex);
+//		assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//		assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	}
 	
 	void *toRet = in_q->r_queueData[in_q->m_readerPos];
@@ -120,6 +146,8 @@ void *mpQueuePop(mpQueue *in_q)
 		in_q->m_writers--;
 		x_pthread_cond_signal(&in_q->m_writeCond);
 	}
+//	assert(in_q->m_writers >= 0 && in_q->m_writers < 16);
+//	assert(in_q->m_readers >= 0 && in_q->m_readers < 16);
 	
 	x_pthread_mutex_unlock(&in_q->m_mutex);
 	
