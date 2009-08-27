@@ -18,6 +18,9 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y)
 	float *velDestX	= fieldData(in_f->r_tmpVelX);
 	float *velDestY	= fieldData(in_f->r_tmpVelY);
 	
+	float *repX		= fieldData(in_f->r_reposX);
+	float *repY		= fieldData(in_f->r_reposY);
+	
 	int sX = fieldStrideX(in_f->r_velocityX);
 	int sY = fieldStrideY(in_f->r_velocityY);
 	
@@ -29,15 +32,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y)
 		float *fDataY = fluidFloatPointer(velY, x*sX + y*sY);
 		
 		//Find the cell back in time	(keep a -10,10 radius)
-		float backX = -fluidClamp(TIMESTEP * fDataX[0],-9,9) + (float)x;
-		float backY = -fluidClamp(TIMESTEP * fDataY[0],-9,9) + (float)y;
-		
-		int nBackX = (int)backX;
-		int nBackY = (int)backY;
-		
-		//Clamp as it's easier to parallelize given the scheduler
-		nBackX = fluidClamp(nBackX, 0,w-2);
-		nBackY = fluidClamp(nBackY, 0,h-2);
+		float backX = -fluidClamp(TIMESTEP * fDataX[0],-9.0f,9.0f) + (float)x;
+		float backY = -fluidClamp(TIMESTEP * fDataY[0],-9.0f,9.0f) + (float)y;
 		
 		//Extract the old value....
 		float f_vel_x = fluidFloatPointer(velDestX, x*sX + y*sY)[0];
@@ -46,8 +42,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y)
 		//Now we recompute the backX and backY - but for the correction
 		//data (notice that timestep is reversed - so we should return
 		//		back to the start position)
-		float new_backX = TIMESTEP*f_vel_x + backX;
-		float new_backY = TIMESTEP*f_vel_y + backY;
+		float new_backX = fluidClamp(TIMESTEP*f_vel_x,-9.0f,9.0f) + backX;
+		float new_backY = fluidClamp(TIMESTEP*f_vel_y,-9.0f,9.0f) + backY;
 		
 		int new_nBackX = (int)new_backX;
 		int new_nBackY = (int)new_backY;
@@ -55,11 +51,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y)
 		float new_scaleX = new_backX - (float)new_nBackX;
 		float new_scaleY = new_backY - (float)new_nBackY;
 		
-		FSWrap(new_nBackX, new_scaleX, in_vel.width);
-		FSWrap(new_nBackY, new_scaleY, in_vel.height);
-		
-		FSWrapPlus1(new_nBackX, new_x2, new_scaleX, in_vel.width);
-		FSWrapPlus1(new_nBackY, new_y2, new_scaleY, in_vel.height);
+		new_nBackX = fluidClamp(new_nBackX, 0,w-2);
+		new_nBackY = fluidClamp(new_nBackY, 0,h-2);
 		
 		//Fortuneately, we cut quite a few calculations by just advecting
 		//a repos matrix.
@@ -67,45 +60,34 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y)
 		
 		//A few notes:	stam's values are stored in (backX) and (backY)
 		//				old value is found in the (x) and (y)
-		float *fReposDest = FSFloatPtrOffset(out_repos.data.f,
-											 out_repos.strideX*x + out_repos.strideY*y);
+		float *fReposDestX = fluidFloatPointer(repX, sX*x + sY*y);
+		float *fReposDestY = fluidFloatPointer(repY, sX*x + sY*y);
 		
 		//Offsets from the output (predictor-corrector)
-		int outBackX = new_nBackX * tmp_repos.strideX;
-		int outBackY = new_nBackY * tmp_repos.strideY;
-		int outX2 = new_x2 * tmp_repos.strideX;
-		int outY2 = new_y2 * tmp_repos.strideY;
+		int outBackX = new_nBackX * sX;
+		int outBackY = new_nBackY * sY;
+		int outX2 = (new_nBackX+1)*sX;
+		int outY2 = (new_nBackY+1)*sY;
 		
-		float *outZZ = FSFloatPtrOffset(tmp_repos.data.f,
-										outBackX + outBackY);
-		float *outOZ = FSFloatPtrOffset(tmp_repos.data.f,
-										outX2 + outBackY);
-		float *outZO = FSFloatPtrOffset(tmp_repos.data.f,
-										outBackX + outY2);
-		float *outOO = FSFloatPtrOffset(tmp_repos.data.f,
-										outX2 + outY2);
+		float *outZZ_x = fluidFloatPointer(velDestX, outBackX + outBackY);
+		float *outOZ_x = fluidFloatPointer(velDestX, outX2 + outBackY);
+		float *outZO_x = fluidFloatPointer(velDestX, outBackX + outY2);
+		float *outOO_x = fluidFloatPointer(velDestX, outX2 + outY2);
 		
-		float interpX = LinearInterpolation(new_scaleX, new_scaleY,
-											outZZ[0], outOZ[0], outZO[0], outOO[0]);
-		float interpY = LinearInterpolation(new_scaleX, new_scaleY,
-											outZZ[1], outOZ[1], outZO[1], outOO[1]);
+		float *outZZ_y = fluidFloatPointer(velDestY, outBackX + outBackY);
+		float *outOZ_y = fluidFloatPointer(velDestY, outX2 + outBackY);
+		float *outZO_y = fluidFloatPointer(velDestY, outBackX + outY2);
+		float *outOO_y = fluidFloatPointer(velDestY, outX2 + outY2);
 		
-		float xError = (float)x-interpX;
-		if (fabsf(xError) > fabsf(((float)x+in_vel.width) - interpX))
-			xError = ((float)x+in_vel.width) - interpX;
-		if (fabsf(xError) > fabsf(((float)x-in_vel.width) - interpX))
-			xError = ((float)x-in_vel.width) - interpX;
+		float interpX = fluidLinearInterpolation(new_scaleX, new_scaleY,
+											outZZ_x[0], outOZ_x[0], outZO_x[0], outOO_x[0]);
+		float interpY = fluidLinearInterpolation(new_scaleX, new_scaleY,
+											outZZ_y[0], outOZ_y[0], outZO_y[0], outOO_y[0]);
 		
-		fReposDest[0] = backX + 0.5f * xError;
-		//Clamp(fReposDest[0], backX-1, backX+1);
+		float xError = interpX-fDataX[0];
+		fReposDestX[0] = f_vel_x + 0.5f * xError;
 		
-		
-		float yError = (float)y-interpY;
-		if (fabsf(yError) > fabsf((float)(y+in_vel.height) - interpY))
-			yError = (float)(y+in_vel.height) - interpY;
-		if (fabsf(yError) > fabsf((float)(y-in_vel.height) - interpY))
-			yError = (float)(y-in_vel.height) - interpY;
-		
-		fReposDest[1] = backY + 0.5f * yError;
+		float yError = interpY-fDataY[0];
+		fReposDestY[0] = f_vel_y + 0.5f * yError;
 	}
 }

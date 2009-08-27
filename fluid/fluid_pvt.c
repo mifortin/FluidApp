@@ -23,6 +23,9 @@ const pvtFluidFn g_pvtFunctions[]
 
 #define STAM_VELOCITY		0
 			fluid_advection_stam_velocity,
+
+#define MCCORMACK_REPOS		1
+			fluid_advection_mccormack_repos,
 		};
 
 #define pvtFluidFnCount (sizeof(g_pvtFunctions)/sizeof(pvtFluidFn))
@@ -70,7 +73,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_blocker = mpQueueCreate(2);
 	
 	//NOTE: Make this configurable????
-	toRet->r_coherence = mpCCreate(in_height, 128, 64);
+	toRet->r_coherence = mpCCreate(in_height, 128, 32);
 	
 	toRet->m_curField = 0;
 	
@@ -107,6 +110,7 @@ void fluidAdvance(fluid *in_f)
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
 	mpCTaskAdd(in_f->r_coherence, STAM_VELOCITY, -10, 10, 10);
+	mpCTaskAdd(in_f->r_coherence, MCCORMACK_REPOS, -10, 10, 10);
 
 	//We just need to run the tasks that have already been setup...
 	int spawned = mpTaskFlood(fluidMP, in_f);
