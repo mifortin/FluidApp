@@ -20,10 +20,12 @@ struct fluid
 	field *r_velocityY;
 	field *r_density;
 	field *r_pressure;
-	field *r_tmpVelX;		//Temporary velocity X (advection work)
-	field *r_tmpVelY;		//Temporary velocity Y (advection work)
-	field *r_repos;			//Used to accelerate advection (noticeable now
-							//that data is in cache!)
+	
+	field *r_tmpVelX;		//Temporary velocity X (advection work as Stam)
+	field *r_tmpVelY;		//Temporary velocity Y (advection work as Stam)
+	
+	field *r_reposX;		//Used to accelerate advection (noticeable now
+	field *r_reposY;		//							that data is in cache!)
 	
 	//Temporary buffers used as needed (we want to minimize memory footprint
 	//to maximize cache usage)
@@ -37,11 +39,13 @@ struct fluid
 	mpQueue		*r_blocker;
 };
 
+#define TIMESTEP	1.0f
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 //			Useful methods (implemented elsewhere)
 //
 void fluid_advection_stam_velocity(fluid *in_f, int rowID);
+void fluid_advection_mccormack_repos(fluid *in_f, int rowID);
 
 #endif

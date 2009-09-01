@@ -26,8 +26,13 @@
 
 - (void)onFrame
 {
+	x_try
 	fluidAdvance(r_fluid);
 
+	x_catch(e)
+	printf("Something bad happened\n");
+	x_finally
+	
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	glBegin(GL_QUADS);

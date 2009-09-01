@@ -6,8 +6,6 @@
 #include "fluid_pvt.h"
 #include "fluid_macros_2.h"
 
-#define TIMESTEP	1
-
 void fluid_advection_stam_velocity(fluid *in_f, int y)
 {
 	int x;										//Simple looping var
@@ -68,11 +66,5 @@ void fluid_advection_stam_velocity(fluid *in_f, int y)
 										  bZZ_x[0], bOZ_x[0], bZO_x[0], bOO_x[0]);
 		fVelDestY[0] = fluidLinearInterpolation(scaleX, scaleY,
 										  bZZ_y[0], bOZ_y[0], bZO_y[0], bOO_y[0]);
-		
-		//And store our numbers (they'll be needed)
-//		float *fStamDest = FSFloatPtrOffset(tmp_repos.data.f,
-//											x*tmp_repos.strideX + y*tmp_repos.strideY);
-//		fStamDest[0] = (float)nBackX + scaleX;
-//		fStamDest[1] = (float)nBackY + scaleY;
 	}
 }

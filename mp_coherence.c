@@ -114,7 +114,7 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	o->m_nMaxTasks = in_tasks;
 	o->m_nData = in_data;
 	o->m_cacheSize = in_cache;
-	o->r_q = mpQueueCreate(4);		//Nice temp value
+	o->r_q = mpQueueCreate(2);		//Nice temp value
 	
 	return o;
 }
