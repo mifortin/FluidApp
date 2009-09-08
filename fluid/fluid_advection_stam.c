@@ -6,20 +6,23 @@
 #include "fluid_pvt.h"
 #include "fluid_macros_2.h"
 
-void fluid_advection_stam_velocity(fluid *in_f, int y)
+//Basic advection of only the velocity...
+void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 {
-	int x;										//Simple looping var
-	int w = fieldWidth(in_f->r_velocityX);		//Width of the data
-	int h = fieldHeight(in_f->r_velocityX);
+	int x;
+	int w = fieldWidth(mode->advection_stam_velocity.srcVelX);
+	int h = fieldHeight(mode->advection_stam_velocity.srcVelY);
 	
-	float *velX		= fieldData(in_f->r_velocityX);
-	float *velY		= fieldData(in_f->r_velocityY);
+	float *velX		= fieldData(mode->advection_stam_velocity.srcVelX);
+	float *velY		= fieldData(mode->advection_stam_velocity.srcVelY);
 	
-	float *velDestX	= fieldData(in_f->r_tmpVelX);
-	float *velDestY	= fieldData(in_f->r_tmpVelY);
+	float *velDestX	= fieldData(mode->advection_stam_velocity.dstVelX);
+	float *velDestY	= fieldData(mode->advection_stam_velocity.dstVelY);
 	
-	int sX = fieldStrideX(in_f->r_velocityX);
-	int sY = fieldStrideY(in_f->r_velocityY);
+	int sX = fieldStrideX(mode->advection_stam_velocity.srcVelX);
+	int sY = fieldStrideY(mode->advection_stam_velocity.srcVelY);
+	
+	float timestep = mode->advection_stam_velocity.timestep;
 	
 	//Extract the data from the object
 
@@ -30,8 +33,8 @@ void fluid_advection_stam_velocity(fluid *in_f, int y)
 		float *fDataY = fluidFloatPointer(velY, x*sX + y*sY);
 		
 		//Find the cell back in time	(keep a -10,10 radius)
-		float backX = -fluidClamp(TIMESTEP * fDataX[0],-9,9) + (float)x;
-		float backY = -fluidClamp(TIMESTEP * fDataY[0],-9,9) + (float)y;
+		float backX = -fluidClamp(timestep * fDataX[0],-9,9) + (float)x;
+		float backY = -fluidClamp(timestep * fDataY[0],-9,9) + (float)y;
 		
 		int nBackX = (int)backX;
 		int nBackY = (int)backY;

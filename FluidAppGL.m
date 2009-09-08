@@ -30,7 +30,7 @@
 	fluidAdvance(r_fluid);
 
 	x_catch(e)
-	printf("Something bad happened\n");
+	printf("Something bad happened %s\n", errorMsg(e));
 	x_finally
 	
 	glClear(GL_COLOR_BUFFER_BIT);

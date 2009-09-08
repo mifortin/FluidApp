@@ -11,24 +11,24 @@
 #include "memory.h"
 
 
-////////////////////////////////////////////////////////////////////////////////
-//
-//		Read-only set of data describing function pointers to the various
-//		components...		(fluid object for pointers, rowID for dataset)
-//
-typedef void(*pvtFluidFn)(fluid *in_f, int rowID);
 
-const pvtFluidFn g_pvtFunctions[]
-	=	{
 
-#define STAM_VELOCITY		0
-			fluid_advection_stam_velocity,
 
-#define MCCORMACK_REPOS		1
-			fluid_advection_mccormack_repos,
-		};
-
-#define pvtFluidFnCount (sizeof(g_pvtFunctions)/sizeof(pvtFluidFn))
+pvt_fluidMode make_advection_stam_velocity(field *srcVelX, field *srcVelY,
+											field *dstVelX, field *dstVelY,
+										   	float timestep)
+{
+	pvt_fluidMode toRet;
+	
+	toRet.advection_stam_velocity.srcVelX = srcVelX;
+	toRet.advection_stam_velocity.srcVelY = srcVelY;
+	toRet.advection_stam_velocity.dstVelX = dstVelX;
+	toRet.advection_stam_velocity.dstVelY = dstVelY;
+	toRet.advection_stam_velocity.timestep = timestep;
+	
+	
+	return toRet;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +77,64 @@ fluid *fluidCreate(int in_width, int in_height)
 	
 	toRet->m_curField = 0;
 	
+	toRet->m_usedFunctions = 0;
+	
 	return toRet;
+}
+
+
+void fluidTaskAddForwardAdvection(fluid *f)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_advection_stam_velocity;
+	f->m_fns[curFn].mode = make_advection_stam_velocity(
+								f->r_velocityX, f->r_velocityY,
+								f->r_tmpVelX,   f->r_tmpVelY,
+								TIMESTEP);
+	
+	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 10);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
+void fluidTaskAddBackwardAdvection(fluid *f)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_advection_stam_velocity;
+	f->m_fns[curFn].mode = make_advection_stam_velocity(
+														f->r_tmpVelX, f->r_tmpVelY,
+														f->r_reposX,   f->r_reposY,
+														-TIMESTEP);
+	
+	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 10);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
+void fluidTaskCorrectorRepos(fluid *f)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_advection_mccormack_repos;
+	f->m_fns[curFn].mode.mccormack_vel_repos.srcVelX = f->r_velocityX;
+	f->m_fns[curFn].mode.mccormack_vel_repos.srcVelY = f->r_velocityY;
+	f->m_fns[curFn].mode.mccormack_vel_repos.srcAdvX = f->r_tmpVelX;
+	f->m_fns[curFn].mode.mccormack_vel_repos.srcAdvY = f->r_tmpVelY;
+	f->m_fns[curFn].mode.mccormack_vel_repos.srcErrVelX = f->r_reposX;
+	f->m_fns[curFn].mode.mccormack_vel_repos.srcErrVelY = f->r_reposY;
+	f->m_fns[curFn].mode.mccormack_vel_repos.dstVelX = f->r_velocityX;
+	f->m_fns[curFn].mode.mccormack_vel_repos.dstVelY = f->r_velocityY;
+	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
+	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
+	
+	f->m_usedFunctions = curFn+1;
 }
 
 
@@ -92,7 +149,7 @@ void fluidMP(void *in_o)
 	while (tid != -1)
 	{
 		//Execute the desired function from the list of functions...
-		g_pvtFunctions[fn](o, tsk);
+		o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
 	
 		//Fetch another function!
 		mpCTaskComplete(c, tid, fn, tsk,
@@ -109,9 +166,25 @@ void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
-	mpCTaskAdd(in_f->r_coherence, STAM_VELOCITY, -10, 10, 10);
-	mpCTaskAdd(in_f->r_coherence, MCCORMACK_REPOS, -10, 10, 10);
-
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskAddForwardAdvection(in_f);
+	fluidTaskAddBackwardAdvection(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	fluidTaskCorrectorRepos(in_f);
+	
 	//We just need to run the tasks that have already been setup...
 	int spawned = mpTaskFlood(fluidMP, in_f);
 	
@@ -121,4 +194,5 @@ void fluidAdvance(fluid *in_f)
 	
 	//Clear the scheduler (for the next pass)
 	mpCReset(in_f->r_coherence);
+	in_f->m_usedFunctions = 0;
 }

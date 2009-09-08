@@ -17,8 +17,8 @@
 typedef struct memory_pvt memory_pvt;
 struct memory_pvt
 {
-	int32_t rc;							//The retain count...
 	x_dealloc kill;						//Your guess is as good as mine...
+	int32_t rc;							//The retain count...
 } __attribute__ ((aligned(16)));
 
 //Replacement allocator
