@@ -24,7 +24,8 @@
 	[r_toolbar setDisplayMode:NSToolbarDisplayModeIconOnly];
 	[ib_window setToolbar:r_toolbar];
 	
-	r_gl = [[FluidAppGL alloc] init];
+	[[ib_glView openGLContext] makeCurrentContext];
+	[[ib_glView openGLContext] update];
 	r_timer = [NSTimer scheduledTimerWithTimeInterval:1.0f/512.0f
 											   target:self
 											 selector:@selector(onFrame:)
@@ -40,7 +41,8 @@
 
 - (void)dealloc
 {
-	[r_gl release];
+	[[ib_glView openGLContext] makeCurrentContext];
+	[[ib_glView openGLContext] update];
 	[r_toolbarItems release];
 	[r_toolbar release];
 	[super dealloc];
@@ -78,10 +80,10 @@ double timeFunc()
 	[[ib_glView openGLContext] update];
 	glLoadIdentity();
 	glViewport(0, 0, [ib_glView frame].size.width, [ib_glView frame].size.height);
-	[r_gl onFrame];
+	[ib_glView onFrame];
 	[[ib_glView openGLContext] flushBuffer];
 	double t2 = timeFunc();
-	printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
+	//printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
 }
 
 - (void)windowDidResize:(NSNotification *)notification

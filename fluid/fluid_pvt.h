@@ -43,6 +43,16 @@ struct mccormack_vel_repos
 	field *dstVelY;
 };
 
+//Simple reposition of data...
+struct repos
+{
+	field *reposX;		//Fields describing where to fetch data
+	field *reposY;
+	field *src;			//Source field
+	field *dst;			//Destination field
+};
+
+//Ensure that parameters are passed around somewhat cleanly
 typedef union
 {
 	//When just advecting velocity.  (Use this to create a repos matrix)
@@ -50,6 +60,9 @@ typedef union
 	
 	//When doing predictor-corrector (correcting velocity + build repos)
 	struct mccormack_vel_repos mccormack_vel_repos;
+	
+	//When doing simple repositioning
+	struct repos repos;
 } pvt_fluidMode;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,6 +92,7 @@ struct fluid
 	field *r_velocityX;
 	field *r_velocityY;
 	field *r_density;
+	field *r_density_swap;
 	field *r_pressure;
 	
 	field *r_tmpVelX;		//Temporary velocity X (advection work as Stam)
@@ -113,5 +127,7 @@ struct fluid
 void fluid_advection_stam_velocity(fluid *in_f, int rowID, pvt_fluidMode *mode);
 
 void fluid_advection_mccormack_repos(fluid *in_f, int rowID, pvt_fluidMode *mode);
+
+void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode);
 
 #endif

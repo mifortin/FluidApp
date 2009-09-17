@@ -12,8 +12,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	struct mccormack_vel_repos *data = &mode->mccormack_vel_repos;
 	
 	int x;										//Simple looping var
-	int w = fieldWidth(data->srcVelX);		//Width of the data
-	//int h = fieldHeight(data->srcVelY);
+	int w = fieldWidth(data->srcVelX);			//Width of the data
+	int h = fieldHeight(data->srcVelX);
 	int sX = fieldStrideX(data->srcVelX);
 	int sY = fieldStrideY(data->srcVelY);
 	
@@ -61,13 +61,11 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		fDstVelX[0] = fSrcAdvX + errX/2;
 		fDstVelY[0] = fSrcAdvY + errY/2;
 		
-		//We'll figure this one out later...
-		//	Normally, this is done:
-		//		1. Destination is stored
-		//		2. 
-		//		
-		//	(this is "good enough"?)
-		fDstReposX[0] = fDstVelX[0];
-		fDstReposY[0] = fDstVelY[0];
+		//Most of the error is from velocity advection (so we assume)
+		//	This is a cheap way of computing error!		
+		float backX = fluidClamp(-TIMESTEP*srcVelX[0] + errX*TIMESTEP,-9,9) + (float)x;
+		float backY = fluidClamp(-TIMESTEP*srcVelY[0] + errY*TIMESTEP,-9,9) + (float)y;
+		fDstReposX[0] = fluidClamp(backX,0,w-2);
+		fDstReposY[0] = fluidClamp(backY,0,h-2);
 	}
 }

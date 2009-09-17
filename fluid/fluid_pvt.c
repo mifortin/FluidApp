@@ -4,6 +4,7 @@
  */
 
 #include "fluid_pvt.h"
+#include "fluid_macros_2.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +45,10 @@ void fluidFree(void *in_o)
 	if (o->r_blocker)		x_free(o->r_blocker);
 	
 	if (o->r_pressure)		x_free(o->r_pressure);
+	
 	if (o->r_density)		x_free(o->r_density);
+	if (o->r_density_swap)	x_free(o->r_density_swap);
+	
 	if (o->r_velocityX)		x_free(o->r_velocityX);
 	if (o->r_velocityY)		x_free(o->r_velocityY);
 	
@@ -67,8 +71,9 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_tmpVelY = fieldCreate(in_width, in_height, 1);
 	toRet->r_reposX = fieldCreate(in_width, in_height, 1);
 	toRet->r_reposY = fieldCreate(in_width, in_height, 1);
-	toRet->r_density = fieldCreate(in_width, in_height, 1);
 	toRet->r_pressure = fieldCreate(in_width, in_height, 1);
+	toRet->r_density = fieldCreate(in_width, in_height, 3);
+	toRet->r_density_swap = fieldCreate(in_width, in_height, 3);
 	
 	toRet->r_blocker = mpQueueCreate(2);
 	
@@ -133,6 +138,24 @@ void fluidTaskCorrectorRepos(fluid *f)
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstVelY = f->r_velocityY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
+	mpCTaskAdd(f->r_coherence, curFn, 0, 0, 0);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
+void fluidTaskAdvectDensity(fluid *f)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_repos;
+	f->m_fns[curFn].mode.repos.reposX = f->r_reposX;
+	f->m_fns[curFn].mode.repos.reposY = f->r_reposY;
+	f->m_fns[curFn].mode.repos.src = f->r_density;
+	f->m_fns[curFn].mode.repos.dst = f->r_density_swap;
+	
+	mpCTaskAdd(f->r_coherence, curFn, 0, 0, 0);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -166,24 +189,10 @@ void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
 	fluidTaskAddForwardAdvection(in_f);
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
-	fluidTaskCorrectorRepos(in_f);
+	fluidTaskAdvectDensity(in_f);
 	
 	//We just need to run the tasks that have already been setup...
 	int spawned = mpTaskFlood(fluidMP, in_f);
@@ -195,4 +204,25 @@ void fluidAdvance(fluid *in_f)
 	//Clear the scheduler (for the next pass)
 	mpCReset(in_f->r_coherence);
 	in_f->m_usedFunctions = 0;
+	
+	//fluidSwap(field*, in_f->r_tmpVelX, in_f->r_velocityX);
+	//fluidSwap(field*, in_f->r_tmpVelY, in_f->r_velocityY);
+	fluidSwap(field*, in_f->r_density, in_f->r_density_swap);
+}
+
+
+field *fluidDensity(fluid *in_f)
+{
+	return in_f->r_density;
+}
+
+
+field *fluidVelocityX(fluid *in_f)
+{
+	return in_f->r_velocityX;
+}
+
+field *fluidVelocityY(fluid *in_f)
+{
+	return in_f->r_velocityY;
 }

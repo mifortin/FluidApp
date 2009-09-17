@@ -10,6 +10,7 @@
 #include "error.h"
 #include "net.h"
 #include "protocol.h"
+#include "field.h"
 
 //Data organized in memory so that it's coherent for advection (all advection is
 //based on floats)
@@ -18,6 +19,10 @@ typedef struct fluid fluid;
 fluid *fluidCreate(int in_width, int in_height);
 
 void fluidAdvance(fluid *in_f);
+
+field *fluidDensity(fluid *in_f);
+field *fluidVelocityX(fluid *in_f);
+field *fluidVelocityY(fluid *in_f);
 
 #endif
 
