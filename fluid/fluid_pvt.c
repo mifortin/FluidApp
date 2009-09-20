@@ -84,7 +84,15 @@ fluid *fluidCreate(int in_width, int in_height)
 	
 	toRet->m_usedFunctions = 0;
 	
+	toRet->m_viscosity = 1.0f;
+	
 	return toRet;
+}
+
+
+void fluidSetViscosity(fluid *f, float in_v)
+{
+	f->m_viscosity = in_v;
 }
 
 
@@ -99,7 +107,7 @@ void fluidTaskAddForwardAdvection(fluid *f)
 								f->r_tmpVelX,   f->r_tmpVelY,
 								TIMESTEP);
 	
-	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 10);
+	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -116,7 +124,7 @@ void fluidTaskAddBackwardAdvection(fluid *f)
 														f->r_reposX,   f->r_reposY,
 														-TIMESTEP);
 	
-	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 10);
+	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -138,7 +146,7 @@ void fluidTaskCorrectorRepos(fluid *f)
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstVelY = f->r_velocityY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
-	mpCTaskAdd(f->r_coherence, curFn, 0, 0, 0);
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -155,7 +163,63 @@ void fluidTaskAdvectDensity(fluid *f)
 	f->m_fns[curFn].mode.repos.src = f->r_density;
 	f->m_fns[curFn].mode.repos.dst = f->r_density_swap;
 	
-	mpCTaskAdd(f->r_coherence, curFn, 0, 0, 0);
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	
+	f->m_usedFunctions = curFn+1;
+	
+	//In the future, this is true!
+	fluidSwap(field*, f->r_density, f->r_density_swap);
+}
+
+
+void fluidTaskPressure(fluid *f, int in_iterations)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_genPressure;
+	f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
+	f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
+	f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
+	
+	int i;
+	for (i=0; i<in_iterations; i++)
+		mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	
+	f->m_usedFunctions = curFn+1;
+	
+	curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_applyPressure;
+	f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
+	f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
+	f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
+	
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+void fluidTaskViscosity(fluid *f, int in_iterations)
+{
+	if (f->m_viscosity < 0.001f)
+		return;
+	
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	float viscocity = f->m_viscosity;
+	
+	f->m_fns[curFn].fn = fluid_viscosity;
+	f->m_fns[curFn].mode.viscosity.velX = f->r_velocityX;
+	f->m_fns[curFn].mode.viscosity.velY = f->r_velocityY;
+	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / (viscocity * TIMESTEP);
+	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / (viscocity * TIMESTEP)  + 4);
+	
+	int i;
+	for (i=0; i<in_iterations; i++)
+		mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -183,12 +247,18 @@ void fluidMP(void *in_o)
 	mpQueuePush(o->r_blocker, NULL);
 }
 
+//NOTE for 512x512:
+//	4.5 FPS on Intel using old program	(0% improvment)
+//	5.0 FPS on Intel using new			(13% improvement)
+//	5.5 FPS on Intel using new x64 SL	(18% improvement)
 
 //Called every frame to advance the fluid simulation...
 void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
+	fluidTaskViscosity(in_f, 20);
+	fluidTaskPressure(in_f, 20);
 	fluidTaskAddForwardAdvection(in_f);
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);
@@ -204,10 +274,6 @@ void fluidAdvance(fluid *in_f)
 	//Clear the scheduler (for the next pass)
 	mpCReset(in_f->r_coherence);
 	in_f->m_usedFunctions = 0;
-	
-	//fluidSwap(field*, in_f->r_tmpVelX, in_f->r_velocityX);
-	//fluidSwap(field*, in_f->r_tmpVelY, in_f->r_velocityY);
-	fluidSwap(field*, in_f->r_density, in_f->r_density_swap);
 }
 
 

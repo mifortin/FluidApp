@@ -52,6 +52,24 @@ struct repos
 	field *dst;			//Destination field
 };
 
+//Simple pressure of data...
+struct pressure
+{
+	field *velX;		//Velocity
+	field *velY;
+	field *pressure;	//Pressure
+};
+
+//Simple viscosity data...
+struct viscosity
+{
+	field *velX;
+	field *velY;
+	
+	float alpha;		//Improved thanks to Harris
+	float beta;
+};
+
 //Ensure that parameters are passed around somewhat cleanly
 typedef union
 {
@@ -63,6 +81,11 @@ typedef union
 	
 	//When doing simple repositioning
 	struct repos repos;
+	
+	//When doing pressure (generating or applying)
+	struct pressure pressure;
+	
+	struct viscosity viscosity;
 } pvt_fluidMode;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,8 +115,11 @@ struct fluid
 	field *r_velocityX;
 	field *r_velocityY;
 	field *r_density;
-	field *r_density_swap;
 	field *r_pressure;
+	
+	//The following fields can be used temporarily
+	//	for a sequence of operations.
+	field *r_density_swap;	//Used as a destination for densities
 	
 	field *r_tmpVelX;		//Temporary velocity X (advection work as Stam)
 	field *r_tmpVelY;		//Temporary velocity Y (advection work as Stam)
@@ -106,6 +132,9 @@ struct fluid
 	
 	//Used to stall the system until an iteration completes
 	mpQueue		*r_blocker;
+	
+	//The viscosity		(default 1.0f)
+	float m_viscosity;
 	
 	//Number of used functions
 	int m_usedFunctions;
@@ -129,5 +158,10 @@ void fluid_advection_stam_velocity(fluid *in_f, int rowID, pvt_fluidMode *mode);
 void fluid_advection_mccormack_repos(fluid *in_f, int rowID, pvt_fluidMode *mode);
 
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode);
+
+void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode);
+void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode);
+
+void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode);
 
 #endif

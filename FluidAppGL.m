@@ -7,6 +7,10 @@
 #include "memory.h"
 #import "FluidTools.h"
 
+#if defined( __SSE__ )
+#include <xmmintrin.h>
+#endif
+
 @implementation FluidAppGL
 
 
@@ -167,6 +171,13 @@
 
 - (void)onFrame
 {
+#if defined( __SSE__ )
+	int oldMXCSR = _mm_getcsr(); //read the old MXCSR setting
+	int newMXCSR = oldMXCSR | 0x00FFC0; // set DAZ and FZ bits
+	_mm_setcsr( newMXCSR ); //write the new MXCSR setting to the MXCSR
+	//printf("DENORMALS OFF!\n");
+#endif
+	
 	x_try
 		fluidAdvance(r_fluid);
 		[self generateView];
@@ -174,6 +185,11 @@
 	x_catch(e)
 		printf("Something bad happened %s\n", errorMsg(e));
 	x_finally
+	
+#if defined( __SSE__ )
+	//restore old MXCSR settings to turn denormals back on if they were on
+	_mm_setcsr( oldMXCSR );
+#endif
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -195,6 +211,12 @@
 	glEnd();
 	
 	glFlush();
+}
+
+
+- (void)setViscosity:(float)in_v
+{
+	fluidSetViscosity(r_fluid, in_v);
 }
 
 @end

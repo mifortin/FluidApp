@@ -33,8 +33,8 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		float *fDataY = fluidFloatPointer(velY, x*sX + y*sY);
 		
 		//Find the cell back in time	(keep a -10,10 radius)
-		float backX = -fluidClamp(timestep * fDataX[0],-9,9) + (float)x;
-		float backY = -fluidClamp(timestep * fDataY[0],-9,9) + (float)y;
+		float backX = fluidClamp(-timestep * fDataX[0],-9,9) + (float)x;
+		float backY = fluidClamp(-timestep * fDataY[0],-9,9) + (float)y;
 		
 		int nBackX = (int)backX;
 		int nBackY = (int)backY;

@@ -22,4 +22,6 @@
 
 - (void)onFrame;
 
+- (void)setViscosity:(float)in_v;
+
 @end

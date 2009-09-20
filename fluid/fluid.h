@@ -24,5 +24,8 @@ field *fluidDensity(fluid *in_f);
 field *fluidVelocityX(fluid *in_f);
 field *fluidVelocityY(fluid *in_f);
 
+//Allows the user of the system to set the viscosity...
+void fluidSetViscosity(fluid *f, float in_v);
+
 #endif
 

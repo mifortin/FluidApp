@@ -57,15 +57,15 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		float errX = fSrcErrVelX - fSrcVelX;
 		float errY = fSrcErrVelY - fSrcVelY;
 		
-		//Apply...
-		fDstVelX[0] = fSrcAdvX + errX/2;
-		fDstVelY[0] = fSrcAdvY + errY/2;
-		
 		//Most of the error is from velocity advection (so we assume)
 		//	This is a cheap way of computing error!		
-		float backX = fluidClamp(-TIMESTEP*srcVelX[0] + errX*TIMESTEP,-9,9) + (float)x;
-		float backY = fluidClamp(-TIMESTEP*srcVelY[0] + errY*TIMESTEP,-9,9) + (float)y;
+		float backX = fluidClamp(-TIMESTEP*fSrcVelX + 0.5f*errX*TIMESTEP,-9,9) + (float)x;
+		float backY = fluidClamp(-TIMESTEP*fSrcVelY + 0.5f*errY*TIMESTEP,-9,9) + (float)y;
 		fDstReposX[0] = fluidClamp(backX,0,w-2);
 		fDstReposY[0] = fluidClamp(backY,0,h-2);
+		
+		//Apply... (this puts fluid at wrong timestep if done before!)
+		fDstVelX[0] = fSrcAdvX + errX/2;
+		fDstVelY[0] = fSrcAdvY + errY/2;
 	}
 }
