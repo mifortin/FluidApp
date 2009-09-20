@@ -70,6 +70,18 @@ struct viscosity
 	float beta;
 };
 
+//Vorticity data...
+struct vorticity
+{
+	field *z;			//Direction...
+						// (note that other components become 0)
+	
+	field *velX;		//Used to compute curl, and apply vorticity...
+	field *velY;
+	
+	float e;			//Simple scale
+};
+
 //Ensure that parameters are passed around somewhat cleanly
 typedef union
 {
@@ -85,7 +97,11 @@ typedef union
 	//When doing pressure (generating or applying)
 	struct pressure pressure;
 	
+	//When applying viscuous drag
 	struct viscosity viscosity;
+	
+	//When exagerating vorticity
+	struct vorticity vorticity;
 } pvt_fluidMode;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,6 +151,7 @@ struct fluid
 	
 	//The viscosity		(default 1.0f)
 	float m_viscosity;
+	float m_vorticity;
 	
 	//Number of used functions
 	int m_usedFunctions;
@@ -163,5 +180,8 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode);
+
+void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode);
+void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode);
 
 #endif

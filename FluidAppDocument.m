@@ -83,7 +83,7 @@ double timeFunc()
 	[ib_glView onFrame];
 	[[ib_glView openGLContext] flushBuffer];
 	double t2 = timeFunc();
-	printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
+	//printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
 }
 
 - (void)windowDidResize:(NSNotification *)notification
@@ -102,6 +102,14 @@ double timeFunc()
 	
 	[ib_txt_viscosity setFloatValue:v];
 	[ib_glView setViscosity:v];
+}
+
+- (IBAction)onChangeVorticity:(id)value
+{
+	float v = [value floatValue];
+	
+	[ib_txt_vorticity setFloatValue:v];
+	[ib_glView setVorticity:v];
 }
 
 

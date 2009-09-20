@@ -23,5 +23,6 @@
 - (void)onFrame;
 
 - (void)setViscosity:(float)in_v;
+- (void)setVorticity:(float)in_v;
 
 @end

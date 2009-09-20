@@ -157,8 +157,8 @@
 		{
 			for (x=0; x<w; x++)
 			{
-				work_buff[(x+y*w)*3+0] = 0.5f*dx[x+y*w]+0.5f;
-				work_buff[(x+y*w)*3+1] = 0.5f*dy[x+y*w]+0.5f;
+				work_buff[(x+y*w)*3+0] = (dx[x+y*w]+9.0f)/18.0f;
+				work_buff[(x+y*w)*3+1] = (dy[x+y*w]+9.0f)/18.0f;
 				work_buff[(x+y*w)*3+2] = 0;
 			}
 		}
@@ -217,6 +217,11 @@
 - (void)setViscosity:(float)in_v
 {
 	fluidSetViscosity(r_fluid, in_v);
+}
+
+- (void)setVorticity:(float)in_v
+{
+	fluidSetVorticity(r_fluid, in_v);
 }
 
 @end

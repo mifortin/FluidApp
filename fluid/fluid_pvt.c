@@ -78,13 +78,14 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_blocker = mpQueueCreate(2);
 	
 	//NOTE: Make this configurable????
-	toRet->r_coherence = mpCCreate(in_height, 128, 32);
+	toRet->r_coherence = mpCCreate(in_height, 128, 64);
 	
 	toRet->m_curField = 0;
 	
 	toRet->m_usedFunctions = 0;
 	
 	toRet->m_viscosity = 1.0f;
+	toRet->m_vorticity = 1.0f;
 	
 	return toRet;
 }
@@ -95,6 +96,11 @@ void fluidSetViscosity(fluid *f, float in_v)
 	f->m_viscosity = in_v;
 }
 
+
+void fluidSetVorticity(fluid *f, float in_v)
+{
+	f->m_vorticity = in_v;
+}
 
 void fluidTaskAddForwardAdvection(fluid *f)
 {
@@ -225,6 +231,39 @@ void fluidTaskViscosity(fluid *f, int in_iterations)
 }
 
 
+void fluidTaskVorticity(fluid *f)
+{
+	if (f->m_vorticity < 0.001f)
+		return;
+	
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_vorticity_curl;
+	f->m_fns[curFn].mode.vorticity.velX = f->r_velocityX;
+	f->m_fns[curFn].mode.vorticity.velY = f->r_velocityY;
+	f->m_fns[curFn].mode.vorticity.z = f->r_tmpVelX;
+	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
+	
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	
+	f->m_usedFunctions = curFn+1;
+	
+	curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_vorticity_apply;
+	f->m_fns[curFn].mode.vorticity.velX = f->r_velocityX;
+	f->m_fns[curFn].mode.vorticity.velY = f->r_velocityY;
+	f->m_fns[curFn].mode.vorticity.z = f->r_tmpVelX;
+	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
+	
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o)
 {
@@ -257,6 +296,7 @@ void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
+	fluidTaskVorticity(in_f);
 	fluidTaskViscosity(in_f, 20);
 	fluidTaskPressure(in_f, 20);
 	fluidTaskAddForwardAdvection(in_f);

@@ -11,7 +11,7 @@
 			<string key="NS.object.0">732</string>
 		</object>
 		<array class="NSMutableArray" key="IBDocument.EditedObjectIDs">
-			<integer value="16"/>
+			<integer value="44"/>
 			<integer value="5"/>
 		</array>
 		<array key="IBDocument.PluginDependencies">
@@ -69,13 +69,13 @@
 				<reference key="NSNextResponder"/>
 				<int key="NSvFlags">4364</int>
 				<array class="NSMutableArray" key="NSSubviews">
-					<object class="NSTextField" id="816548932">
+					<object class="NSTextField" id="483716325">
 						<reference key="NSNextResponder" ref="677594885"/>
 						<int key="NSvFlags">268</int>
-						<string key="NSFrame">{{80, 23}, {39, 11}}</string>
+						<string key="NSFrame">{{196, 23}, {39, 11}}</string>
 						<reference key="NSSuperview" ref="677594885"/>
 						<bool key="NSEnabled">YES</bool>
-						<object class="NSTextFieldCell" key="NSCell" id="961841687">
+						<object class="NSTextFieldCell" key="NSCell" id="239493186">
 							<int key="NSCellFlags">68288064</int>
 							<int key="NSCellFlags2">71566336</int>
 							<string key="NSContents">1.00</string>
@@ -84,7 +84,7 @@
 								<double key="NSSize">9</double>
 								<int key="NSfFlags">3614</int>
 							</object>
-							<reference key="NSControlView" ref="816548932"/>
+							<reference key="NSControlView" ref="483716325"/>
 							<object class="NSColor" key="NSBackgroundColor" id="987025056">
 								<int key="NSColorSpace">6</int>
 								<string key="NSCatalogName">System</string>
@@ -103,6 +103,59 @@
 									<bytes key="NSWhite">MAA</bytes>
 								</object>
 							</object>
+						</object>
+					</object>
+					<object class="NSTextField" id="197799893">
+						<reference key="NSNextResponder" ref="677594885"/>
+						<int key="NSvFlags">268</int>
+						<string key="NSFrame">{{133, 23}, {61, 11}}</string>
+						<reference key="NSSuperview" ref="677594885"/>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSTextFieldCell" key="NSCell" id="953381513">
+							<int key="NSCellFlags">68288064</int>
+							<int key="NSCellFlags2">4457472</int>
+							<string key="NSContents">Vorticity</string>
+							<reference key="NSSupport" ref="22"/>
+							<reference key="NSControlView" ref="197799893"/>
+							<reference key="NSBackgroundColor" ref="987025056"/>
+							<reference key="NSTextColor" ref="1065584321"/>
+						</object>
+					</object>
+					<object class="NSSlider" id="322745089">
+						<reference key="NSNextResponder" ref="677594885"/>
+						<int key="NSvFlags">268</int>
+						<string key="NSFrame">{{136, 0}, {96, 16}}</string>
+						<reference key="NSSuperview" ref="677594885"/>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSSliderCell" key="NSCell" id="153705412">
+							<int key="NSCellFlags">-2079981824</int>
+							<int key="NSCellFlags2">262144</int>
+							<string key="NSContents"/>
+							<reference key="NSControlView" ref="322745089"/>
+							<double key="NSMaxValue">20</double>
+							<double key="NSMinValue">0.0</double>
+							<double key="NSValue">1</double>
+							<double key="NSAltIncValue">0.0</double>
+							<int key="NSNumberOfTickMarks">21</int>
+							<int key="NSTickMarkPosition">1</int>
+							<bool key="NSAllowsTickMarkValuesOnly">NO</bool>
+							<bool key="NSVertical">NO</bool>
+						</object>
+					</object>
+					<object class="NSTextField" id="816548932">
+						<reference key="NSNextResponder" ref="677594885"/>
+						<int key="NSvFlags">268</int>
+						<string key="NSFrame">{{80, 23}, {39, 11}}</string>
+						<reference key="NSSuperview" ref="677594885"/>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSTextFieldCell" key="NSCell" id="961841687">
+							<int key="NSCellFlags">68288064</int>
+							<int key="NSCellFlags2">71566336</int>
+							<string key="NSContents">1.00</string>
+							<reference key="NSSupport" ref="22"/>
+							<reference key="NSControlView" ref="816548932"/>
+							<reference key="NSBackgroundColor" ref="987025056"/>
+							<reference key="NSTextColor" ref="1065584321"/>
 						</object>
 					</object>
 					<object class="NSTextField" id="108049174">
@@ -143,7 +196,7 @@
 						</object>
 					</object>
 				</array>
-				<string key="NSFrameSize">{136, 34}</string>
+				<string key="NSFrameSize">{252, 34}</string>
 				<reference key="NSSuperview"/>
 				<string key="NSClassName">NSView</string>
 			</object>
@@ -214,6 +267,30 @@
 					</object>
 					<int key="connectionID">43</int>
 				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">ib_sld_vorticity</string>
+						<reference key="source" ref="452189513"/>
+						<reference key="destination" ref="322745089"/>
+					</object>
+					<int key="connectionID">51</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">ib_txt_vorticity</string>
+						<reference key="source" ref="452189513"/>
+						<reference key="destination" ref="483716325"/>
+					</object>
+					<int key="connectionID">52</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">onChangeVorticity:</string>
+						<reference key="source" ref="452189513"/>
+						<reference key="destination" ref="322745089"/>
+					</object>
+					<int key="connectionID">53</int>
+				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
 				<array key="orderedObjects">
@@ -267,9 +344,12 @@
 						<int key="objectID">16</int>
 						<reference key="object" ref="677594885"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="108049174"/>
 							<reference ref="415458956"/>
 							<reference ref="816548932"/>
+							<reference ref="108049174"/>
+							<reference ref="322745089"/>
+							<reference ref="197799893"/>
+							<reference ref="483716325"/>
 						</array>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">FluidTools</string>
@@ -313,6 +393,45 @@
 						<reference key="object" ref="961841687"/>
 						<reference key="parent" ref="816548932"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">44</int>
+						<reference key="object" ref="322745089"/>
+						<array class="NSMutableArray" key="children">
+							<reference ref="153705412"/>
+						</array>
+						<reference key="parent" ref="677594885"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">45</int>
+						<reference key="object" ref="197799893"/>
+						<array class="NSMutableArray" key="children">
+							<reference ref="953381513"/>
+						</array>
+						<reference key="parent" ref="677594885"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">46</int>
+						<reference key="object" ref="483716325"/>
+						<array class="NSMutableArray" key="children">
+							<reference ref="239493186"/>
+						</array>
+						<reference key="parent" ref="677594885"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">47</int>
+						<reference key="object" ref="239493186"/>
+						<reference key="parent" ref="483716325"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">48</int>
+						<reference key="object" ref="953381513"/>
+						<reference key="parent" ref="197799893"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">49</int>
+						<reference key="object" ref="153705412"/>
+						<reference key="parent" ref="322745089"/>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -321,7 +440,7 @@
 				<string key="12.CustomClassName">FluidAppGL</string>
 				<string key="12.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<boolean value="YES" key="12.ImportedFromIB2"/>
-				<string key="16.IBEditorWindowLastContentRect">{{587, 623}, {136, 34}}</string>
+				<string key="16.IBEditorWindowLastContentRect">{{490, 618}, {252, 34}}</string>
 				<string key="16.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<boolean value="YES" key="16.ImportedFromIB2"/>
 				<string key="35.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -330,9 +449,15 @@
 				<string key="38.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="39.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="40.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-				<string key="5.IBEditorWindowLastContentRect">{{216, 696}, {480, 360}}</string>
+				<string key="44.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="45.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="46.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="47.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="48.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="49.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="5.IBEditorWindowLastContentRect">{{339, 483}, {480, 360}}</string>
 				<string key="5.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-				<string key="5.IBWindowTemplateEditedContentRect">{{216, 696}, {480, 360}}</string>
+				<string key="5.IBWindowTemplateEditedContentRect">{{339, 483}, {480, 360}}</string>
 				<boolean value="YES" key="5.ImportedFromIB2"/>
 				<boolean value="YES" key="5.windowTemplate.hasMinSize"/>
 				<string key="5.windowTemplate.minSize">{213, 107}</string>
@@ -343,7 +468,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">43</int>
+			<int key="maxID">53</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -358,15 +483,17 @@
 				<object class="IBPartialClassDescription">
 					<string key="className">FluidAppDocument</string>
 					<string key="superclassName">NSDocument</string>
-					<object class="NSMutableDictionary" key="actions">
-						<string key="NS.key.0">onChangeViscosity:</string>
-						<string key="NS.object.0">id</string>
-					</object>
+					<dictionary class="NSMutableDictionary" key="actions">
+						<string key="onChangeViscosity:">id</string>
+						<string key="onChangeVorticity:">id</string>
+					</dictionary>
 					<dictionary class="NSMutableDictionary" key="outlets">
 						<string key="ib_glView">FluidAppGL</string>
 						<string key="ib_sld_viscosity">NSSlider</string>
+						<string key="ib_sld_vorticity">NSSlider</string>
 						<string key="ib_toolbarView">NSView</string>
 						<string key="ib_txt_viscosity">NSTextField</string>
+						<string key="ib_txt_vorticity">NSTextField</string>
 						<string key="ib_window">NSWindow</string>
 					</dictionary>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
