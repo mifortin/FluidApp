@@ -11,7 +11,7 @@
 			<string key="NS.object.0">732</string>
 		</object>
 		<array class="NSMutableArray" key="IBDocument.EditedObjectIDs">
-			<integer value="44"/>
+			<integer value="49"/>
 			<integer value="5"/>
 		</array>
 		<array key="IBDocument.PluginDependencies">
@@ -69,13 +69,13 @@
 				<reference key="NSNextResponder"/>
 				<int key="NSvFlags">4364</int>
 				<array class="NSMutableArray" key="NSSubviews">
-					<object class="NSTextField" id="483716325">
+					<object class="NSTextField" id="153137265">
 						<reference key="NSNextResponder" ref="677594885"/>
 						<int key="NSvFlags">268</int>
 						<string key="NSFrame">{{196, 23}, {39, 11}}</string>
 						<reference key="NSSuperview" ref="677594885"/>
 						<bool key="NSEnabled">YES</bool>
-						<object class="NSTextFieldCell" key="NSCell" id="239493186">
+						<object class="NSTextFieldCell" key="NSCell" id="363605431">
 							<int key="NSCellFlags">68288064</int>
 							<int key="NSCellFlags2">71566336</int>
 							<string key="NSContents">1.00</string>
@@ -84,7 +84,7 @@
 								<double key="NSSize">9</double>
 								<int key="NSfFlags">3614</int>
 							</object>
-							<reference key="NSControlView" ref="483716325"/>
+							<reference key="NSControlView" ref="153137265"/>
 							<object class="NSColor" key="NSBackgroundColor" id="987025056">
 								<int key="NSColorSpace">6</int>
 								<string key="NSCatalogName">System</string>
@@ -105,38 +105,38 @@
 							</object>
 						</object>
 					</object>
-					<object class="NSTextField" id="197799893">
+					<object class="NSTextField" id="880633763">
 						<reference key="NSNextResponder" ref="677594885"/>
 						<int key="NSvFlags">268</int>
 						<string key="NSFrame">{{133, 23}, {61, 11}}</string>
 						<reference key="NSSuperview" ref="677594885"/>
 						<bool key="NSEnabled">YES</bool>
-						<object class="NSTextFieldCell" key="NSCell" id="953381513">
+						<object class="NSTextFieldCell" key="NSCell" id="388857182">
 							<int key="NSCellFlags">68288064</int>
 							<int key="NSCellFlags2">4457472</int>
 							<string key="NSContents">Vorticity</string>
 							<reference key="NSSupport" ref="22"/>
-							<reference key="NSControlView" ref="197799893"/>
+							<reference key="NSControlView" ref="880633763"/>
 							<reference key="NSBackgroundColor" ref="987025056"/>
 							<reference key="NSTextColor" ref="1065584321"/>
 						</object>
 					</object>
-					<object class="NSSlider" id="322745089">
+					<object class="NSSlider" id="210204400">
 						<reference key="NSNextResponder" ref="677594885"/>
 						<int key="NSvFlags">268</int>
 						<string key="NSFrame">{{136, 0}, {96, 16}}</string>
 						<reference key="NSSuperview" ref="677594885"/>
 						<bool key="NSEnabled">YES</bool>
-						<object class="NSSliderCell" key="NSCell" id="153705412">
-							<int key="NSCellFlags">-2079981824</int>
+						<object class="NSSliderCell" key="NSCell" id="936721913">
+							<int key="NSCellFlags">67501824</int>
 							<int key="NSCellFlags2">262144</int>
 							<string key="NSContents"/>
-							<reference key="NSControlView" ref="322745089"/>
-							<double key="NSMaxValue">20</double>
+							<reference key="NSControlView" ref="210204400"/>
+							<double key="NSMaxValue">50</double>
 							<double key="NSMinValue">0.0</double>
 							<double key="NSValue">1</double>
 							<double key="NSAltIncValue">0.0</double>
-							<int key="NSNumberOfTickMarks">21</int>
+							<int key="NSNumberOfTickMarks">11</int>
 							<int key="NSTickMarkPosition">1</int>
 							<bool key="NSAllowsTickMarkValuesOnly">NO</bool>
 							<bool key="NSVertical">NO</bool>
@@ -271,7 +271,7 @@
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">ib_sld_vorticity</string>
 						<reference key="source" ref="452189513"/>
-						<reference key="destination" ref="322745089"/>
+						<reference key="destination" ref="210204400"/>
 					</object>
 					<int key="connectionID">51</int>
 				</object>
@@ -279,7 +279,7 @@
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">ib_txt_vorticity</string>
 						<reference key="source" ref="452189513"/>
-						<reference key="destination" ref="483716325"/>
+						<reference key="destination" ref="153137265"/>
 					</object>
 					<int key="connectionID">52</int>
 				</object>
@@ -287,7 +287,7 @@
 					<object class="IBActionConnection" key="connection">
 						<string key="label">onChangeVorticity:</string>
 						<reference key="source" ref="452189513"/>
-						<reference key="destination" ref="322745089"/>
+						<reference key="destination" ref="210204400"/>
 					</object>
 					<int key="connectionID">53</int>
 				</object>
@@ -347,9 +347,9 @@
 							<reference ref="415458956"/>
 							<reference ref="816548932"/>
 							<reference ref="108049174"/>
-							<reference ref="322745089"/>
-							<reference ref="197799893"/>
-							<reference ref="483716325"/>
+							<reference ref="210204400"/>
+							<reference ref="880633763"/>
+							<reference ref="153137265"/>
 						</array>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">FluidTools</string>
@@ -395,42 +395,42 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">44</int>
-						<reference key="object" ref="322745089"/>
+						<reference key="object" ref="210204400"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="153705412"/>
+							<reference ref="936721913"/>
 						</array>
 						<reference key="parent" ref="677594885"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">45</int>
-						<reference key="object" ref="197799893"/>
+						<reference key="object" ref="880633763"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="953381513"/>
+							<reference ref="388857182"/>
 						</array>
 						<reference key="parent" ref="677594885"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">46</int>
-						<reference key="object" ref="483716325"/>
+						<reference key="object" ref="153137265"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="239493186"/>
+							<reference ref="363605431"/>
 						</array>
 						<reference key="parent" ref="677594885"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">47</int>
-						<reference key="object" ref="239493186"/>
-						<reference key="parent" ref="483716325"/>
+						<reference key="object" ref="363605431"/>
+						<reference key="parent" ref="153137265"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">48</int>
-						<reference key="object" ref="953381513"/>
-						<reference key="parent" ref="197799893"/>
+						<reference key="object" ref="388857182"/>
+						<reference key="parent" ref="880633763"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">49</int>
-						<reference key="object" ref="153705412"/>
-						<reference key="parent" ref="322745089"/>
+						<reference key="object" ref="936721913"/>
+						<reference key="parent" ref="210204400"/>
 					</object>
 				</array>
 			</object>
