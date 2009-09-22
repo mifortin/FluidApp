@@ -83,7 +83,7 @@ double timeFunc()
 	[ib_glView onFrame];
 	[[ib_glView openGLContext] flushBuffer];
 	double t2 = timeFunc();
-	//printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
+	printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
 }
 
 - (void)windowDidResize:(NSNotification *)notification
