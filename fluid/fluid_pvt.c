@@ -86,6 +86,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	
 	toRet->m_viscosity = 1.0f;
 	toRet->m_vorticity = 1.0f;
+	toRet->m_timestep = 1.0f;
 	
 	return toRet;
 }
@@ -102,6 +103,11 @@ void fluidSetVorticity(fluid *f, float in_v)
 	f->m_vorticity = in_v;
 }
 
+void fluidSetTimestep(fluid *f, float in_v)
+{
+	f->m_timestep = in_v;
+}
+
 void fluidTaskAddForwardAdvection(fluid *f)
 {
 	int curFn = f->m_usedFunctions;
@@ -111,7 +117,7 @@ void fluidTaskAddForwardAdvection(fluid *f)
 	f->m_fns[curFn].mode = make_advection_stam_velocity(
 								f->r_velocityX, f->r_velocityY,
 								f->r_tmpVelX,   f->r_tmpVelY,
-								TIMESTEP);
+								f->m_timestep);
 	
 	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
@@ -128,7 +134,7 @@ void fluidTaskAddBackwardAdvection(fluid *f)
 	f->m_fns[curFn].mode = make_advection_stam_velocity(
 														f->r_tmpVelX, f->r_tmpVelY,
 														f->r_reposX,   f->r_reposY,
-														-TIMESTEP);
+														-f->m_timestep);
 	
 	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
@@ -152,6 +158,7 @@ void fluidTaskCorrectorRepos(fluid *f)
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstVelY = f->r_velocityY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
+	f->m_fns[curFn].mode.mccormack_vel_repos.timestep = f->m_timestep;
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
 	f->m_usedFunctions = curFn+1;
@@ -220,8 +227,8 @@ void fluidTaskViscosity(fluid *f, int in_iterations)
 	f->m_fns[curFn].fn = fluid_viscosity;
 	f->m_fns[curFn].mode.viscosity.velX = f->r_velocityX;
 	f->m_fns[curFn].mode.viscosity.velY = f->r_velocityY;
-	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / (viscocity * TIMESTEP);
-	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / (viscocity * TIMESTEP)  + 4);
+	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / viscocity * f->m_timestep;
+	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep  + 4);
 	
 	int i;
 	for (i=0; i<in_iterations; i++)
@@ -296,13 +303,13 @@ void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
-	fluidTaskVorticity(in_f);
-	fluidTaskViscosity(in_f, 20);
-	fluidTaskPressure(in_f, 20);
 	fluidTaskAddForwardAdvection(in_f);
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);
 	fluidTaskAdvectDensity(in_f);
+	fluidTaskVorticity(in_f);
+	fluidTaskViscosity(in_f, 20);
+	fluidTaskPressure(in_f, 20);
 	
 	//We just need to run the tasks that have already been setup...
 	int spawned = mpTaskFlood(fluidMP, in_f);
@@ -332,3 +339,4 @@ field *fluidVelocityY(fluid *in_f)
 {
 	return in_f->r_velocityY;
 }
+

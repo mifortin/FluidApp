@@ -41,6 +41,9 @@ struct mccormack_vel_repos
 	field *dstReposY;
 	field *dstVelX;		//Most likely an initial velocity...
 	field *dstVelY;
+	
+	//Useful...
+	float timestep;
 };
 
 //Simple reposition of data...
@@ -152,6 +155,7 @@ struct fluid
 	//The viscosity		(default 1.0f)
 	float m_viscosity;
 	float m_vorticity;
+	float m_timestep;
 	
 	//Number of used functions
 	int m_usedFunctions;
@@ -161,8 +165,6 @@ struct fluid
 	
 	int m_curField;
 };
-
-#define TIMESTEP	1.0f
 
 
 ////////////////////////////////////////////////////////////////////////////////

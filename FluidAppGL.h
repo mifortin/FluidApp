@@ -17,6 +17,9 @@
 	
 	NSPoint prevPt;
 	
+	float m_dx;
+	float m_dy;
+	
 	float *work_buff;
 }
 
@@ -24,5 +27,6 @@
 
 - (void)setViscosity:(float)in_v;
 - (void)setVorticity:(float)in_v;
+- (void)setTimestep:(float)in_v;
 
 @end

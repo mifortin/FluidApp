@@ -112,6 +112,12 @@ double timeFunc()
 	[ib_glView setVorticity:v];
 }
 
+- (IBAction)onChangeTimestep:(id)value
+{
+	float v = [value floatValue];
+	[ib_txt_timestep setFloatValue:v];
+	[ib_glView setTimestep:v];
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //

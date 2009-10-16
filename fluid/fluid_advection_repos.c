@@ -32,6 +32,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	float *dstVelX		= fieldData(data->dstVelX);
 	float *dstVelY		= fieldData(data->dstVelY);
 	
+	float timestep = data->timestep;
+	
 	for (x=0; x<w; x++)
 	{
 		//Compute the addresses of the destinations...
@@ -59,8 +61,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		//Most of the error is from velocity advection (so we assume)
 		//	This is a cheap way of computing error!		
-		float backX = fluidClamp(-TIMESTEP*fSrcVelX + 0.5f*errX*TIMESTEP,-9,9) + (float)x;
-		float backY = fluidClamp(-TIMESTEP*fSrcVelY + 0.5f*errY*TIMESTEP,-9,9) + (float)y;
+		float backX = fluidClamp(-timestep*fSrcVelX + 0.5f*errX*timestep,-9,9) + (float)x;
+		float backY = fluidClamp(-timestep*fSrcVelY + 0.5f*errY*timestep,-9,9) + (float)y;
 		fDstReposX[0] = fluidClamp(backX,0,w-2);
 		fDstReposY[0] = fluidClamp(backY,0,h-2);
 		

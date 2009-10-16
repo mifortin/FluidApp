@@ -15,6 +15,7 @@
 	
 	NSButton *btnSelected;
 	
+	IBOutlet NSSlider *brushSize;
 	
 	IBOutlet NSButton *viewDensity;
 	IBOutlet NSButton *viewVelocity;
@@ -30,4 +31,6 @@
 
 + (BOOL)viewDensity;
 + (BOOL)viewVelocity;
+
++ (float)brushSize;
 @end

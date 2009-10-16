@@ -21,11 +21,14 @@
 	IBOutlet NSSlider		*ib_sld_vorticity;
 	IBOutlet NSTextField	*ib_txt_vorticity;
 	
+	IBOutlet NSSlider		*ib_sld_timestep;
+	IBOutlet NSTextField	*ib_txt_timestep;
+	
 	NSTimer			*r_timer;
 }
 
 - (IBAction)onChangeViscosity:(id)value;
-
 - (IBAction)onChangeVorticity:(id)value;
+- (IBAction)onChangeTimestep:(id)value;
 
 @end

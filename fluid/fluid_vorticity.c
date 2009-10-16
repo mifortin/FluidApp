@@ -6,6 +6,7 @@
 #include "fluid_pvt.h"
 #include "fluid_macros_2.h"
 #include <math.h>
+#include <stdlib.h>
 
 //First part, compute the divergence:
 //
@@ -33,38 +34,38 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 		x = 0;
 		float dydx = 0;
 		float dxdy = 0;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+		fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 		
 		for (x=1; x<w-1; x++)
 		{
 			dydx = (fluidFloatPointer(velY, (x+1)*sx)[0]
 					- fluidFloatPointer(velY, (x-1)*sx)[0])/2;
 			dxdy = 0;
-			fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+			fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 		}
 		
 		dydx = 0;
 		dxdy = 0;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+		fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 	}
 	else if (y == h-1)
 	{
 		x = 0;
 		float dydx = 0;
 		float dxdy = 0;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+		fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 		
 		for (x=1; x<w-1; x++)
 		{
 			dydx = (fluidFloatPointer(velY, (x+1)*sx + y*sy)[0]
 					- fluidFloatPointer(velY, (x-1)*sx + y*sy)[0])/2;
 			dxdy = 0;
-			fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+			fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 		}
 		
 		dydx = 0;
 		dxdy = 0;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+		fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 	}
 	else
 	{
@@ -72,7 +73,7 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 		float dydx = 0;
 		float dxdy = (fluidFloatPointer(velX, sx + (y+1)*sy)[0]
 					  - fluidFloatPointer(velX, sx + (y-1)*sy)[0])/2;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+		fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 		
 		for (x=1; x<w-1; x++)
 		{
@@ -80,13 +81,13 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 						  - fluidFloatPointer(velY, (x-1)*sx + y*sy)[0])/2;
 			dxdy = (fluidFloatPointer(velX, sx + (y+1)*sy)[0]
 						  - fluidFloatPointer(velX, sx + (y-1)*sy)[0])/2;
-			fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+			fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 		}
 		
 		dydx = 0;
 		dxdy = (fluidFloatPointer(velX, sx + (y+1)*sy)[0]
 				- fluidFloatPointer(velX, sx + (y-1)*sy)[0])/2;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = dydx - dxdy;
+		fluidFloatPointer(z, sx*x + sy*y)[0] = abs(dydx - dxdy);
 	}
 }
 
@@ -135,14 +136,14 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				fluidFloatPointer(velX, x*sx + sy*y)[0]
 							+= dzdy *fluidFloatPointer(z, x*sx+ y*sy)[0];
 				fluidFloatPointer(velY, x*sx + sy*y)[0]
-				-= dzdx *fluidFloatPointer(z, x*sx+ y*sy)[0];
+							-= dzdx *fluidFloatPointer(z, x*sx+ y*sy)[0];
 				
 				*fluidFloatPointer(velX,x*sx + y*sy)
-				= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-9,9);
+						= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-9,9);
 				
 				
 				*fluidFloatPointer(velY,x*sx + y*sy)
-				= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
+						= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
 			}
 		}
 	}

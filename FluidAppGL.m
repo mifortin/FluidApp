@@ -55,41 +55,24 @@
 }
 
 
-- (void)mouseDragged:(NSEvent *)theEvent
+- (void)toolAtPoint:(NSPoint)src
 {
-	NSPoint src = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
-	src = [self convertPoint:src fromView:nil];
-	
-	NSRect size = [self frame];
-	
-	src.x-=size.origin.x;
-	src.y-=size.origin.y;
-	
-	src.x /= size.size.width;
-	src.y /= size.size.height;
-	
-	float dx = src.x - prevPt.x;
-	float dy = src.y - prevPt.y;
-	
-	prevPt = src;
-	
 	field *dens = fluidDensity(r_fluid);
 	int w = fieldWidth(dens);
 	int h = fieldHeight(dens);
 	float *d = fieldData(dens);
 	
-	src.x *= (float)w;
-	src.y *= (float)h;
+	float bs = [FluidTools brushSize];
 	
 	if ([FluidTools density])
 	{
 		int x,y;
-		for (y=(int)src.y-6; y<(int)src.y+6; y++)
+		for (y=(int)(src.y-bs); y<(int)(src.y+bs); y++)
 		{
 			if (y < 0 || y >= h)
 				continue;
 			
-			for (x=(int)src.x-6; x<(int)src.x+6; x++)
+			for (x=(int)(src.x-bs); x<(int)(src.x+bs); x++)
 			{
 				if (x<0 || x>= w)
 					continue;
@@ -109,19 +92,75 @@
 		float *vdy = fieldData(vy);
 		
 		int x,y;
-		for (y=(int)src.y-6; y<(int)src.y+6; y++)
+		for (y=(int)(src.y-bs); y<(int)(src.y+bs); y++)
 		{
 			if (y < 0 || y >= h)
 				continue;
 			
-			for (x=(int)src.x-6; x<(int)src.x+6; x++)
+			for (x=(int)(src.x-bs); x<(int)(src.x+bs); x++)
 			{
 				if (x<0 || x>= w)
 					continue;
 				
-				vdx[x+y*w] += dx*50;
-				vdy[x+y*w] += dy*50;
+				vdx[x+y*w] += m_dx*5;
+				vdy[x+y*w] += m_dy*5;
 			}
+		}
+	}
+}
+
+
+- (void)mouseDragged:(NSEvent *)theEvent
+{
+	NSPoint src = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
+	src = [self convertPoint:src fromView:nil];
+	
+	NSRect size = [self frame];
+	
+	src.x-=size.origin.x;
+	src.y-=size.origin.y;
+	
+	src.x /= size.size.width;
+	src.y /= size.size.height;
+	
+	field *dens = fluidDensity(r_fluid);
+	int w = fieldWidth(dens);
+	int h = fieldHeight(dens);
+	
+	float px = prevPt.x * (float)w;
+	float py = prevPt.y * (float)h;
+	
+	
+	
+	m_dx = src.x - prevPt.x;
+	m_dy = src.y - prevPt.y;
+	
+	prevPt = src;
+	
+	
+	src.x *= (float)w;
+	src.y *= (float)h;
+	
+	float dx = px - src.x;
+	float dy = py - src.y;
+	
+	
+	float dst = dx*dx+dy*dy;
+	
+	if (dst < 2.0f)
+		[self toolAtPoint:src];
+	else
+	{
+		dst = sqrtf(dst);
+		dx/=dst;
+		dy/=dst;
+		
+		int i;
+		for (i=0; i<(int)dst; i++)
+		{
+			[self toolAtPoint:src];
+			src.x+=dx;
+			src.y+=dy;
 		}
 	}
 	
@@ -222,6 +261,11 @@
 - (void)setVorticity:(float)in_v
 {
 	fluidSetVorticity(r_fluid, in_v);
+}
+
+- (void)setTimestep:(float)in_v
+{
+	fluidSetTimestep(r_fluid, in_v);
 }
 
 @end

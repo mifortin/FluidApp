@@ -27,6 +27,7 @@ field *fluidVelocityY(fluid *in_f);
 //Allows the user of the system to set the viscosity...
 void fluidSetViscosity(fluid *f, float in_v);
 void fluidSetVorticity(fluid *f, float in_v);
+void fluidSetTimestep(fluid *f, float in_v);
 
 #endif
 

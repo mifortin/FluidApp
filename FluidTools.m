@@ -67,4 +67,6 @@ FluidTools *g_tools;
 + (BOOL)viewDensity { return g_tools->viewDensity == g_tools->viewSelected; }
 + (BOOL)viewVelocity { return g_tools->viewVelocity == g_tools->viewSelected; }
 
++ (float)brushSize	{ return [g_tools->brushSize floatValue]; }
+
 @end
