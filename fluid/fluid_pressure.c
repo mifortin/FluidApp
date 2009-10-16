@@ -92,11 +92,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	{
 	}
 	else
-	{
-		
-		*fluidFloatPointer(velX,y*sy)
-		= - *fluidFloatPointer(velX,sx + (y+1)*sy);
-		
+	{		
 		int x;
 		for (x=1; x<w-1; x++)
 		{
@@ -115,9 +111,5 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			*fluidFloatPointer(velY,x*sx + y*sy)
 				= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
 		}
-		
-		
-		*fluidFloatPointer(velX,(w-1)*sx + y*sy)
-		= - *fluidFloatPointer(velX,(w-2)*sx + (y+1)*sy);
 	}
 }

@@ -438,7 +438,7 @@ void testLocality()
 		printf("==============================================================\n");
 	}/***/
 	
-	for (k=2; k>=2; k--)
+	for (k=4; k>=4; k--)
 	{
 		//Test ideal conditions first...
 		/*localityDataInit(data);

@@ -78,7 +78,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_blocker = mpQueueCreate(2);
 	
 	//NOTE: Make this configurable????
-	toRet->r_coherence = mpCCreate(in_height, 128, 64);
+	toRet->r_coherence = mpCCreate(in_height, 128, 128);
 	
 	toRet->m_curField = 0;
 	
@@ -293,10 +293,14 @@ void fluidMP(void *in_o)
 	mpQueuePush(o->r_blocker, NULL);
 }
 
-//NOTE for 512x512:
+//NOTE for 512x512 with 40 iterations for fairness:
 //	4.5 FPS on Intel using old program	(0% improvment)
 //	5.0 FPS on Intel using new			(13% improvement)
 //	5.5 FPS on Intel using new x64 SL	(18% improvement)
+
+//NOTE for 512x512 with 40 iterations for fairness
+//	4.5 FPS on PPC x4 using old program
+//	5.0 FPS on PPC x4 using new program		(13% improvement)
 
 //Called every frame to advance the fluid simulation...
 void fluidAdvance(fluid *in_f)
