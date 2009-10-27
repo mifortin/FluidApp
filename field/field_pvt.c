@@ -16,23 +16,21 @@ void fieldFree(void *in_o)
 {
 	field *in_f = (field*)in_o;
 	
-	if (in_f->r_data.f)
+	if (in_f->r_data.f && (in_f->m_flags & Field_NoRelease) == 0)
 		free(in_f->r_data.f);
 }
 
 
 
-field *fieldCreate(int in_width, int in_height, int in_components)
+field *fieldFromFloatData(float *in_data, int in_width, int in_height,
+						  int in_strideX, int in_strideY,
+						  int in_components)
 {
-	int numData = in_width * in_height * in_components * sizeof(float);
-	
 	field *toRet = x_malloc(sizeof(field), fieldFree);
 	
-	toRet->r_data.f = NULL;
-	toRet->r_data.f = malloc(numData);
+	toRet->r_data.f = in_data;
 	if (toRet->r_data.f == NULL)
 	{
-		x_free(toRet);
 		errorRaise(error_memory, "Failed creating field data");
 	}
 	
@@ -40,8 +38,25 @@ field *fieldCreate(int in_width, int in_height, int in_components)
 	toRet->m_height = in_height;
 	toRet->m_components = in_components;
 	
-	toRet->m_strideX = in_components * sizeof(float);
-	toRet->m_strideY = in_components * sizeof(float)*in_width;
+	toRet->m_strideX = in_strideX;
+	toRet->m_strideY = in_strideY;
+	
+	toRet->m_flags = Field_NoRelease;
+	
+	return toRet;
+}
+
+
+field *fieldCreate(int in_width, int in_height, int in_components)
+{
+	int numData = in_width * in_height * in_components * sizeof(float);
+	
+	field *toRet = fieldFromFloatData(malloc(numData),	in_width, in_height,
+									  in_components * sizeof(float),
+									  in_components * sizeof(float)*in_width,
+									  in_components);
+	
+	toRet->m_flags = 0;
 	
 	memset(toRet->r_data.i, 0, numData);
 	
