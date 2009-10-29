@@ -9,6 +9,8 @@
 #include "field.h"
 #include <pthread.h>
 
+#define Field_NoRelease		0x00000001		/* Do not release data (someone else will) */
+
 struct field
 {
 	//Note - assume that everything is tightly packed.
@@ -18,6 +20,9 @@ struct field
 	
 	//In bytes  - forward looking - that's it!
 	int m_strideX, m_strideY;
+	
+	//Flags
+	int m_flags;
 	
 	union {
 		float *f;
