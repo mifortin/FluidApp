@@ -428,7 +428,7 @@ void testLocality()
 	
 	int k;
 	
-	for (k=5; k<=5; k++)
+	/*for (k=5; k<=5; k++)
 	{
 		printf("Attempting philosophers: %i\n", k);
 		mpInit(k);
@@ -449,10 +449,11 @@ void testLocality()
 		printf("==============================================================\n");
 	}/***/
 	
-	for (k=4; k>=4; k--)
+	printf("ATTEMPTING\n");
+	for (k=4; k>=1; k--)
 	{
 		//Test ideal conditions first...
-		/*localityDataInit(data);
+		localityDataInit(data);
 		pthread_t pt[16];
 		totalThreads = k;
 		start = localityTimeFunc();
@@ -468,8 +469,8 @@ void testLocality()
 		printf("  Simple Loop (%i-proc) :%f\n", 
 			   k,localityTimeFunc() - start);/**/
 		
-		/*mpInit(k);
-		for (z=256; z<=256; z+=z)
+		mpInit(k);
+		for (z=1; z<=1024; z+=z)
 		{
 			localityDataInit(data);
 			g_data = data;
