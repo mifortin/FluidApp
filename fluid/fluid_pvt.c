@@ -9,10 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "memory.h"
-
-
-
 
 
 pvt_fluidMode make_advection_stam_velocity(field *srcVelX, field *srcVelY,
@@ -88,6 +86,11 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->m_vorticity = 1.0f;
 	toRet->m_timestep = 1.0f;
 	
+	toRet->m_fadeVel = 1.0f;
+	toRet->m_fadeDens = 1.0f;
+	
+	toRet->flags = 0;
+	
 	return toRet;
 }
 
@@ -107,6 +110,28 @@ void fluidSetTimestep(fluid *f, float in_v)
 {
 	f->m_timestep = in_v;
 }
+
+void fluidSetDensityFade(fluid *f, float in_v)
+{
+	f->m_fadeDens = in_v;
+}
+
+void fluidSetVelocityFade(fluid *f, float in_v)
+{
+	f->m_fadeVel = in_v;
+}
+
+void fluidFreeSurfaceNone(fluid *f)
+{
+	f->flags = (f->flags & (~FLUID_SIMPLEFREE));
+}
+
+void fluidFreeSurfaceSimple(fluid *f)
+{
+	f->flags = (f->flags | FLUID_SIMPLEFREE);
+}
+
+
 
 void fluidTaskAddForwardAdvection(fluid *f)
 {
@@ -185,11 +210,27 @@ void fluidTaskAdvectDensity(fluid *f)
 }
 
 
-void fluidTaskPressure(fluid *f, int in_iterations)
+void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 {
 	int curFn = f->m_usedFunctions;
 	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
 	
+	if (in_density != NULL)
+	{
+		f->m_fns[curFn].fn = fluid_genPressure;
+		f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
+		f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
+		f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
+		f->m_fns[curFn].mode.pressure.density = in_density;
+		f->m_fns[curFn].fn = fluid_genPressure_dens;
+		
+		mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+		
+		f->m_usedFunctions = curFn+1;
+		curFn = f->m_usedFunctions;
+		errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	}
+		
 	f->m_fns[curFn].fn = fluid_genPressure;
 	f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
 	f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
@@ -228,7 +269,7 @@ void fluidTaskViscosity(fluid *f, int in_iterations)
 	f->m_fns[curFn].mode.viscosity.velX = f->r_velocityX;
 	f->m_fns[curFn].mode.viscosity.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / viscocity * f->m_timestep;
-	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep  + 4);
+	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep  + 4.0f);
 	
 	int i;
 	for (i=0; i<in_iterations; i++)
@@ -271,6 +312,24 @@ void fluidTaskVorticity(fluid *f)
 }
 
 
+void fluidTaskDampen(fluid *f, field *dst, float amt)
+{
+	if (f->m_timestep < 0.0001f || amt < 0.0001f ||
+		(amt > 0.999f && amt < 1.001f))
+		return;
+	
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn < MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_dampen;
+	f->m_fns[curFn].mode.dampen.f = dst;
+	f->m_fns[curFn].mode.dampen.e = pow(amt, f->m_timestep);
+	mpCTaskAdd(f->r_coherence, curFn, 0,0,0);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o)
 {
@@ -307,13 +366,22 @@ void fluidAdvance(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
+	fluidTaskVorticity(in_f);
+	fluidTaskViscosity(in_f, 20);
+	
+	if (in_f->flags & FLUID_SIMPLEFREE)
+		fluidTaskPressure(in_f, 20, in_f->r_density);
+	else
+		fluidTaskPressure(in_f, 20, NULL);
+	
+	fluidTaskDampen(in_f, in_f->r_density, in_f->m_fadeDens);
+	fluidTaskDampen(in_f, in_f->r_velocityX, in_f->m_fadeVel);
+	fluidTaskDampen(in_f, in_f->r_velocityY, in_f->m_fadeVel);
+	
 	fluidTaskAddForwardAdvection(in_f);
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);
 	fluidTaskAdvectDensity(in_f);
-	fluidTaskVorticity(in_f);
-	fluidTaskViscosity(in_f, 20);
-	fluidTaskPressure(in_f, 20);
 	
 	//We just need to run the tasks that have already been setup...
 	int spawned = mpTaskFlood(fluidMP, in_f);
@@ -325,6 +393,8 @@ void fluidAdvance(fluid *in_f)
 	//Clear the scheduler (for the next pass)
 	mpCReset(in_f->r_coherence);
 	in_f->m_usedFunctions = 0;
+	
+	//fluidSwap(field*, in_f->r_density, in_f->r_density_swap);
 }
 
 
@@ -333,6 +403,10 @@ field *fluidDensity(fluid *in_f)
 	return in_f->r_density;
 }
 
+field *fluidMovedDensity(fluid *in_f)
+{
+	return in_f->r_density_swap;
+}
 
 field *fluidVelocityX(fluid *in_f)
 {

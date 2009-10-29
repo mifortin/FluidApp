@@ -26,8 +26,8 @@
 
 //Basic interpolation
 #define fluidLinearInterpolation(sx,sy,zz,oz,zo,oo)		\
-						((1-sy)	* ((1-sx) * zz + sx*oz)		\
-						+ sy	* ((1-sx) * zo + sx*oo))
+						((1.0f-sy)	* ((1.0f-sx) * zz + sx*oz)		\
+						+ sy	* ((1.0f-sx) * zo + sx*oo))
 
 //Basic swap
 #define fluidSwap(t,a,b)	{t _pvt_swap = a; a=b; b = _pvt_swap;}

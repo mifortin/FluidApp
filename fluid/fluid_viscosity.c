@@ -3,6 +3,11 @@
  *  FluidApp
  */
 
+#ifdef __SSE3__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+#endif
 
 #include "fluid_pvt.h"
 #include "fluid_macros_2.h"
@@ -60,30 +65,33 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 		fluidFloatPointer(velY,y*sy)[0] = -curVelY;
 		
 		int x;
+		int curxy = sx + y*sy;
 		for (x=1; x<w-1; x++)
 		{
-			nextVelX = fluidFloatPointer(velX,(x+1)*sx + y*sy)[0];
-			nextVelY = fluidFloatPointer(velY,(x+1)*sx + y*sy)[0];
+			nextVelX = fluidFloatPointer(velX,curxy + sx)[0];
+			nextVelY = fluidFloatPointer(velY,curxy + sx)[0];
 			
-			fluidFloatPointer(velX,x*sx + y*sy)[0]
-				= (fluidFloatPointer(velX,x*sx + y*sy)[0]*alpha
+			fluidFloatPointer(velX,curxy)[0]
+				= (fluidFloatPointer(velX,curxy)[0]*alpha
 					+ pVelX
 				    + nextVelX
-				    + fluidFloatPointer(velX,x*sx + (y-1)*sy)[0]
-				   + fluidFloatPointer(velX,x*sx + (y+1)*sy)[0]) * beta;
+				    + fluidFloatPointer(velX,curxy - sy)[0]
+				   + fluidFloatPointer(velX,curxy + sy)[0]) * beta;
 			
-			fluidFloatPointer(velY,x*sx + y*sy)[0]
-				= (fluidFloatPointer(velY,x*sx + y*sy)[0]*alpha
+			fluidFloatPointer(velY,curxy)[0]
+				= (fluidFloatPointer(velY,curxy)[0]*alpha
 				   + pVelY
 				   + nextVelY
-				   + fluidFloatPointer(velY,x*sx + (y-1)*sy)[0]
-				   + fluidFloatPointer(velY,x*sx + (y+1)*sy)[0]) * beta;
+				   + fluidFloatPointer(velY,curxy - sy)[0]
+				   + fluidFloatPointer(velY,curxy + sy)[0]) * beta;
 			
 			pVelX = curVelX;
 			pVelY = curVelY;
 			
 			curVelX = nextVelX;
 			curVelY = nextVelY;
+			
+			curxy += sx;
 		}
 		
 		fluidFloatPointer(velX,(w-1)*sx + y*sy)[0]

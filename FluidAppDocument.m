@@ -119,6 +119,30 @@ double timeFunc()
 	[ib_glView setTimestep:v];
 }
 
+- (IBAction)onChangeFadeDensity:(id)value
+{
+	float v = [value floatValue];
+	v = 1-(1-v)*(1-v);
+	[ib_txt_fadeDensity setFloatValue:v];
+	[ib_glView setFadeDensity:v];
+}
+
+- (IBAction)onChangeFadeVelocity:(id)value
+{
+	float v = [value floatValue];
+	v = 1-(1-v)*(1-v);
+	[ib_txt_fadeVelocity setFloatValue:v];
+	[ib_glView setFadeVelocity:v];
+}
+
+- (IBAction)onChangeFreeSurface:(id)value
+{
+	if ([value state] == NSOnState)
+		[ib_glView simpleFreeSurfaces];
+	else
+		[ib_glView noFreeSurfaces];
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //	Toolbar code follows!

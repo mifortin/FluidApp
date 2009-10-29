@@ -21,6 +21,19 @@
 	float m_dy;
 	
 	float *work_buff;
+	
+	//The source (density added each frame regardless)
+	float src_r;
+	float src_g;
+	float src_b;
+	
+	float src_rad;
+	
+	float src_x;
+	float src_y;
+	
+	float src_dx;
+	float src_dy;
 }
 
 - (void)onFrame;
@@ -28,5 +41,10 @@
 - (void)setViscosity:(float)in_v;
 - (void)setVorticity:(float)in_v;
 - (void)setTimestep:(float)in_v;
+- (void)setFadeVelocity:(float)in_v;
+- (void)setFadeDensity:(float)in_v;
+
+- (void)noFreeSurfaces;
+- (void)simpleFreeSurfaces;
 
 @end

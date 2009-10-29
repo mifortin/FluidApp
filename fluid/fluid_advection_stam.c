@@ -25,16 +25,20 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	float timestep = mode->advection_stam_velocity.timestep;
 	
 	//Extract the data from the object
+	float bZZ_x, bOZ_x, bZO_x, bOO_x, bZZ_y, bOZ_y, bZO_y, bOO_y;
 
+	//Caching...
+	int lastOffX, lastOffY;
+	
 	//Loop over the data and do the desired computation
 	for (x=0; x<w; x++)
 	{
-		float *fDataX = fluidFloatPointer(velX, x*sX + y*sY);
-		float *fDataY = fluidFloatPointer(velY, x*sX + y*sY);
+		float fDataX = fluidFloatPointer(velX, x*sX + y*sY)[0];
+		float fDataY = fluidFloatPointer(velY, x*sX + y*sY)[0];
 		
 		//Find the cell back in time	(keep a -10,10 radius)
-		float backX = fluidClamp(-timestep * fDataX[0],-9,9) + (float)x;
-		float backY = fluidClamp(-timestep * fDataY[0],-9,9) + (float)y;
+		float backX = -timestep * fDataX + (float)x;
+		float backY = -timestep * fDataY + (float)y;
 		
 		int nBackX = (int)backX;
 		int nBackY = (int)backY;
@@ -55,19 +59,22 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		int offX2 = (nBackX+1)*sX;
 		int offY2 = (nBackY+1)*sY;
 		
-		float *bZZ_x = fluidFloatPointer(velX, offBackX + offBackY);
-		float *bOZ_x = fluidFloatPointer(velX, offX2 + offBackY);
-		float *bZO_x = fluidFloatPointer(velX, offBackX + offY2);
-		float *bOO_x = fluidFloatPointer(velX, offX2 + offY2);
+		bZZ_x = fluidFloatPointer(velX, offBackX + offBackY)[0];
+		bOZ_x = fluidFloatPointer(velX, offX2 + offBackY)[0];
+		bZO_x = fluidFloatPointer(velX, offBackX + offY2)[0];
+		bOO_x = fluidFloatPointer(velX, offX2 + offY2)[0];
 		
-		float *bZZ_y = fluidFloatPointer(velY, offBackX + offBackY);
-		float *bOZ_y = fluidFloatPointer(velY, offX2 + offBackY);
-		float *bZO_y = fluidFloatPointer(velY, offBackX + offY2);
-		float *bOO_y = fluidFloatPointer(velY, offX2 + offY2);
+		bZZ_y = fluidFloatPointer(velY, offBackX + offBackY)[0];
+		bOZ_y = fluidFloatPointer(velY, offX2 + offBackY)[0];
+		bZO_y = fluidFloatPointer(velY, offBackX + offY2)[0];
+		bOO_y = fluidFloatPointer(velY, offX2 + offY2)[0];
+		
+		lastOffX = nBackX;
+		lastOffY = nBackY;
 		
 		fVelDestX[0] = fluidLinearInterpolation(scaleX, scaleY,
-										  bZZ_x[0], bOZ_x[0], bZO_x[0], bOO_x[0]);
+										  bZZ_x, bOZ_x, bZO_x, bOO_x);
 		fVelDestY[0] = fluidLinearInterpolation(scaleX, scaleY,
-										  bZZ_y[0], bOZ_y[0], bZO_y[0], bOO_y[0]);
+										  bZZ_y, bOZ_y, bZO_y, bOO_y);
 	}
 }

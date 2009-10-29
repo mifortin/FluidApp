@@ -334,6 +334,7 @@ void localityNCoherence(void *in_o)
 }
 
 
+pthread_mutex_t pMutex = PTHREAD_MUTEX_INITIALIZER;
 void testDiningPhilosophers(void *in_o)
 {
 	mpCoherence *o = (mpCoherence*)in_o;
@@ -343,9 +344,19 @@ void testDiningPhilosophers(void *in_o)
 		
 		while (tid != -1)
 		{
-			printf("Philosopher %i picks up utencils\n", data);
+			if (tid == 0 || tid == 4)
+				pthread_mutex_lock(&pMutex);
 			
-			printf("Philosopher %i puts down utencils\n", data);
+			printf("Philosopher %i picks up utencils (left+right)\n", data);
+			
+			//SPIN!!!!
+			while (rand()%10000000 != 500);
+			
+			printf("Philosopher %i puts down utencils (left+right)\n", data);
+			
+			
+			if (tid == 0 || tid == 4)
+				pthread_mutex_unlock(&pMutex);
 			
 			mpCTaskComplete(o, tid, fn, data, &tid, &fn, &data);
 		}
@@ -416,8 +427,8 @@ void testLocality()
 	
 	
 	int k;
-	/*
-	for (k=2; k<=7; k++)
+	
+	for (k=5; k<=5; k++)
 	{
 		printf("Attempting philosophers: %i\n", k);
 		mpInit(k);
@@ -425,7 +436,7 @@ void testLocality()
 		g_data = data;
 		
 		start = localityTimeFunc();
-		mpCoherence *o = mpCCreate(3+k, 10, z);
+		mpCoherence *o = mpCCreate(5, 10, z);
 		
 		int x;
 		for (x=0; x<10; x++)
@@ -457,7 +468,7 @@ void testLocality()
 		printf("  Simple Loop (%i-proc) :%f\n", 
 			   k,localityTimeFunc() - start);/**/
 		
-		mpInit(k);
+		/*mpInit(k);
 		for (z=256; z<=256; z+=z)
 		{
 			localityDataInit(data);

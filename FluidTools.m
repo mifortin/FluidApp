@@ -14,11 +14,17 @@ FluidTools *g_tools;
 	NSLog(@"Found Toolbar!");
 	g_tools = self;
 	
-	r_array = [[NSArray alloc] initWithObjects:btnDensity, btnVelocity, nil];
+	r_array = [[NSArray alloc] initWithObjects:btnDensity, btnVelocity, btnSource, nil];
 	btnSelected = btnDensity;
 	
 	r_view = [[NSArray alloc] initWithObjects:viewDensity, viewVelocity, nil];
 	viewSelected = viewDensity;
+	
+	[pnl_view setBecomesKeyOnlyIfNeeded:TRUE];
+	[pnl_brush setBecomesKeyOnlyIfNeeded:TRUE];
+	
+	[[NSColorPanel sharedColorPanel] orderFront:nil];
+	[[NSColorPanel sharedColorPanel] setColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:1.0f]];
 }
 
 - (void)dealloc
@@ -37,6 +43,13 @@ FluidTools *g_tools;
 			[[r_array objectAtIndex:x] setState:NSOffState];
 		else
 		{
+			
+			if ([r_array objectAtIndex:x] == btnDensity
+				|| [r_array objectAtIndex:x] == btnSource)
+				[[NSColorPanel sharedColorPanel] orderFront:nil];
+			else
+				[[NSColorPanel sharedColorPanel] orderOut:nil];
+			
 			btnSelected = (NSButton*)in_btn;
 			[btnSelected setState:NSOnState];
 		}
@@ -61,12 +74,16 @@ FluidTools *g_tools;
 }
 
 
-+ (BOOL)density		{ return g_tools->btnDensity == g_tools->btnSelected; }
-+ (BOOL)velocity	{ return g_tools->btnVelocity == g_tools->btnSelected; }
++ (BOOL)density		{	return g_tools->btnDensity == g_tools->btnSelected;		}
++ (BOOL)velocity	{	return g_tools->btnVelocity == g_tools->btnSelected;	}
++ (BOOL)source		{	return g_tools->btnSource == g_tools->btnSelected;		}
 
 + (BOOL)viewDensity { return g_tools->viewDensity == g_tools->viewSelected; }
 + (BOOL)viewVelocity { return g_tools->viewVelocity == g_tools->viewSelected; }
 
 + (float)brushSize	{ return [g_tools->brushSize floatValue]; }
 
++ (float)R		{ return [[[NSColorPanel sharedColorPanel] color] redComponent]; }
++ (float)G		{ return [[[NSColorPanel sharedColorPanel] color] greenComponent]; }
++ (float)B		{ return [[[NSColorPanel sharedColorPanel] color] blueComponent]; }
 @end

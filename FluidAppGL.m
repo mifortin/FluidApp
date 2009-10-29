@@ -55,57 +55,82 @@
 }
 
 
-- (void)toolAtPoint:(NSPoint)src
+- (void)densityAtPointX:(float)in_x Y:(float)in_y radius:(float)in_rad
+					  R:(float)in_r G:(float)in_g B:(float)in_b
 {
 	field *dens = fluidDensity(r_fluid);
 	int w = fieldWidth(dens);
 	int h = fieldHeight(dens);
 	float *d = fieldData(dens);
+	int x,y;
+	for (y=(int)(in_y-in_rad); y<(int)(in_y+in_rad); y++)
+	{
+		if (y < 0 || y >= h)
+			continue;
+		
+		for (x=(int)(in_x-in_rad); x<(int)(in_x+in_rad); x++)
+		{
+			if (x<0 || x>= w)
+				continue;
+			
+			d[(x+y*w)*3+0] = in_r;
+			d[(x+y*w)*3+1] = in_g;
+			d[(x+y*w)*3+2] = in_b;
+		}
+	}
+}
+
+
+- (void)velocityAtPointX:(float)in_x Y:(float)in_y radius:(float)in_rad
+					  dX:(float)in_dx dY:(float)in_dy
+{
+	field *vx = fluidVelocityX(r_fluid);
+	field *vy = fluidVelocityY(r_fluid);
 	
+	float *vdx = fieldData(vx);
+	float *vdy = fieldData(vy);
+	int w = fieldWidth(vx);
+	int h = fieldHeight(vx);
+	
+	int x,y;
+	for (y=(int)(in_y-in_rad); y<(int)(in_y+in_rad); y++)
+	{
+		if (y < 0 || y >= h)
+			continue;
+		
+		for (x=(int)(in_x-in_rad); x<(int)(in_x+in_rad); x++)
+		{
+			if (x<0 || x>= w)
+				continue;
+			
+			vdx[x+y*w] += in_dx;// * d[(x+y*w)*3];
+			vdy[x+y*w] += in_dy;// * d[(x+y*w)*3];
+		}
+	}
+}
+
+
+- (void)toolAtPoint:(NSPoint)src
+{	
 	float bs = [FluidTools brushSize];
 	
 	if ([FluidTools density])
 	{
-		int x,y;
-		for (y=(int)(src.y-bs); y<(int)(src.y+bs); y++)
-		{
-			if (y < 0 || y >= h)
-				continue;
-			
-			for (x=(int)(src.x-bs); x<(int)(src.x+bs); x++)
-			{
-				if (x<0 || x>= w)
-					continue;
-				
-				d[(x+y*w)*3+0] = 1.0f;
-				d[(x+y*w)*3+1] = 1.0f;
-				d[(x+y*w)*3+2] = 1.0f;
-			}
-		}
+		[self densityAtPointX:src.x Y:src.y radius:bs
+							R:[FluidTools R] G:[FluidTools G] B:[FluidTools B]];
 	}
 	else if ([FluidTools velocity])
 	{
-		field *vx = fluidVelocityX(r_fluid);
-		field *vy = fluidVelocityY(r_fluid);
+		[self velocityAtPointX:src.x Y:src.y radius:bs
+							dX:m_dx*5 dY:m_dy*5];
+	}
+	else if ([FluidTools source])
+	{
+		src_x = src.x;
+		src_y = src.y;
 		
-		float *vdx = fieldData(vx);
-		float *vdy = fieldData(vy);
-		
-		int x,y;
-		for (y=(int)(src.y-bs); y<(int)(src.y+bs); y++)
-		{
-			if (y < 0 || y >= h)
-				continue;
-			
-			for (x=(int)(src.x-bs); x<(int)(src.x+bs); x++)
-			{
-				if (x<0 || x>= w)
-					continue;
-				
-				vdx[x+y*w] += m_dx*5;
-				vdy[x+y*w] += m_dy*5;
-			}
-		}
+		src_dx = m_dx*5;
+		src_dy = m_dy*5;
 	}
 }
 
@@ -170,7 +195,7 @@
 {
 	if ([FluidTools viewDensity])
 	{
-		field *dens = fluidDensity(r_fluid);
+		field *dens = fluidMovedDensity(r_fluid);
 		int w = fieldWidth(dens);
 		int h = fieldHeight(dens);
 		float *d = fieldData(dens);
@@ -212,12 +237,32 @@
 {
 #if defined( __SSE__ )
 	int oldMXCSR = _mm_getcsr(); //read the old MXCSR setting
-	int newMXCSR = oldMXCSR | 0x00FFC0; // set DAZ and FZ bits
+	//int newMXCSR = oldMXCSR | 0xE040; // set DAZ and FZ bits
+	int newMXCSR = oldMXCSR
+			| _MM_FLUSH_ZERO_OFF
+			| _MM_MASK_UNDERFLOW
+			| 0x0040;				//Denormals are zero
 	_mm_setcsr( newMXCSR ); //write the new MXCSR setting to the MXCSR
 	//printf("DENORMALS OFF!\n");
 #endif
 	
 	x_try
+		//Extract the densities if needed...
+		if (src_rad > 0.2f)
+		{
+			[self densityAtPointX:src_x Y:src_y radius:src_rad R:src_r G:src_g B:src_b];
+			[self velocityAtPointX:src_x Y:src_y radius:src_rad dX:src_dx dY:src_dy];
+		}
+		if ([FluidTools source])
+		{
+			src_rad = [FluidTools brushSize];
+			
+			src_r = [FluidTools R];
+			src_g = [FluidTools G];
+			src_b = [FluidTools B];
+		}
+		
+	
 		fluidAdvance(r_fluid);
 		[self generateView];
 
@@ -266,6 +311,26 @@
 - (void)setTimestep:(float)in_v
 {
 	fluidSetTimestep(r_fluid, in_v);
+}
+
+- (void)setFadeVelocity:(float)in_v
+{
+	fluidSetVelocityFade(r_fluid, in_v);
+}
+
+- (void)setFadeDensity:(float)in_v
+{
+	fluidSetDensityFade(r_fluid, in_v);
+}
+
+- (void)noFreeSurfaces
+{
+	fluidFreeSurfaceNone(r_fluid);
+}
+
+- (void)simpleFreeSurfaces
+{
+	fluidFreeSurfaceSimple(r_fluid);
 }
 
 @end

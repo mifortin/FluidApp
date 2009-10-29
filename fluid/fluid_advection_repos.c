@@ -34,25 +34,26 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	float timestep = data->timestep;
 	
+	int curxy = y*sY;
 	for (x=0; x<w; x++)
 	{
 		//Compute the addresses of the destinations...
-		float *fDstVelX = fluidFloatPointer(dstVelX, x*sX + y*sY);
-		float *fDstVelY = fluidFloatPointer(dstVelY, x*sX + y*sY);
+		float *fDstVelX = fluidFloatPointer(dstVelX, curxy);
+		float *fDstVelY = fluidFloatPointer(dstVelY, curxy);
 		
-		float *fDstReposX = fluidFloatPointer(dstReposX, x*sX + y*sY);
-		float *fDstReposY = fluidFloatPointer(dstReposY, x*sX + y*sY);
+		float *fDstReposX = fluidFloatPointer(dstReposX, curxy);
+		float *fDstReposY = fluidFloatPointer(dstReposY, curxy);
 		
 		//Get the source values (note that we don't need to scan in memory,
 		//so this is much simpler...)
-		float fSrcVelX = fluidFloatPointer(srcVelX, x*sX + y*sY)[0];
-		float fSrcVelY = fluidFloatPointer(srcVelY, x*sX + y*sY)[0];
+		float fSrcVelX = fluidFloatPointer(srcVelX, curxy)[0];
+		float fSrcVelY = fluidFloatPointer(srcVelY, curxy)[0];
 		
-		float fSrcErrVelX = fluidFloatPointer(srcErrVelX, x*sX + y*sY)[0];
-		float fSrcErrVelY = fluidFloatPointer(srcErrVelY, x*sX + y*sY)[0];
+		float fSrcErrVelX = fluidFloatPointer(srcErrVelX, curxy)[0];
+		float fSrcErrVelY = fluidFloatPointer(srcErrVelY, curxy)[0];
 		
-		float fSrcAdvX = fluidFloatPointer(srcAdvX, x*sX + y*sY)[0];
-		float fSrcAdvY = fluidFloatPointer(srcAdvY, x*sX + y*sY)[0];
+		float fSrcAdvX = fluidFloatPointer(srcAdvX, curxy)[0];
+		float fSrcAdvY = fluidFloatPointer(srcAdvY, curxy)[0];
 		
 		
 		//Do a bit of work... find error
@@ -60,7 +61,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		float errY = fSrcErrVelY - fSrcVelY;
 		
 		//Most of the error is from velocity advection (so we assume)
-		//	This is a cheap way of computing error!		
+		//	This is a cheap way of computing error!
 		float backX = fluidClamp(-timestep*fSrcVelX + 0.5f*errX*timestep,-9,9) + (float)x;
 		float backY = fluidClamp(-timestep*fSrcVelY + 0.5f*errY*timestep,-9,9) + (float)y;
 		fDstReposX[0] = fluidClamp(backX,0,w-2);
@@ -69,5 +70,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		//Apply... (this puts fluid at wrong timestep if done before!)
 		fDstVelX[0] = fSrcAdvX + errX/2;
 		fDstVelY[0] = fSrcAdvY + errY/2;
+		
+		curxy += sX;
 	}
 }

@@ -204,8 +204,13 @@
 		4CC757221063060F003C1369 /* fluid_pressure.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC757211063060F003C1369 /* fluid_pressure.c */; };
 		4CC757231063060F003C1369 /* fluid_pressure.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC757211063060F003C1369 /* fluid_pressure.c */; };
 		4CC757241063060F003C1369 /* fluid_pressure.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC757211063060F003C1369 /* fluid_pressure.c */; };
+		4CC8483A108F74AB00CCE02D /* FluidToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC84839108F74AB00CCE02D /* FluidToolbar.m */; };
+		4CC8483B108F74AB00CCE02D /* FluidToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC84839108F74AB00CCE02D /* FluidToolbar.m */; };
 		4CDE74620F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
 		4CDE74630F72A47D007E7B85 /* protocol_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE74610F72A47D007E7B85 /* protocol_tree.c */; };
+		4CE8F07B108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
+		4CE8F07C108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
+		4CE8F07D108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
 		4CF5FA8D0F79972E000F10EC /* protocol_float.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF5FA8C0F79972E000F10EC /* protocol_float.c */; };
 		4CF5FA8E0F79972E000F10EC /* protocol_float.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF5FA8C0F79972E000F10EC /* protocol_float.c */; };
 		4CF825050FEB30E3003AEE44 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825030FEB30E3003AEE44 /* netInStream.c */; };
@@ -372,9 +377,12 @@
 		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
 		4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lagrange_pvt.c; sourceTree = "<group>"; };
 		4CC757211063060F003C1369 /* fluid_pressure.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_pressure.c; sourceTree = "<group>"; };
+		4CC84838108F74AB00CCE02D /* FluidToolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidToolbar.h; sourceTree = "<group>"; };
+		4CC84839108F74AB00CCE02D /* FluidToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidToolbar.m; sourceTree = "<group>"; };
 		4CD34055104055D200C318A4 /* fluid_macros_2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_macros_2.h; sourceTree = "<group>"; };
 		4CD6461E0FA7AB7D00073448 /* mpx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpx.h; sourceTree = "<group>"; };
 		4CDE74610F72A47D007E7B85 /* protocol_tree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_tree.c; sourceTree = "<group>"; };
+		4CE8F07A108E43430014AD01 /* fluid_dampen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_dampen.c; sourceTree = "<group>"; };
 		4CF5FA8C0F79972E000F10EC /* protocol_float.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol_float.c; sourceTree = "<group>"; };
 		4CF825030FEB30E3003AEE44 /* netInStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netInStream.c; sourceTree = "<group>"; };
 		4CF825040FEB30E3003AEE44 /* netOutStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netOutStream.c; sourceTree = "<group>"; };
@@ -545,6 +553,7 @@
 				4C8B54B21059C8CC00D7DC5E /* fluid_repos.c */,
 				4CC757211063060F003C1369 /* fluid_pressure.c */,
 				4C86232110665D9400C466CE /* fluid_vorticity.c */,
+				4CE8F07A108E43430014AD01 /* fluid_dampen.c */,
 				4CFA69690FAA952000E6847C /* fluid_macros.h */,
 				4CD34055104055D200C318A4 /* fluid_macros_2.h */,
 			);
@@ -637,6 +646,8 @@
 				4C9955C7102219A900C1AD6F /* FluidAppGL.m */,
 				4C7C7ACC1062D87F00214ADB /* FluidTools.h */,
 				4C7C7ACD1062D87F00214ADB /* FluidTools.m */,
+				4CC84838108F74AB00CCE02D /* FluidToolbar.h */,
+				4CC84839108F74AB00CCE02D /* FluidToolbar.m */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -927,6 +938,7 @@
 				4CC757231063060F003C1369 /* fluid_pressure.c in Sources */,
 				4C9F2CAA1065A87300651C4B /* fluid_viscosity.c in Sources */,
 				4C86232310665D9400C466CE /* fluid_vorticity.c in Sources */,
+				4CE8F07C108E43430014AD01 /* fluid_dampen.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1028,6 +1040,8 @@
 				4CC757221063060F003C1369 /* fluid_pressure.c in Sources */,
 				4C9F2CAB1065A87300651C4B /* fluid_viscosity.c in Sources */,
 				4C86232210665D9400C466CE /* fluid_vorticity.c in Sources */,
+				4CE8F07B108E43430014AD01 /* fluid_dampen.c in Sources */,
+				4CC8483A108F74AB00CCE02D /* FluidToolbar.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1099,6 +1113,8 @@
 				4CC757241063060F003C1369 /* fluid_pressure.c in Sources */,
 				4C9F2CA91065A87300651C4B /* fluid_viscosity.c in Sources */,
 				4C86232410665D9400C466CE /* fluid_vorticity.c in Sources */,
+				4CE8F07D108E43430014AD01 /* fluid_dampen.c in Sources */,
+				4CC8483B108F74AB00CCE02D /* FluidToolbar.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1259,6 +1275,10 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -1277,6 +1297,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
 				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
 				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				GCC_FAST_MATH = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 4;

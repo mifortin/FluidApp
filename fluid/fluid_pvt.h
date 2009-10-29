@@ -61,6 +61,7 @@ struct pressure
 	field *velX;		//Velocity
 	field *velY;
 	field *pressure;	//Pressure
+	field *density;		//density (if we want free-surfaces)
 };
 
 //Simple viscosity data...
@@ -85,6 +86,13 @@ struct vorticity
 	float e;			//Simple scale
 };
 
+//Dampening data
+struct dampen
+{
+	field *f;			//Can be any field
+	float e;			//Dampening scale
+};
+
 //Ensure that parameters are passed around somewhat cleanly
 typedef union
 {
@@ -105,6 +113,9 @@ typedef union
 	
 	//When exagerating vorticity
 	struct vorticity vorticity;
+	
+	//When dampening
+	struct dampen dampen;
 } pvt_fluidMode;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,6 +131,8 @@ typedef struct
 } pvtFluidFnS __attribute__ ((aligned(16)));
 
 #define MAX_FNS				32
+
+#define FLUID_SIMPLEFREE	0x00000001
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -157,6 +170,13 @@ struct fluid
 	float m_vorticity;
 	float m_timestep;
 	
+	//Fade of the velocity/density (for effects)
+	float m_fadeVel;
+	float m_fadeDens;
+	
+	//Flags (toggles for switches, and so forth)
+	unsigned int flags;
+	
 	//Number of used functions
 	int m_usedFunctions;
 	
@@ -179,11 +199,13 @@ void fluid_advection_mccormack_repos(fluid *in_f, int rowID, pvt_fluidMode *mode
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode);
+void fluid_genPressure_dens(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode);
+void fluid_dampen(fluid *in_f, int y, pvt_fluidMode *mode);
 
 #endif
