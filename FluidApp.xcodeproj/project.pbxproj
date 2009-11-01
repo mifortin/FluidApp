@@ -108,6 +108,8 @@
 		4CE8F07D108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
 		4CF20D69109DC08300BB2332 /* FluidFPSView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D68109DC08300BB2332 /* FluidFPSView.m */; };
 		4CF20D6A109DC08300BB2332 /* FluidFPSView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D68109DC08300BB2332 /* FluidFPSView.m */; };
+		4CF20D94109DC6E800BB2332 /* FluidApp_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D93109DC6E800BB2332 /* FluidApp_Delegate.m */; };
+		4CF20D95109DC6E800BB2332 /* FluidApp_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D93109DC6E800BB2332 /* FluidApp_Delegate.m */; };
 		4CF825050FEB30E3003AEE44 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825030FEB30E3003AEE44 /* netInStream.c */; };
 		4CF825060FEB30E3003AEE44 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825040FEB30E3003AEE44 /* netOutStream.c */; };
 		4CF825070FEB30E3003AEE44 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825030FEB30E3003AEE44 /* netInStream.c */; };
@@ -216,6 +218,8 @@
 		4CE8F07A108E43430014AD01 /* fluid_dampen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_dampen.c; sourceTree = "<group>"; };
 		4CF20D67109DC08300BB2332 /* FluidFPSView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidFPSView.h; sourceTree = "<group>"; };
 		4CF20D68109DC08300BB2332 /* FluidFPSView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidFPSView.m; sourceTree = "<group>"; };
+		4CF20D92109DC6E800BB2332 /* FluidApp_Delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Delegate.h; sourceTree = "<group>"; };
+		4CF20D93109DC6E800BB2332 /* FluidApp_Delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_Delegate.m; sourceTree = "<group>"; };
 		4CF825030FEB30E3003AEE44 /* netInStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netInStream.c; sourceTree = "<group>"; };
 		4CF825040FEB30E3003AEE44 /* netOutStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netOutStream.c; sourceTree = "<group>"; };
 		4CFA695E0FAA950B00E6847C /* mp_task.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_task.c; sourceTree = "<group>"; };
@@ -384,6 +388,8 @@
 		29B97315FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				4CF20D92109DC6E800BB2332 /* FluidApp_Delegate.h */,
+				4CF20D93109DC6E800BB2332 /* FluidApp_Delegate.m */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */,
@@ -724,6 +730,7 @@
 				4CE8F07B108E43430014AD01 /* fluid_dampen.c in Sources */,
 				4CC8483A108F74AB00CCE02D /* FluidToolbar.m in Sources */,
 				4CF20D6A109DC08300BB2332 /* FluidFPSView.m in Sources */,
+				4CF20D95109DC6E800BB2332 /* FluidApp_Delegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -761,6 +768,7 @@
 				4CE8F07D108E43430014AD01 /* fluid_dampen.c in Sources */,
 				4CC8483B108F74AB00CCE02D /* FluidToolbar.m in Sources */,
 				4CF20D69109DC08300BB2332 /* FluidFPSView.m in Sources */,
+				4CF20D94109DC6E800BB2332 /* FluidApp_Delegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

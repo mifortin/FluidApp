@@ -5,8 +5,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-#include "protocol.h"
-#import "X_SimpleNumber.h"
 #include "field.h"
 #include <OpenGL/gl.h>
 
