@@ -11,10 +11,7 @@
 #include <sys/time.h>
 
 #include "net.h"
-#include "lua.h"
-#include "lualib.h"
 #include "fluid.h"
-#include "protocol.h"
 #include "error.h"
 #include "memory.h"
 #include "field.h"

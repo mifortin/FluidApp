@@ -12,10 +12,7 @@ typedef struct lagrange_particle_pvt lagrange_particle_pvt;
 //The order is to enable easy & quick updating of forces using vector
 //instructions!
 struct lagrange
-{
-	lua_State *m_lua;
-	char *m_name;
-	
+{	
 	float *m_fPositions;
 	float *m_fVelocities;
 	float *m_fAccelerations;

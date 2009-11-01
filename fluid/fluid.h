@@ -6,10 +6,8 @@
 #ifndef FLUID_H
 #define FLUID_H
 
-#include "lua.h"
 #include "error.h"
 #include "net.h"
-#include "protocol.h"
 #include "field.h"
 
 //Data organized in memory so that it's coherent for advection (all advection is

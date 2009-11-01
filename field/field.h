@@ -7,10 +7,7 @@
 #define FIELD_H
 
 #include "error.h"
-#include "lua.h"
 #include "mpx.h"
-#include "lua.h"
-#include "protocol.h"
 
 //Dealing with a single field...
 typedef struct field field;
