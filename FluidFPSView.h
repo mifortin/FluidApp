@@ -5,9 +5,11 @@
 
 #import <Cocoa/Cocoa.h>
 
+#define MAXFPSVIEWS		16
 
-@interface FluidFPSView : NSView {
+@interface FluidFPSView : NSView
+{
 
 }
-
+- (void)tick;
 @end

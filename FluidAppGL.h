@@ -37,6 +37,7 @@
 }
 
 - (void)onFrame;
+- (void)onPaint;
 
 - (void)setViscosity:(float)in_v;
 - (void)setVorticity:(float)in_v;

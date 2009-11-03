@@ -4,6 +4,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "FluidAppGL.h"
+#import "FluidFPSView.h"
 
 @interface FluidAppDocument : NSDocument
 {
@@ -29,6 +30,8 @@
 	
 	IBOutlet NSSlider		*ib_sld_fadeVelocity;
 	IBOutlet NSTextField	*ib_txt_fadeVelocity;
+	
+	IBOutlet FluidFPSView	*ib_fpsView;
 	
 	NSTimer			*r_timer;
 }

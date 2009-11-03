@@ -73,22 +73,56 @@ double timeFunc()
 }
 
 
-- (void)onFrame:(NSTimer*)theTimer
+- (void)onPaint
 {
-	double t = timeFunc();
 	[[ib_glView openGLContext] makeCurrentContext];
 	[[ib_glView openGLContext] update];
 	glLoadIdentity();
 	glViewport(0, 0, [ib_glView frame].size.width, [ib_glView frame].size.height);
-	[ib_glView onFrame];
+	[ib_glView onPaint];
 	[[ib_glView openGLContext] flushBuffer];
+}
+
+
+- (void)onFrame:(NSTimer*)theTimer
+{
+	double t = timeFunc();
+	[ib_glView onFrame];
+	[ib_fpsView tick];
+	[self onPaint];
 	double t2 = timeFunc();
 	printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
 }
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-	[self onFrame:nil];
+	[self onPaint];
+}
+
+- (void)windowDidUpdate:(NSNotification *)notification
+{
+	[self onPaint];
+}
+
+- (void)splitViewDidResizeSubviews:(NSNotification *)aNotification
+{
+	[self onPaint];
+}
+
+//Splits a subview!!!
+- (CGFloat)splitView:(NSSplitView *)splitView
+			constrainSplitPosition:(CGFloat)proposedPosition
+		 	ofSubviewAt:(NSInteger)dividerIndex
+{
+	NSSize cSize =[splitView frame].size;
+	if (proposedPosition > cSize.width - 150)
+	{
+		if (proposedPosition > cSize.width - 25)
+			return [splitView frame].size.width;
+		else
+			return [splitView frame].size.width-150;
+	}
+	return proposedPosition;
 }
 
 

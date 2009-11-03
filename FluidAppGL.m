@@ -274,6 +274,17 @@
 	//restore old MXCSR settings to turn denormals back on if they were on
 	_mm_setcsr( oldMXCSR );
 #endif
+}
+
+- (void)onPaint
+{
+	x_try
+
+		[self generateView];
+	
+	x_catch(e)
+		printf("Something bad happened %s\n", errorMsg(e));
+	x_finally
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
