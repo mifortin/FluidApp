@@ -278,6 +278,7 @@
 
 - (void)onPaint
 {
+	glLoadIdentity();
 	x_try
 
 		[self generateView];
@@ -342,6 +343,37 @@
 - (void)simpleFreeSurfaces
 {
 	fluidFreeSurfaceSimple(r_fluid);
+}
+
+
+- (void)enableTimers
+{
+	fluidEnableTimers(r_fluid);
+}
+
+- (void)disableTimers
+{
+	fluidDisableTimers(r_fluid);
+}
+
+- (float)advectionTime
+{
+	return fluidAdvectionTime(r_fluid);
+}
+
+- (float)pressureTime
+{
+	return fluidPressureTime(r_fluid);
+}
+
+- (float)viscosityTime
+{
+	return fluidViscosityTime(r_fluid);
+}
+
+- (float)vorticityTime
+{
+	return fluidVorticityTime(r_fluid);
 }
 
 @end

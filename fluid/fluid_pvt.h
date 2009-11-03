@@ -126,13 +126,21 @@ typedef union
 typedef void(*pvtFluidFn)(fluid *in_f, int rowID, pvt_fluidMode *mode);
 typedef struct
 {
-	pvtFluidFn fn;
-	pvt_fluidMode mode;
+	pvtFluidFn fn;			//The function itself
+	pvt_fluidMode mode;		//Data for the function
+	int32_t *times;			//Timing info for performance
 } pvtFluidFnS __attribute__ ((aligned(16)));
 
 #define MAX_FNS				32
 
 #define FLUID_SIMPLEFREE	0x00000001
+#define FLUID_TIMERS		0x00000002
+
+#define TIME_ADVECTION		0
+#define TIME_PRESSURE		1
+#define TIME_VISCOSITY		2
+#define TIME_VORTICITY		3
+#define TIME_TOTAL			4
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -184,6 +192,9 @@ struct fluid
 	//to maximize cache usage)
 	
 	int m_curField;
+	
+	//If we want timing, we take some sort of performance penalty...
+	int32_t m_times[TIME_TOTAL];
 };
 
 

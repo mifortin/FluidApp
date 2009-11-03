@@ -6,8 +6,10 @@
 #import "FluidAppDocument.h"
 #include <OpenGL/gl.h>
 #include <sys/time.h>
+#include "memory.h"
 
 @implementation FluidAppDocument
+
 
 - (void)windowControllerDidLoadNib:(NSWindowController *)windowController
 {
@@ -31,6 +33,26 @@
 											 selector:@selector(onFrame:)
 											 userInfo:nil
 											  repeats:YES];
+	
+	[ib_fpsView setTitle:@"Simulation" forIndex:0];
+	[ib_fpsView setColor:[NSColor colorWithDeviceRed:1.0f green:0 blue:0 alpha:1] forIndex:0];
+	
+	m_prevTime = x_time();
+	
+	[ib_fpsView setTitle:@"Overall" forIndex:1];
+	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0.5f green:0 blue:0 alpha:1] forIndex:1];
+	
+	[ib_fpsView setTitle:@"Advection" forIndex:2];
+	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0 green:0.5f blue:0 alpha:1] forIndex:2];
+	
+	[ib_fpsView setTitle:@"Pressure" forIndex:3];
+	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0.5f green:0.5f blue:0 alpha:1] forIndex:3];
+	
+	[ib_fpsView setTitle:@"Viscosity" forIndex:4];
+	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0.5f green:0 blue:0.5f alpha:1] forIndex:4];
+	
+	[ib_fpsView setTitle:@"Vorticity" forIndex:5];
+	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0.0f green:0.5f blue:0.5f alpha:1] forIndex:5];
 }
 
 - (BOOL)windowShouldClose:(id)window
@@ -64,13 +86,6 @@
 }
 
 
-double timeFunc()
-{
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	
-	return (double)t.tv_sec + ((double)t.tv_usec) / 1000000.0;
-}
 
 
 - (void)onPaint
@@ -86,12 +101,25 @@ double timeFunc()
 
 - (void)onFrame:(NSTimer*)theTimer
 {
-	double t = timeFunc();
+	double t = x_time();
+	
+	if ([ib_fpsView visible])
+		[ib_glView enableTimers];
+	else
+		[ib_glView disableTimers];
+	
 	[ib_glView onFrame];
-	[ib_fpsView tick];
 	[self onPaint];
-	double t2 = timeFunc();
-	printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
+	double t2 = x_time();
+	[ib_fpsView setSample:(float)(t2-t)	forIndex:0];
+	[ib_fpsView setSample:(float)(t2-m_prevTime)	forIndex:1];
+	[ib_fpsView setSample:[ib_glView advectionTime] forIndex:2];
+	[ib_fpsView setSample:[ib_glView pressureTime] forIndex:3];
+	[ib_fpsView setSample:[ib_glView viscosityTime] forIndex:4];
+	[ib_fpsView setSample:[ib_glView vorticityTime] forIndex:5];
+	m_prevTime = t2;
+	[ib_fpsView tick];
+	//printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
 }
 
 - (void)windowDidResize:(NSNotification *)notification
@@ -110,9 +138,9 @@ double timeFunc()
 }
 
 //Splits a subview!!!
-- (CGFloat)splitView:(NSSplitView *)splitView
-			constrainSplitPosition:(CGFloat)proposedPosition
-		 	ofSubviewAt:(NSInteger)dividerIndex
+- (float)splitView:(NSSplitView *)splitView
+			constrainSplitPosition:(float)proposedPosition
+		 	ofSubviewAt:(int)dividerIndex
 {
 	NSSize cSize =[splitView frame].size;
 	if (proposedPosition > cSize.width - 150)

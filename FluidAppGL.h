@@ -48,4 +48,12 @@
 - (void)noFreeSurfaces;
 - (void)simpleFreeSurfaces;
 
+- (void)enableTimers;
+- (void)disableTimers;
+
+- (float)advectionTime;
+- (float)pressureTime;
+- (float)viscosityTime;
+- (float)vorticityTime;
+
 @end

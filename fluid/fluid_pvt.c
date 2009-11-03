@@ -91,6 +91,10 @@ fluid *fluidCreate(int in_width, int in_height)
 	
 	toRet->flags = 0;
 	
+	int i;
+	for (i=0; i<TIME_TOTAL; i++)
+		toRet->m_times[i] = 0;
+	
 	return toRet;
 }
 
@@ -131,6 +135,15 @@ void fluidFreeSurfaceSimple(fluid *f)
 	f->flags = (f->flags | FLUID_SIMPLEFREE);
 }
 
+void fluidEnableTimers(fluid *f)
+{
+	f->flags = (f->flags | FLUID_TIMERS);
+}
+
+void fluidDisableTimers(fluid *f)
+{
+	f->flags = (f->flags & (~FLUID_TIMERS));
+}
 
 
 void fluidTaskAddForwardAdvection(fluid *f)
@@ -143,6 +156,7 @@ void fluidTaskAddForwardAdvection(fluid *f)
 								f->r_velocityX, f->r_velocityY,
 								f->r_tmpVelX,   f->r_tmpVelY,
 								f->m_timestep);
+	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
@@ -160,6 +174,7 @@ void fluidTaskAddBackwardAdvection(fluid *f)
 														f->r_tmpVelX, f->r_tmpVelY,
 														f->r_reposX,   f->r_reposY,
 														-f->m_timestep);
+	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
@@ -184,6 +199,7 @@ void fluidTaskCorrectorRepos(fluid *f)
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.timestep = f->m_timestep;
+	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
 	f->m_usedFunctions = curFn+1;
@@ -200,6 +216,7 @@ void fluidTaskAdvectDensity(fluid *f)
 	f->m_fns[curFn].mode.repos.reposY = f->r_reposY;
 	f->m_fns[curFn].mode.repos.src = f->r_density;
 	f->m_fns[curFn].mode.repos.dst = f->r_density_swap;
+	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
@@ -223,6 +240,7 @@ void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 		f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
 		f->m_fns[curFn].mode.pressure.density = in_density;
 		f->m_fns[curFn].fn = fluid_genPressure_dens;
+		f->m_fns[curFn].times = f->m_times + TIME_PRESSURE;
 		
 		mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 		
@@ -235,6 +253,7 @@ void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 	f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
 	f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
+	f->m_fns[curFn].times = f->m_times + TIME_PRESSURE;
 	
 	int i;
 	for (i=0; i<in_iterations; i++)
@@ -249,6 +268,7 @@ void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 	f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
 	f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
+	f->m_fns[curFn].times = f->m_times + TIME_PRESSURE;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
@@ -270,6 +290,7 @@ void fluidTaskViscosity(fluid *f, int in_iterations)
 	f->m_fns[curFn].mode.viscosity.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / viscocity * f->m_timestep;
 	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep  + 4.0f);
+	f->m_fns[curFn].times = f->m_times + TIME_VISCOSITY;
 	
 	int i;
 	for (i=0; i<in_iterations; i++)
@@ -292,6 +313,7 @@ void fluidTaskVorticity(fluid *f)
 	f->m_fns[curFn].mode.vorticity.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.vorticity.z = f->r_tmpVelX;
 	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
+	f->m_fns[curFn].times = f->m_times + TIME_VORTICITY;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
@@ -305,6 +327,7 @@ void fluidTaskVorticity(fluid *f)
 	f->m_fns[curFn].mode.vorticity.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.vorticity.z = f->r_tmpVelX;
 	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
+	f->m_fns[curFn].times = f->m_times + TIME_VORTICITY;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
@@ -324,6 +347,7 @@ void fluidTaskDampen(fluid *f, field *dst, float amt)
 	f->m_fns[curFn].fn = fluid_dampen;
 	f->m_fns[curFn].mode.dampen.f = dst;
 	f->m_fns[curFn].mode.dampen.e = pow(amt, f->m_timestep);
+	f->m_fns[curFn].times = NULL;
 	mpCTaskAdd(f->r_coherence, curFn, 0,0,0);
 	
 	f->m_usedFunctions = curFn+1;
@@ -346,6 +370,37 @@ void fluidMP(void *in_o)
 		//Fetch another function!
 		mpCTaskComplete(c, tid, fn, tsk,
 								&tid, &fn, &tsk);
+	}
+	
+	
+	mpQueuePush(o->r_blocker, NULL);
+}
+
+//Version of fluidMP for debugging (eg. it captures timing information)
+void fluidTimedMP(void *in_o)
+{
+	fluid *o = (fluid*)in_o;
+	mpCoherence *c = o->r_coherence;
+	
+	int tid, fn, tsk;
+	
+	double curTime = x_time();
+	mpCTaskObtain(c, &tid, &fn, &tsk);
+	while (tid != -1)
+	{
+		//Execute the desired function from the list of functions...
+		o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
+		
+		double nextTime = x_time();
+		if (o->m_fns[fn].times != NULL)
+		{
+			AtomicAdd32Barrier(*o->m_fns[fn].times, (int)((nextTime-curTime)*1000000));
+		}
+		curTime = nextTime;
+		
+		//Fetch another function!
+		mpCTaskComplete(c, tid, fn, tsk,
+						&tid, &fn, &tsk);
 	}
 	
 	
@@ -384,7 +439,16 @@ void fluidAdvance(fluid *in_f)
 	fluidTaskAdvectDensity(in_f);
 	
 	//We just need to run the tasks that have already been setup...
-	int spawned = mpTaskFlood(fluidMP, in_f);
+	int spawned;
+	if (in_f->flags & FLUID_TIMERS)
+	{
+		int i;
+		for (i=0; i<TIME_TOTAL; i++)
+			in_f->m_times[i] = 0;
+		spawned = mpTaskFlood(fluidTimedMP, in_f);
+	}
+	else
+		spawned = mpTaskFlood(fluidMP, in_f);
 	
 	int i;
 	for (i=0; i<spawned; i++)
@@ -417,4 +481,25 @@ field *fluidVelocityY(fluid *in_f)
 {
 	return in_f->r_velocityY;
 }
+
+float fluidAdvectionTime(fluid *f)
+{
+	return (float)f->m_times[TIME_ADVECTION]/1000000;
+}
+
+float fluidPressureTime(fluid *f)
+{
+	return (float)f->m_times[TIME_PRESSURE]/1000000;
+}
+
+float fluidViscosityTime(fluid *f)
+{
+	return (float)f->m_times[TIME_VISCOSITY]/1000000;
+}
+
+float fluidVorticityTime(fluid *f)
+{
+	return (float)f->m_times[TIME_VORTICITY]/1000000;
+}
+
 

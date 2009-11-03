@@ -11,6 +11,7 @@
 #ifndef CELL
 #include <libkern/OSAtomic.h>
 #endif
+#include <sys/time.h>
 
 #include <pthread.h>
 
@@ -97,4 +98,12 @@ void x_raise(error *e)
 	}
 	
 	_longjmp(*jmp, (int)e);
+}
+
+double x_time()
+{
+	struct timeval t;
+	gettimeofday(&t, NULL);
+	
+	return (double)t.tv_sec + ((double)t.tv_usec) / 1000000.0;
 }

@@ -8,6 +8,7 @@
 
 @interface FluidAppDocument : NSDocument
 {
+	double m_prevTime;
 	NSToolbar		*r_toolbar;
 	NSArray			*r_toolbarItems;
 	NSToolbarItem	*r_toolbarItem;

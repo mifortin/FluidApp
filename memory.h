@@ -52,4 +52,7 @@ void x_raise(error *e);
 //Used internally by exception system
 sigjmp_buf *x_setupBuff(sigjmp_buf *in_newBuff);
 
+//Since I use this function so often; it shall be dumped here
+double x_time();
+
 #endif

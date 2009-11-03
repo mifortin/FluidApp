@@ -243,7 +243,7 @@ void *localityInOrderTestMP(void *in)
 				for (x=0; x<totalThreads-1; x++)
 					x_pthread_cond_signal(&myCond);
 			}
-		x_pthread_mutex_unlock(&myMutex);
+		x_pthread_mutex_unlock(&myMutex);/**/
 	}
 	return NULL;
 }
@@ -469,7 +469,7 @@ void testLocality()
 		printf("  Simple Loop (%i-proc) :%f\n", 
 			   k,localityTimeFunc() - start);/**/
 		
-		mpInit(k);
+		/*mpInit(k);
 		for (z=1; z<=1024; z+=z)
 		{
 			localityDataInit(data);
