@@ -55,5 +55,6 @@
 - (float)pressureTime;
 - (float)viscosityTime;
 - (float)vorticityTime;
+- (float)schedulerTime;
 
 @end

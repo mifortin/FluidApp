@@ -140,7 +140,8 @@ typedef struct
 #define TIME_PRESSURE		1
 #define TIME_VISCOSITY		2
 #define TIME_VORTICITY		3
-#define TIME_TOTAL			4
+#define TIME_TASKSCHED		4
+#define TIME_TOTAL			5
 
 ////////////////////////////////////////////////////////////////////////////////
 //

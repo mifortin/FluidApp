@@ -65,6 +65,7 @@ float fluidAdvectionTime(fluid *f);
 float fluidPressureTime(fluid *f);
 float fluidViscosityTime(fluid *f);
 float fluidVorticityTime(fluid *f);
+float fluidThreadSchedulerTime(fluid *f);
 
 #endif
 

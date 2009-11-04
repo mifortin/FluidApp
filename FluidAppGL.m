@@ -376,4 +376,9 @@
 	return fluidVorticityTime(r_fluid);
 }
 
+- (float)schedulerTime
+{
+	return fluidThreadSchedulerTime(r_fluid);
+}
+
 @end

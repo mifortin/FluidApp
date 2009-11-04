@@ -3,6 +3,11 @@
 //  FluidApp
 //
 
+#ifdef MAC_10_4
+#define CGFloat float
+#define NSInteger int
+#endif
+
 #import "FluidAppDocument.h"
 #include <OpenGL/gl.h>
 #include <sys/time.h>
@@ -53,6 +58,9 @@
 	
 	[ib_fpsView setTitle:@"Vorticity" forIndex:5];
 	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0.0f green:0.5f blue:0.5f alpha:1] forIndex:5];
+	
+	[ib_fpsView setTitle:@"Scheduler" forIndex:6];
+	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0.3f green:0.3f blue:0.3f alpha:1] forIndex:6];
 }
 
 - (BOOL)windowShouldClose:(id)window
@@ -117,6 +125,7 @@
 	[ib_fpsView setSample:[ib_glView pressureTime] forIndex:3];
 	[ib_fpsView setSample:[ib_glView viscosityTime] forIndex:4];
 	[ib_fpsView setSample:[ib_glView vorticityTime] forIndex:5];
+	[ib_fpsView setSample:[ib_glView schedulerTime] forIndex:6];
 	m_prevTime = t2;
 	[ib_fpsView tick];
 	//printf("dt: %f  fps: %f\n", (t2 - t), 1.0/(t2-t));
@@ -138,9 +147,9 @@
 }
 
 //Splits a subview!!!
-- (float)splitView:(NSSplitView *)splitView
-			constrainSplitPosition:(float)proposedPosition
-		 	ofSubviewAt:(int)dividerIndex
+- (CGFloat)splitView:(NSSplitView *)splitView
+			constrainSplitPosition:(CGFloat)proposedPosition
+		 	ofSubviewAt:(NSInteger)dividerIndex
 {
 	NSSize cSize =[splitView frame].size;
 	if (proposedPosition > cSize.width - 150)

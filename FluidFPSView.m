@@ -18,10 +18,11 @@
 			int s;
 			for (s=0; s<MAXFPSSAMPLES; s++)
 			{
-				m_samples[v][s] = nil;
+				m_samples[v][s] = 0;
 			}
 			m_titles[v] = nil;
 			m_colors[v] = nil;
+			m_enabled[v] = YES;
 		}
     }
     return self;
@@ -42,8 +43,10 @@
 				[NSDictionary dictionaryWithObject:[NSColor grayColor]
 								forKey:NSForegroundColorAttributeName];
 	NSDictionary *fontWhite =
-			[NSDictionary dictionaryWithObject:[NSColor whiteColor]
-								forKey:NSForegroundColorAttributeName];
+			[NSDictionary dictionaryWithObjects:
+			 [NSArray arrayWithObjects:[NSColor whiteColor],[NSFont fontWithName:@"Arial" size:10],nil]
+										forKeys:
+			 [NSArray arrayWithObjects:NSForegroundColorAttributeName,NSFontAttributeName,nil]];
 	for (x=0; x<10; x++)
 	{
 		float y = (x+1)*rect.size.height/11.0f + rect.origin.y;
@@ -66,6 +69,7 @@
 	int v;
 	
 	float curY = rect.size.height + rect.origin.y;
+	float curX = rect.size.width/4;
 	float avg;
 	
 	for (v=0; v<MAXFPSVIEWS; v++)
@@ -111,18 +115,35 @@
 			}
 			avg = (avg / MAXFPSSAMPLES);
 			
-			NSRect rc = {rect.origin.x + rect.size.width/2-64, curY-12,
-						128, 12};
+			if (rect.size.width <= 200)
+				curX = rect.size.width/2;
+			
+			NSRect rc = {rect.origin.x + curX-50, curY-12,
+						100, 10};
 			[NSBezierPath fillRect:rc];
 			
 			m_regions[v] = rc;
 			
-			rc.origin.x += 2;
-			rc.origin.y -= 2;
-			[[NSString stringWithFormat:@"%@ %2.2f ms",m_titles[v],  avg]
+			rc.origin.x += 1;
+			rc.origin.y -= 1;
+			[[NSString stringWithFormat:@"%@ %2.3f ms",m_titles[v],  avg]
 			 drawAtPoint:rc.origin withAttributes:fontWhite];
 			
-			curY -= 14;
+			if (rect.size.width <= 200)
+				curY -= 12;
+			else
+			{
+				if (curX > rect.size.width/2)
+				{
+					curX = rect.size.width/4;
+					curY-=12;
+				}
+				else
+				{
+					curX += rect.size.width/2;
+				}
+			}
+
 		}
 	}
 }

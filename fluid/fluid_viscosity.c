@@ -71,12 +71,12 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			nextVelX = fluidFloatPointer(velX,curxy + sx)[0];
 			nextVelY = fluidFloatPointer(velY,curxy + sx)[0];
 			
-			fluidFloatPointer(velX,curxy)[0]
+			/*fluidFloatPointer(velX,curxy)[0]
 				= (fluidFloatPointer(velX,curxy)[0]*alpha
 					+ pVelX
 				    + nextVelX
 				    + fluidFloatPointer(velX,curxy - sy)[0]
-				   + fluidFloatPointer(velX,curxy + sy)[0]) * beta;
+				   + fluidFloatPointer(velX,curxy + sy)[0]) * beta;*/
 			
 			fluidFloatPointer(velY,curxy)[0]
 				= (fluidFloatPointer(velY,curxy)[0]*alpha
@@ -84,6 +84,34 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 				   + nextVelY
 				   + fluidFloatPointer(velY,curxy - sy)[0]
 				   + fluidFloatPointer(velY,curxy + sy)[0]) * beta;
+			
+			pVelX = curVelX;
+			pVelY = curVelY;
+			
+			curVelX = nextVelX;
+			curVelY = nextVelY;
+			
+			curxy += sx;
+		}
+		
+		for (x=1; x<w-1; x++)
+		{
+			nextVelX = fluidFloatPointer(velX,curxy + sx)[0];
+			nextVelY = fluidFloatPointer(velY,curxy + sx)[0];
+			
+			fluidFloatPointer(velX,curxy)[0]
+				 = (fluidFloatPointer(velX,curxy)[0]*alpha
+					 + pVelX
+					 + nextVelX
+					 + fluidFloatPointer(velX,curxy - sy)[0]
+					 + fluidFloatPointer(velX,curxy + sy)[0]) * beta;
+			
+			/*fluidFloatPointer(velY,curxy)[0]
+			= (fluidFloatPointer(velY,curxy)[0]*alpha
+			   + pVelY
+			   + nextVelY
+			   + fluidFloatPointer(velY,curxy - sy)[0]
+			   + fluidFloatPointer(velY,curxy + sy)[0]) * beta;*/
 			
 			pVelX = curVelX;
 			pVelY = curVelY;

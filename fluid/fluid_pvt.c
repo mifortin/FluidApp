@@ -401,6 +401,10 @@ void fluidTimedMP(void *in_o)
 		//Fetch another function!
 		mpCTaskComplete(c, tid, fn, tsk,
 						&tid, &fn, &tsk);
+		
+		nextTime = x_time();
+		AtomicAdd32Barrier(o->m_times[TIME_TASKSCHED], (int)((nextTime-curTime)*1000000));
+		curTime = nextTime;
 	}
 	
 	
@@ -500,6 +504,11 @@ float fluidViscosityTime(fluid *f)
 float fluidVorticityTime(fluid *f)
 {
 	return (float)f->m_times[TIME_VORTICITY]/1000000;
+}
+
+float fluidThreadSchedulerTime(fluid *f)
+{
+	return (float)f->m_times[TIME_TASKSCHED]/1000000;
 }
 
 
