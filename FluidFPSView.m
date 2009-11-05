@@ -78,31 +78,34 @@
 		{
 			[NSBezierPath setDefaultLineWidth:2.0f];
 			
-			avg = 0;
 			int s;
 			if (m_enabled[v])
 			{
+				NSBezierPath *bpTmp = [NSBezierPath bezierPath];
+				float rm1 = 1*rect.size.height/11.0f;
+				float s1 = m_samples[v][(m_curSample)%MAXFPSSAMPLES];
+				s1=s1*30*rect.size.height/11+rm1;
+				NSPoint p1 = {rect.origin.x, s1};
+				[bpTmp moveToPoint:p1];
+				avg = s1;
+				
 				[m_colors[v] set];
 				for (s=0; s<MAXFPSSAMPLES-2; s++)
 				{
+					
 					float fs = (float)s;
 					
-					float s1 = m_samples[v][(s+m_curSample)%MAXFPSSAMPLES];
 					float s2 = m_samples[v][(s+1+m_curSample)%MAXFPSSAMPLES];
-					avg+=s1;
+					avg+=s2;
 					
-					float rm1 = 1*rect.size.height/11.0f;
 					
-					s1=s1*30*rect.size.height/11+rm1;
 					s2=s2*30*rect.size.height/11+rm1;
 					
-					NSPoint p1 = {rect.origin.x + fs*rect.size.width/(MAXFPSSAMPLES-1),
-									s1};
 					NSPoint p2 = {rect.origin.x + (fs+1)*rect.size.width/(MAXFPSSAMPLES-1),
 									s2};
-					
-					[NSBezierPath strokeLineFromPoint:p1 toPoint:p2];
+					[bpTmp lineToPoint:p2];
 				}
+				[bpTmp stroke];
 			}
 			else
 			{
