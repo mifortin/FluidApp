@@ -79,6 +79,7 @@
 			[NSBezierPath setDefaultLineWidth:2.0f];
 			
 			int s;
+			avg = 0;
 			if (m_enabled[v])
 			{
 				NSBezierPath *bpTmp = [NSBezierPath bezierPath];
@@ -87,7 +88,6 @@
 				s1=s1*30*rect.size.height/11+rm1;
 				NSPoint p1 = {rect.origin.x, s1};
 				[bpTmp moveToPoint:p1];
-				avg = s1;
 				
 				[m_colors[v] set];
 				for (s=0; s<MAXFPSSAMPLES-2; s++)
@@ -112,11 +112,11 @@
 				[[NSColor blackColor] set];
 				for (s=0; s<MAXFPSSAMPLES-2; s++)
 				{
-					float s1 = m_samples[v][(s+m_curSample)%MAXFPSSAMPLES];
-					avg+=s1;
+					float s2 = m_samples[v][(s+1+m_curSample)%MAXFPSSAMPLES];
+					avg+=s2;
 				}
 			}
-			avg = (avg / MAXFPSSAMPLES);
+			avg = (avg / (MAXFPSSAMPLES-2));
 			
 			if (rect.size.width <= 200)
 				curX = rect.size.width/2;

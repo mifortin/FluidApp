@@ -35,6 +35,9 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 		{
 			*fluidFloatPointer(velX,x*sx + y*sy)
 							= - *fluidFloatPointer(velX,x*sx + (y+1)*sy);
+		}
+		for (x=0; x<w; x++)
+		{
 			*fluidFloatPointer(velY,x*sx + y*sy)
 							= - *fluidFloatPointer(velY,x*sx + (y+1)*sy);
 		}
@@ -46,6 +49,9 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 		{			
 			*fluidFloatPointer(velX,x*sx + y*sy)
 							= - *fluidFloatPointer(velX,x*sx + (y-1)*sy);
+		}
+		for (x=0; x<w; x++)
+		{
 			*fluidFloatPointer(velY,x*sx + y*sy)
 							= - *fluidFloatPointer(velY,x*sx + (y-1)*sy);
 		}
