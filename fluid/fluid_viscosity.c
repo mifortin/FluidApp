@@ -70,6 +70,8 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 		{
 			nextVelY = fluidFloatPointer(velY,curxy + sx)[0];
 			
+			__builtin_prefetch(fluidFloatPointer(velY,curxy + sx)+128,1);
+			
 			fluidFloatPointer(velY,curxy)[0]
 				= (fluidFloatPointer(velY,curxy)[0]*alpha
 				   + pVelY
@@ -88,6 +90,8 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 		for (x=1; x<w-1; x++)
 		{
 			nextVelX = fluidFloatPointer(velX,curxy + sx)[0];
+			
+			__builtin_prefetch(fluidFloatPointer(velX,curxy + sx)+128,1);
 			
 			fluidFloatPointer(velX,curxy)[0]
 				 = (fluidFloatPointer(velX,curxy)[0]*alpha

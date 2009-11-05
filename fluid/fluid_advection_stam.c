@@ -26,9 +26,6 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	//Extract the data from the object
 	float bZZ_x, bOZ_x, bZO_x, bOO_x, bZZ_y, bOZ_y, bZO_y, bOO_y;
-
-	//Caching...
-	int lastOffX, lastOffY;
 	
 	//Loop over the data and do the desired computation
 	for (x=0; x<w; x++)
@@ -68,9 +65,6 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		bOZ_y = fluidFloatPointer(velY, offX2 + offBackY)[0];
 		bZO_y = fluidFloatPointer(velY, offBackX + offY2)[0];
 		bOO_y = fluidFloatPointer(velY, offX2 + offY2)[0];
-		
-		lastOffX = nBackX;
-		lastOffY = nBackY;
 		
 		fVelDestX[0] = fluidLinearInterpolation(scaleX, scaleY,
 										  bZZ_x, bOZ_x, bZO_x, bOO_x);

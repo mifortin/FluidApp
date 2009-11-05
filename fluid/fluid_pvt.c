@@ -76,7 +76,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_blocker = mpQueueCreate(2);
 	
 	//NOTE: Make this configurable????
-	toRet->r_coherence = mpCCreate(in_height, 128, 128);
+	toRet->r_coherence = mpCCreate(in_height, 128, 512);
 	
 	toRet->m_curField = 0;
 	
