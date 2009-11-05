@@ -3,8 +3,8 @@
  *  FluidApp
  */
 
-#include "fluid_pvt.h"
 #include "fluid_macros_2.h"
+#include "fluid_cpu.h"
 
 //Basic corrector part of predictor-corrector.
 void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)

@@ -3,8 +3,8 @@
  *  FluidApp
  */
 
-#include "fluid_pvt.h"
 #include "fluid_macros_2.h"
+#include "fluid_cpu.h"
 
 //Basic advection of only the velocity...
 void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)

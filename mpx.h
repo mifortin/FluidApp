@@ -129,51 +129,28 @@ void mpCReset(mpCoherence *o);
 void mpInit(int in_workers);		//# of worker threads
 void mpTerminate();
 
+int mpSupportsGPU();				//Returns # of supported GPUs (if any)
+
 //Function for a task... (obj points to something passed in on launch that
 //can be retained)
 typedef void(*mpTaskFn)(void *in_obj);
 
+//Will the target task run on the CPU or the GPU?	Depending, we'll launch
+//on a separate thread.  This does not take into account multiple GPUs yet...
+#define MP_TASK_CPU		0x00000001
+#define MP_TASK_GPU		0x00000002
+
 //Start a new task.  Note - the main thread is the controller, and these are
 //the workers.  A set number of workers exist from the start of the app
 //	("optimal" number based on number of cores).
-void mpTaskLaunch(mpTaskFn in_task, void *in_obj);
+void mpTaskLaunch(mpTaskFn in_task, void *in_obj, int target);
 
 
 //Start a task parallelized over the number of cores.  Differs from mpTaskLaunch
 //by setting up a queue entry for each core.  Useful when simple sync methods
 //can be used (eg. atomic instructions and the like)
 //	Returns number of created tasks
-int mpTaskFlood(mpTaskFn in_task, void *in_obj);
-
-
-////////////////////////////////////////////////////////////////////////////////
-//This is a port of the FXTaskSequence to C.  It's very annoying to do,
-//however this will simplify things in the long run.  (as long as I
-//can keep all these libraries seperate enough!)
-typedef struct mpTaskSet mpTaskSet;
-
-typedef error*(*mpTaskSetOnEndTask)(mpTaskSet *tsk, void *in_obj);
-typedef error*(*mpTaskSetStart)(mpTaskSet *tsk, void *in_obj);
-
-//Create the object...
-//	Remember to synchronize the data!
-mpTaskSet *mpTaskSetCreate(int in_nTasks, void *in_obj, 
-						   mpTaskSetOnEndTask in_init,
-						   mpTaskSetStart in_task, error **out_err);
-
-//Launch as many threads as requested...
-error *mpTaskSetLaunch(mpTaskSet *in_ts);
-
-//All threads call this function when they complete a task.  Then once all
-//threads are done, then they are released for the next task.
-error *mpTaskSetSync(mpTaskSet *in_ts);
-
-//Wait for all of the tasks to complete by joining them...
-error *mpTaskSetJoin(mpTaskSet *in_ts);
-
-//Critical sections... (for the threads)
-error *mpTaskSetEnterCriticalSection(mpTaskSet *in_ts);
-error *mpTaskSetLeaveCriticalSection(mpTaskSet *in_ts);
+int mpTaskFlood(mpTaskFn in_task, void *in_obj, int target);
 
 
 ////////////////////////////////////////////////////////////////////////////////

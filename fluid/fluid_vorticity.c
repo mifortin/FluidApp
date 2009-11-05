@@ -3,10 +3,10 @@
  *  FluidApp
  */
 
-#include "fluid_pvt.h"
 #include "fluid_macros_2.h"
 #include <math.h>
 #include <stdlib.h>
+#include "fluid_cpu.h"
 
 //First part, compute the divergence:
 //

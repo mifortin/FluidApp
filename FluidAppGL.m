@@ -73,9 +73,10 @@
 			if (x<0 || x>= w)
 				continue;
 			
-			d[(x+y*w)*3+0] = in_r;
-			d[(x+y*w)*3+1] = in_g;
-			d[(x+y*w)*3+2] = in_b;
+			d[(x+y*w)*4+0] = in_r;
+			d[(x+y*w)*4+1] = in_g;
+			d[(x+y*w)*4+2] = in_b;
+			d[(x+y*w)*4+3] = 1.0f;
 		}
 	}
 }
@@ -201,8 +202,8 @@
 		float *d = fieldData(dens);
 		
 		glBindTexture(GL_TEXTURE_2D, r_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0,
-					 GL_RGB, GL_FLOAT, d);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+					 GL_RGBA, GL_FLOAT, d);
 	}
 	else if ([FluidTools viewVelocity])
 	{
@@ -289,6 +290,9 @@
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 	
 	glEnable(GL_TEXTURE_2D);
 	glClear(GL_COLOR_BUFFER_BIT);
