@@ -8,6 +8,8 @@
 
 #include "field.h"
 #include <pthread.h>
+#include <stdio.h>
+#include "net.h"
 
 #define Field_NoRelease		0x00000001		/* Do not release data (someone else will) */
 
@@ -28,6 +30,70 @@ struct field
 		float *f;
 		int *i;
 	} r_data;
+};
+
+
+struct fieldServer
+{
+	field *fld_net;			//Copy from the network
+	field *fld_local;		//Local copy that's checked-out here
+	
+	netServer *server;		//Server that receives the field using MAX/Jitter
+							//protocol
+	
+	pthread_mutex_t	mtx;	//Simple mutex
+	pthread_cond_t cnd;		//Simple condition
+	
+	int needSwap;		//Set to 1 when needed...
+};
+
+
+struct fieldClient
+{
+	field *fld_sending;		//Data that we're sending (copy of)
+	
+	netClient *client;		//Client that we're connected to.
+	
+	pthread_mutex_t mtx;	//Simple mutex
+	pthread_cond_t cnd;		//Simple condition
+	pthread_t thr;			//Thread (spawned to send the data)
+	
+	int allSent;			//OS has all the data, we can send another field?
+};
+
+
+
+struct fieldServerJitHeader
+{
+	uint32_t	id;
+	uint32_t	size;
+};
+
+#define FIELD_JIT_CHAR		0
+#define FIELD_JIT_LONG		1
+#define FIELD_JIT_FLOAT32	2
+#define FIELD_JIT_FLOAT64	3
+
+struct fieldServerJitMatrix
+{
+	uint32_t	id;
+	uint32_t	size;
+	uint32_t	planeCount;
+	uint32_t	type;
+	uint32_t	dimCount;
+	uint32_t	dim[32];
+	uint32_t	dimStride[32];
+	uint32_t	dataSize;
+	double		time;
+};
+
+
+struct fieldServerJitLatency
+{
+	uint32_t	id;
+	double client_time;
+	double parsed_header;
+	double parsed_done;
 };
 
 #endif

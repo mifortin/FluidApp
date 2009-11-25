@@ -19,6 +19,7 @@
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(512,512);
+	r_background = fieldServerCreate(512, 512, 4, 7474);
 	glGenTextures(1, &r_texture);
 }
 
@@ -28,6 +29,7 @@
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	glDeleteTextures(1, &r_texture);
+	x_free(r_background);
 	x_free(r_fluid);
 	
 	if (work_buff)	free(work_buff);
@@ -262,6 +264,18 @@
 			src_g = [FluidTools G];
 			src_b = [FluidTools B];
 		}
+	
+		//Add in whatever comes from Jitter as densities...
+		field *tmp = fieldServerLock(r_background);
+		int x;
+		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
+		float *i1 = fieldData(tmp);
+		float *i2 = fieldData(fluidDensity(r_fluid));
+		for (x=0; x<t; x++)
+		{
+			i2[x] = i2[x]*0.9f + i1[x] * 0.1f;
+		}
+		fieldServerUnlock(r_background);
 		
 	
 		fluidAdvance(r_fluid);

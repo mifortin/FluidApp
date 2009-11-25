@@ -34,6 +34,27 @@ int fieldStrideY(field *in_f);
 float *fieldData(field *in_f);
 
 
+typedef struct fieldServer fieldServer;
+
+//A field backed with a server (one buffer for recv)
+fieldServer *fieldServerCreate(int in_width, int in_height, int in_components,
+							   int in_port);
+
+//Tell when we use/unuse a field-server
+field *fieldServerLock(fieldServer *fs);
+void fieldServerUnlock(fieldServer *fs);
+
+
+//A field backed with a client (one buffer for send)
+typedef struct fieldClient fieldClient;
+
+//Connect to a given host with port.
+fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
+							   char *szHost, int in_port);
+
+//Send a field
+void fieldClientSend(fieldClient *fc, field *f);
+
 //Utility macro to calculate offsets given strides
 #define fieldComputOffsetFromStride(x,y,sx,sy)	(x*sx+y*sy)
 
