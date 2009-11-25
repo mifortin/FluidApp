@@ -11,10 +11,10 @@
 			<string key="NS.object.0">732</string>
 		</object>
 		<array class="NSMutableArray" key="IBDocument.EditedObjectIDs">
-			<integer value="112"/>
-			<integer value="90"/>
-			<integer value="68"/>
 			<integer value="16"/>
+			<integer value="112"/>
+			<integer value="68"/>
+			<integer value="90"/>
 			<integer value="148"/>
 		</array>
 		<array key="IBDocument.PluginDependencies">

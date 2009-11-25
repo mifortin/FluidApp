@@ -230,7 +230,9 @@
 				<string key="1.IBWindowTemplateEditedContentRect">{{0, 864}, {480, 270}}</string>
 				<boolean value="YES" key="1.ImportedFromIB2"/>
 				<boolean value="YES" key="1.NSWindowTemplate.visibleAtLaunch"/>
+				<string key="15.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<boolean value="YES" key="15.IBShouldRemoveOnLegacySave"/>
+				<string key="16.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<boolean value="YES" key="16.IBShouldRemoveOnLegacySave"/>
 				<string key="2.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<boolean value="YES" key="2.ImportedFromIB2"/>
