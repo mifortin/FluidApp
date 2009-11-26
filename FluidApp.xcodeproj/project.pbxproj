@@ -22,7 +22,6 @@
 		27A662FA0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		27A662FB0F645E8D009AC619 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		27B6BE46100FFEE300152E4E /* FluidAppDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 27B6BE45100FFEE300152E4E /* FluidAppDocument.m */; };
-		27B6BE661010065100152E4E /* FluidAppDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 27B6BE651010065100152E4E /* FluidAppDocument.nib */; };
 		27BD78E60FB10B450077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD78E70FB10B450077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD791E0FB111C60077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
@@ -31,8 +30,6 @@
 		4C0B4ACA1004230700C7C081 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */; };
 		4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */; };
-		4C1BA6840FBC6EC400A74684 /* FluidZip.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C1BA6830FBC6EC400A74684 /* FluidZip.nib */; };
-		4C1BA6930FBC6F9A00A74684 /* FluidZip_Window.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */; };
 		4C1BA69A0FBC709800A74684 /* FluidZip_Window.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6990FBC709800A74684 /* FluidZip_Window.m */; };
 		4C1BA6B70FBC720800A74684 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		4C30F9490FD853FA00B2B86D /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
@@ -41,9 +38,7 @@
 		4C30F9540FD86C3500B2B86D /* mp_x.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9530FD86C3500B2B86D /* mp_x.c */; };
 		4C30F9550FD86C3500B2B86D /* mp_x.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9530FD86C3500B2B86D /* mp_x.c */; };
 		4C30F9560FD86C3500B2B86D /* mp_x.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9530FD86C3500B2B86D /* mp_x.c */; };
-		4C437046104DDD7F0069E6D9 /* FluidApp.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* FluidApp.nib */; };
 		4C437047104DDD7F0069E6D9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
-		4C437048104DDD7F0069E6D9 /* FluidAppDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 27B6BE651010065100152E4E /* FluidAppDocument.nib */; };
 		4C43704A104DDD7F0069E6D9 /* FluidApp_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* FluidApp_main.m */; settings = {ATTRIBUTES = (); }; };
 		4C43706A104DDD7F0069E6D9 /* netServer.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A661DF0F64292E009AC619 /* netServer.c */; };
 		4C43706B104DDD7F0069E6D9 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
@@ -70,6 +65,12 @@
 		4C54726B1003A3EF0069EB93 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C54726A1003A3EF0069EB93 /* mp_coherence.c */; };
 		4C54726C1003A3EF0069EB93 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C54726A1003A3EF0069EB93 /* mp_coherence.c */; };
 		4C54726D1003A3EF0069EB93 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C54726A1003A3EF0069EB93 /* mp_coherence.c */; };
+		4C549E9410BEEB1500D9A7AC /* FluidAppDocument.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C549E9310BEEB1500D9A7AC /* FluidAppDocument.xib */; };
+		4C549E9510BEEB1500D9A7AC /* FluidAppDocument.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C549E9310BEEB1500D9A7AC /* FluidAppDocument.xib */; };
+		4C549E9910BEEB2400D9A7AC /* FluidApp.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C549E9710BEEB2400D9A7AC /* FluidApp.xib */; };
+		4C549E9A10BEEB2400D9A7AC /* FluidApp.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C549E9710BEEB2400D9A7AC /* FluidApp.xib */; };
+		4C549E9E10BEEB4900D9A7AC /* FluidZip.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C549E9D10BEEB4900D9A7AC /* FluidZip.xib */; };
+		4C549EA110BEEB6300D9A7AC /* FluidZip_Window.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C549EA010BEEB6300D9A7AC /* FluidZip_Window.xib */; };
 		4C618B8F10BC854800C8790C /* field_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C618B8E10BC854800C8790C /* field_server.c */; };
 		4C618B9010BC854800C8790C /* field_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C618B8E10BC854800C8790C /* field_server.c */; };
 		4C618B9110BC854800C8790C /* field_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C618B8E10BC854800C8790C /* field_server.c */; };
@@ -125,7 +126,6 @@
 		4CF825080FEB30E3003AEE44 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825040FEB30E3003AEE44 /* netOutStream.c */; };
 		4CF825090FEB30E3003AEE44 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825030FEB30E3003AEE44 /* netInStream.c */; };
 		4CF8250A0FEB30E3003AEE44 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825040FEB30E3003AEE44 /* netOutStream.c */; };
-		8D11072A0486CEB800E47090 /* FluidApp.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* FluidApp.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* FluidApp_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* FluidApp_main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -180,13 +180,11 @@
 		27A665030F64A527009AC619 /* field.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = field.h; sourceTree = "<group>"; };
 		27B6BE44100FFEE300152E4E /* FluidAppDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidAppDocument.h; sourceTree = "<group>"; };
 		27B6BE45100FFEE300152E4E /* FluidAppDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidAppDocument.m; sourceTree = "<group>"; };
-		27B6BE651010065100152E4E /* FluidAppDocument.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = FluidAppDocument.nib; sourceTree = "<group>"; };
 		27BD78E40FB10B450077C0B0 /* half.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = half.h; sourceTree = "<group>"; };
 		27BD78E50FB10B450077C0B0 /* half.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = half.c; sourceTree = "<group>"; };
 		27BD79190FB111930077C0B0 /* FluidTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FluidTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		27BD79240FB112070077C0B0 /* FluidTest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = FluidTest.c; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* FluidApp_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidApp_main.m; sourceTree = "<group>"; };
-		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FluidApp.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
@@ -195,8 +193,6 @@
 		4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_main.m; sourceTree = "<group>"; };
 		4C1BA67F0FBC6EA300A74684 /* FluidZip_Delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidZip_Delegate.h; sourceTree = "<group>"; };
 		4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Delegate.m; sourceTree = "<group>"; };
-		4C1BA6830FBC6EC400A74684 /* FluidZip.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = FluidZip.nib; sourceTree = "<group>"; };
-		4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = FluidZip_Window.nib; sourceTree = "<group>"; };
 		4C1BA6980FBC709800A74684 /* FluidZip_Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidZip_Window.h; sourceTree = "<group>"; };
 		4C1BA6990FBC709800A74684 /* FluidZip_Window.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Window.m; sourceTree = "<group>"; };
 		4C30F9480FD853FA00B2B86D /* mp_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_queue.c; sourceTree = "<group>"; };
@@ -205,6 +201,10 @@
 		4C43708F104DDD7F0069E6D9 /* FluidApp_x64.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidApp_x64.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C437091104DDD7F0069E6D9 /* Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info copy.plist"; sourceTree = "<group>"; };
 		4C54726A1003A3EF0069EB93 /* mp_coherence.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_coherence.c; sourceTree = "<group>"; };
+		4C549E9310BEEB1500D9A7AC /* FluidAppDocument.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FluidAppDocument.xib; sourceTree = "<group>"; };
+		4C549E9810BEEB2400D9A7AC /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/FluidApp.xib; sourceTree = "<group>"; };
+		4C549E9D10BEEB4900D9A7AC /* FluidZip.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FluidZip.xib; sourceTree = "<group>"; };
+		4C549EA010BEEB6300D9A7AC /* FluidZip_Window.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FluidZip_Window.xib; sourceTree = "<group>"; };
 		4C618B8E10BC854800C8790C /* field_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = field_server.c; sourceTree = "<group>"; };
 		4C618C7C10BCBDA500C8790C /* field_client.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = field_client.c; sourceTree = "<group>"; };
 		4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_NumberFormatter.h; sourceTree = "<group>"; };
@@ -427,10 +427,10 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4C549E9310BEEB1500D9A7AC /* FluidAppDocument.xib */,
+				4C549E9710BEEB2400D9A7AC /* FluidApp.xib */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
-				27B6BE651010065100152E4E /* FluidAppDocument.nib */,
-				29B97318FDCFA39411CA2CEA /* FluidApp.nib */,
 				4C437091104DDD7F0069E6D9 /* Info copy.plist */,
 			);
 			name = Resources;
@@ -452,8 +452,8 @@
 		4C1BA66A0FBC6D0E00A74684 /* FluidZip */ = {
 			isa = PBXGroup;
 			children = (
-				4C1BA6830FBC6EC400A74684 /* FluidZip.nib */,
-				4C1BA6920FBC6F9A00A74684 /* FluidZip_Window.nib */,
+				4C549E9D10BEEB4900D9A7AC /* FluidZip.xib */,
+				4C549EA010BEEB6300D9A7AC /* FluidZip_Window.xib */,
 				4C1BA6720FBC6D3A00A74684 /* FluidZip-Info.plist */,
 				4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */,
 				4C1BA67F0FBC6EA300A74684 /* FluidZip_Delegate.h */,
@@ -639,8 +639,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C1BA6840FBC6EC400A74684 /* FluidZip.nib in Resources */,
-				4C1BA6930FBC6F9A00A74684 /* FluidZip_Window.nib in Resources */,
+				4C549E9E10BEEB4900D9A7AC /* FluidZip.xib in Resources */,
+				4C549EA110BEEB6300D9A7AC /* FluidZip_Window.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -648,9 +648,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C437046104DDD7F0069E6D9 /* FluidApp.nib in Resources */,
 				4C437047104DDD7F0069E6D9 /* InfoPlist.strings in Resources */,
-				4C437048104DDD7F0069E6D9 /* FluidAppDocument.nib in Resources */,
+				4C549E9510BEEB1500D9A7AC /* FluidAppDocument.xib in Resources */,
+				4C549E9910BEEB2400D9A7AC /* FluidApp.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -658,9 +658,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D11072A0486CEB800E47090 /* FluidApp.nib in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
-				27B6BE661010065100152E4E /* FluidAppDocument.nib in Resources */,
+				4C549E9410BEEB1500D9A7AC /* FluidAppDocument.xib in Resources */,
+				4C549E9A10BEEB2400D9A7AC /* FluidApp.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -839,12 +839,12 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		29B97318FDCFA39411CA2CEA /* FluidApp.nib */ = {
+		4C549E9710BEEB2400D9A7AC /* FluidApp.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				29B97319FDCFA39411CA2CEA /* English */,
+				4C549E9810BEEB2400D9A7AC /* English */,
 			);
-			name = FluidApp.nib;
+			name = FluidApp.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
