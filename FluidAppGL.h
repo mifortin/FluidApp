@@ -13,6 +13,7 @@
 @interface FluidAppGL : NSOpenGLView
 {
 	fieldServer *r_background;
+	fieldClient *r_client;
 	fluid *r_fluid;
 	GLuint r_texture;
 	

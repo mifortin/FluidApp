@@ -19,6 +19,7 @@
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(512,512);
+	r_client = fieldClientCreate(512, 512, 4, "127.0.0.1", 7575);
 	r_background = fieldServerCreate(512, 512, 4, 7474);
 	glGenTextures(1, &r_texture);
 }
@@ -30,6 +31,7 @@
 	[[self openGLContext] update];
 	glDeleteTextures(1, &r_texture);
 	x_free(r_background);
+	x_free(r_client);
 	x_free(r_fluid);
 	
 	if (work_buff)	free(work_buff);
@@ -277,6 +279,7 @@
 		}
 		fieldServerUnlock(r_background);
 		
+		fieldClientSend(r_client, fluidDensity(r_fluid));
 	
 		fluidAdvance(r_fluid);
 		[self generateView];
