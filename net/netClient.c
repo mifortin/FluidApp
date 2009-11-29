@@ -125,6 +125,12 @@ netClient *netClientCreate(const char *address, char *port, int flags)
 					"Client needs at least UDP or TCP communication");
 	}
 	
+	if (flags & NETS_SINGLE_CLIENT)
+	{
+		errorRaise(error_flags,
+				   "NETS_SINGLE_CLIENT only applies to NetServer!");
+	}
+	
 	struct addrinfo hints;
 	struct addrinfo *servinfo;
 	

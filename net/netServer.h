@@ -31,6 +31,9 @@ struct netServer {
 	
 	//Number of threads currently running
 	int m_runningThreads;
+	
+	//Is the server dead?  (set to 1 if it's dead)
+	int32_t m_isDead;
 };
 
 #endif

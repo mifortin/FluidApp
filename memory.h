@@ -41,8 +41,8 @@ void x_init();
 				sigjmp_buf *__pvt_except_p = x_setupBuff(&__pvt_except); \
 				int __exception; \
 				if ((__exception = _setjmp(__pvt_except)) == 0) {
-#define x_catch(o)	} else { error *o = (error*)__exception; o;
-#define x_finally	x_free((error*)__exception);}	\
+#define x_catch(o)	} else { error *o = x_raisedError(); error *__pvt_error = o;
+#define x_finally	x_free(__pvt_error);}	\
 						x_setupBuff(__pvt_except_p); \
 						if (__pvt_except_p) _setjmp(*__pvt_except_p);
 
@@ -51,6 +51,7 @@ void x_raise(error *e);
 
 //Used internally by exception system
 sigjmp_buf *x_setupBuff(sigjmp_buf *in_newBuff);
+error *x_raisedError();
 
 //Since I use this function so often; it shall be dumped here
 double x_time();

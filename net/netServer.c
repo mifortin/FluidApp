@@ -36,7 +36,7 @@ void *netServerConnection(void *eData)
 	x_try
 		sData->m_userFunction(sData->m_userData, sData, cur);
 	x_catch(e)
-		printf("Server Connection Died: %s\n", errorMsg(e));
+		errorListAdd(e);
 	x_finally
 	
 	x_free(cur);
@@ -103,11 +103,20 @@ void *netServerThread(void *eData)
 							if (client != NULL)
 							{
 								pthread_t tmp;
-								sData->m_client = client;
-								sData->m_runningThreads++;
 								
-								x_pthread_create(&tmp, NULL, netServerConnection,
-												eData);
+								if (!((sData->m_flags) & NETS_SINGLE_CLIENT) ||
+									sData->m_runningThreads == 0)
+								{
+									sData->m_client = client;
+									sData->m_runningThreads++;
+									
+									x_pthread_create(&tmp, NULL, netServerConnection,
+													eData);
+								}
+								else
+								{
+									x_free(client);
+								}
 							}
 						}
 					}
@@ -131,14 +140,20 @@ done:
 }
 
 
+int netServerTryingToQuit(netServer *in_server)
+{
+	return AtomicExtract(in_server->m_isDead);
+}
+
+
 void netServerFree(void *in_o)
 {
 	netServer *in_svr = (netServer*)in_o;
 	mpMutex *mtx = in_svr->r_mutex;
-
-	mpMutexLock(mtx);
-	in_svr->m_socket = -1;
-	mpMutexUnlock(mtx);
+	
+	//Mark the server as dead (so that spawned threads can cut connections
+	//as needed.
+	while (AtomicCompareAndSwapInt(in_svr->m_isDead, 0, 1) != 1) {}
 	
 	if (mtx != NULL)
 	{
