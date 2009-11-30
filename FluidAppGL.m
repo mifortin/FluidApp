@@ -251,6 +251,7 @@
 	//printf("DENORMALS OFF!\n");
 #endif
 	
+	//Jason Lewis - open source project / lettering / Mr. Softie
 	x_try
 		//Extract the densities if needed...
 		if (src_rad > 0.2f)
