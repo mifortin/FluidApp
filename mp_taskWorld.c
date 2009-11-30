@@ -223,6 +223,20 @@ void mpInit(int in_workers)
 		errorAssert(err == CL_SUCCESS, error_create,
 					"Failed querying OpenCL for number of cores on GPU");
 		printf("Found %i compute units on the GPU\n", cu);
+		
+		char szData[1024];
+		err = clGetDeviceInfo(device_id, CL_DEVICE_NAME,
+							  1024, szData, NULL);
+		printf(" --> Device: %s\n", szData);
+		
+		err = clGetDeviceInfo(device_id, CL_DEVICE_VENDOR,
+							  1024, szData, NULL);
+		printf(" --> Vendor: %s\n", szData);
+		
+		err = clGetDeviceInfo(device_id, CL_DEVICE_VERSION,
+							  1024, szData, NULL);
+		printf(" --> Version: %s\n", szData);
+		
 		g_mpTaskWorld->cl_workers = cu;
 		
 		if (cu <= 0)	return;

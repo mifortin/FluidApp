@@ -7,6 +7,9 @@
 #include "error_pvt.h"
 #include "memory.h"
 #include <stdio.h>
+#include "mpx.h"
+
+pthread_mutex_t errorList_sync = PTHREAD_MUTEX_INITIALIZER;
 
 error *errorList_first = NULL;
 error *errorList_last = NULL;
@@ -25,6 +28,9 @@ void errorListAdd(error *in_error)
 		
 		x_retain(in_error);
 		
+		
+		x_pthread_mutex_lock(&errorList_sync);
+		
 		if (errorList_first == NULL)
 		{
 			errorList_first = errorList_last = in_error;
@@ -34,6 +40,8 @@ void errorListAdd(error *in_error)
 			errorList_last->m_list = in_error;
 			errorList_last = in_error;
 		}
+		
+		x_pthread_mutex_unlock(&errorList_sync);
 	}
 }
 

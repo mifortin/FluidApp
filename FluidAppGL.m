@@ -7,7 +7,7 @@
 #include "memory.h"
 #import "FluidTools.h"
 
-#if defined( __SSE__ )
+#ifdef __SSE__
 #include <xmmintrin.h>
 #endif
 
@@ -275,7 +275,7 @@
 		float *i2 = fieldData(fluidDensity(r_fluid));
 		for (x=0; x<t; x++)
 		{
-			i2[x] = i2[x]*0.9f + i1[x] * 0.1f;
+			i2[x] = i2[x] + i1[x] * 0.1f;
 		}
 		fieldServerUnlock(r_background);
 		

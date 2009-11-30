@@ -3,6 +3,13 @@
  *  FluidApp
  */
 
+#ifdef __SSE3__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+//#undef __SSE3__
+#endif
+
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 
@@ -44,6 +51,104 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	else
 	{
+#ifdef __SSE3__
+		float *vPressureRow = fluidFloatPointer(pressure, y*sy);
+		
+		__m128 *vPressure = (__m128*)vPressureRow;
+		__m128 *vVelX = (__m128*)fluidFloatPointer(velX, y*sy);
+		
+		__m128 *vPressureN = (__m128*)fluidFloatPointer(pressure, (y+1)*sy);
+		__m128 *vVelYN = (__m128*)fluidFloatPointer(velY, (y+1)*sy);
+		
+		__m128 *vPressureP = (__m128*)fluidFloatPointer(pressure, (y-1)*sy);
+		__m128 *vVelYP = (__m128*)fluidFloatPointer(velY, (y-1)*sy);
+		
+		__m128 div4 = {1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f};
+		
+		int x;
+		{
+			__m128 tmp;
+			
+			//Compute shifts
+			__m128 sl_p = _mm_srli_si128(vPressure[0],4);
+			sl_p = _mm_add_ps(sl_p,_mm_slli_si128(vPressure[1],12));
+			
+			__m128 sr_p = _mm_slli_si128(vPressure[0],4);
+			
+			__m128 sl_vx = _mm_srli_si128(vVelX[0],4);
+			sl_vx = _mm_add_ps(sl_vx,_mm_slli_si128(vVelX[1],12));
+			
+			__m128 sr_vx = _mm_slli_si128(vVelX[0],4);
+			
+			//Sum everything!!!
+			tmp = _mm_add_ps(sl_p, sr_p);
+			tmp = _mm_add_ps(tmp, vPressureN[0]);
+			tmp = _mm_add_ps(tmp, vPressureP[0]);
+			tmp = _mm_sub_ps(tmp, sl_vx);
+			tmp = _mm_add_ps(tmp, sr_vx);
+			tmp = _mm_sub_ps(tmp, vVelYN[0]);
+			tmp = _mm_add_ps(tmp, vVelYP[0]);
+			
+			vPressure[0] = _mm_mul_ps(tmp, div4);
+			vPressureRow[0] = vPressureRow[1];
+		}
+		for (x=1; x<w/4-1; x++)
+		{
+			__m128 tmp;
+			
+			//Compute shifts
+			__m128 sl_p = _mm_srli_si128(vPressure[x],4);
+			sl_p = _mm_add_ps(sl_p,_mm_slli_si128(vPressure[x+1],12));
+			
+			__m128 sr_p = _mm_slli_si128(vPressure[x],4);
+			sr_p = _mm_add_ps(sr_p,_mm_srli_si128(vPressure[x-1],12));
+			
+			__m128 sl_vx = _mm_srli_si128(vVelX[x],4);
+			sl_vx = _mm_add_ps(sl_vx,_mm_slli_si128(vVelX[x+1],12));
+			
+			__m128 sr_vx = _mm_slli_si128(vVelX[x],4);
+			sr_vx = _mm_add_ps(sr_vx,_mm_srli_si128(vVelX[x-1],12));
+			
+			//Sum everything!!!
+			tmp = _mm_add_ps(sl_p, sr_p);
+			tmp = _mm_add_ps(tmp, vPressureN[x]);
+			tmp = _mm_add_ps(tmp, vPressureP[x]);
+			tmp = _mm_sub_ps(tmp, sl_vx);
+			tmp = _mm_add_ps(tmp, sr_vx);
+			tmp = _mm_sub_ps(tmp, vVelYN[x]);
+			tmp = _mm_add_ps(tmp, vVelYP[x]);
+			
+			vPressure[x] = _mm_mul_ps(tmp, div4);
+		}
+		{
+			__m128 tmp;
+			
+			//Compute shifts
+			__m128 sl_p = _mm_srli_si128(vPressure[x],4);
+			
+			__m128 sr_p = _mm_slli_si128(vPressure[x],4);
+			sr_p = _mm_add_ps(sr_p,_mm_srli_si128(vPressure[x-1],12));
+			
+			__m128 sl_vx = _mm_srli_si128(vVelX[x],4);
+			
+			__m128 sr_vx = _mm_slli_si128(vVelX[x],4);
+			sr_vx = _mm_add_ps(sr_vx,_mm_srli_si128(vVelX[x-1],12));
+			
+			//Sum everything!!!
+			tmp = _mm_add_ps(sl_p, sr_p);
+			tmp = _mm_add_ps(tmp, vPressureN[x]);
+			tmp = _mm_add_ps(tmp, vPressureP[x]);
+			tmp = _mm_sub_ps(tmp, sl_vx);
+			tmp = _mm_add_ps(tmp, sr_vx);
+			tmp = _mm_sub_ps(tmp, vVelYN[x]);
+			tmp = _mm_add_ps(tmp, vVelYP[x]);
+			
+			vPressure[x] = _mm_mul_ps(tmp, div4);
+			
+			vPressureRow[w-1] = vPressureRow[w-2];
+		}
+		
+#else
 		float lastPressureX = fluidFloatPointer(pressure,sx + y*sy)[0];
 		float lastVelX = fluidFloatPointer(velX, y*sy)[0];
 		
@@ -80,6 +185,7 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		fluidFloatPointer(pressure,(w-1)*sx + y*sy)[0]
 			= fluidFloatPointer(pressure,(w-2)*sx + y*sy)[0];
+#endif
 	}
 }
 
