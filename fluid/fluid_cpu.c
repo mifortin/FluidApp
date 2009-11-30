@@ -39,7 +39,7 @@ void fluidTaskAddForwardAdvection(fluid *f)
 														f->r_velocityX, f->r_velocityY,
 														f->r_tmpVelX,   f->r_tmpVelY,
 														f->m_timestep);
-	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
+	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
@@ -57,7 +57,7 @@ void fluidTaskAddBackwardAdvection(fluid *f)
 														f->r_tmpVelX, f->r_tmpVelY,
 														f->r_reposX,   f->r_reposY,
 														-f->m_timestep);
-	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
+	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
 	
@@ -82,7 +82,7 @@ void fluidTaskCorrectorRepos(fluid *f)
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.timestep = f->m_timestep;
-	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
+	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
 	f->m_usedFunctions = curFn+1;
@@ -99,7 +99,7 @@ void fluidTaskAdvectDensity(fluid *f)
 	f->m_fns[curFn].mode.repos.reposY = f->r_reposY;
 	f->m_fns[curFn].mode.repos.src = f->r_density;
 	f->m_fns[curFn].mode.repos.dst = f->r_density_swap;
-	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
+	f->m_fns[curFn].times = /*NULL;//*/ f->m_times + TIME_ADVECTION;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	

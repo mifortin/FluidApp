@@ -51,7 +51,96 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	else
 	{
-#ifdef __SSE3__
+#ifdef __APPLE_ALTIVEC__
+		float *vPressureRow = fluidFloatPointer(pressure, y*sy);
+		
+		vector float *vPressure = (vector float*)vPressureRow;
+		vector float *vVelX = (vector float*)fluidFloatPointer(velX, y*sy);
+		
+		vector float *vPressureN = (vector float*)fluidFloatPointer(pressure, (y+1)*sy);
+		vector float *vVelYN = (vector float*)fluidFloatPointer(velY, (y+1)*sy);
+		
+		vector float *vPressureP = (vector float*)fluidFloatPointer(pressure, (y-1)*sy);
+		vector float *vVelYP = (vector float*)fluidFloatPointer(velY, (y-1)*sy);
+		
+		vector float div4 = {1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f};
+		vector float vZero = {0,0,0,0};
+		
+		vec_dstst(vPressure, 0x01000001, 0);
+		vec_dst(vVelX, 0x01000001, 1);
+		vec_dst(vVelYN, 0x01000001, 2);
+		vec_dst(vVelYP, 0x01000001, 3);
+		
+		int x;
+		{
+			vector float tmp;
+			
+			//Compute shifts
+			vector float sl_p = vec_sld(vPressure[0], vPressure[1],4);
+			vector float sr_p = vec_sld(vZero, vPressure[0], 12);
+			
+			vector float sl_vx = vec_sld(vVelX[0], vVelX[1],4);
+			vector float sr_vx = vec_sld(vZero, vVelX[0], 12);
+			
+			//Sum everything!!!
+			tmp = vec_add(sl_p, sr_p);
+			tmp = vec_add(tmp, vPressureN[0]);
+			tmp = vec_add(tmp, vPressureP[0]);
+			tmp = vec_sub(tmp, sl_vx);
+			tmp = vec_add(tmp, sr_vx);
+			tmp = vec_sub(tmp, vVelYN[0]);
+			tmp = vec_add(tmp, vVelYP[0]);
+			
+			vPressure[0] = vec_madd(tmp, div4, vZero);
+			vPressureRow[0] = vPressureRow[1];
+		}
+		for (x=1; x<w/4-1; x++)
+		{
+			vector float tmp;
+			
+			//Compute shifts
+			vector float sl_p = vec_sld(vPressure[x], vPressure[x+1],4);
+			vector float sr_p = vec_sld(vPressure[x-1], vPressure[x], 12);
+			
+			vector float sl_vx = vec_sld(vVelX[x], vVelX[x+1],4);
+			vector float sr_vx = vec_sld(vVelX[x-1], vVelX[x], 12);
+			
+			//Sum everything!!!
+			tmp = vec_add(sl_p, sr_p);
+			tmp = vec_add(tmp, vPressureN[x]);
+			tmp = vec_add(tmp, vPressureP[x]);
+			tmp = vec_sub(tmp, sl_vx);
+			tmp = vec_add(tmp, sr_vx);
+			tmp = vec_sub(tmp, vVelYN[x]);
+			tmp = vec_add(tmp, vVelYP[x]);
+			
+			vPressure[x] = vec_madd(tmp, div4, vZero);
+		}
+		{
+			vector float tmp;
+			
+			//Compute shifts
+			vector float sl_p = vec_sld(vPressure[x], vZero,4);
+			vector float sr_p = vec_sld(vPressure[x-1], vPressure[x], 12);
+			
+			vector float sl_vx = vec_sld(vVelX[x], vZero,4);
+			vector float sr_vx = vec_sld(vVelX[x-1], vVelX[x], 12);
+			
+			//Sum everything!!!
+			tmp = vec_add(sl_p, sr_p);
+			tmp = vec_add(tmp, vPressureN[x]);
+			tmp = vec_add(tmp, vPressureP[x]);
+			tmp = vec_sub(tmp, sl_vx);
+			tmp = vec_add(tmp, sr_vx);
+			tmp = vec_sub(tmp, vVelYN[x]);
+			tmp = vec_add(tmp, vVelYP[x]);
+			
+			vPressure[x] = vec_madd(tmp, div4, vZero);
+			
+			vPressureRow[w-1] = vPressureRow[w-2];
+		}
+		
+#elif defined __SSE3__
 		float *vPressureRow = fluidFloatPointer(pressure, y*sy);
 		
 		__m128 *vPressure = (__m128*)vPressureRow;

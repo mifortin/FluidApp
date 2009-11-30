@@ -10,6 +10,8 @@
 //#undef __SSE3__
 #endif
 
+//#undef __APPLE_ALTIVEC__
+
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 #include <stdio.h>
@@ -18,8 +20,6 @@
 
 void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 {
-#ifdef __APPLE_ALTIVEC__
-#endif
 	struct viscosity *v = &mode->viscosity;
 	
 	int w = fieldWidth(v->velX);
@@ -64,7 +64,115 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	else
 	{
-#ifdef __SSE3__
+		
+#ifdef __APPLE_ALTIVEC__
+//#warning "Using ALTIVEC for Viscosity"
+		vector float vAlpha = {alpha, alpha, alpha, alpha};
+		vector float vBeta = {beta, beta, beta, beta};
+		
+		float *velXRow = fluidFloatPointer(velX,y*sy);
+		float *velYRow = fluidFloatPointer(velY,y*sy);
+		
+		vector float *vVelX = (vector float*)velXRow;
+		vector float *vVelY = (vector float*)velYRow;
+		
+		vector float *vVelXN = (vector float*)fluidFloatPointer(velX,(y+1)*sy);
+		vector float *vVelYN = (vector float*)fluidFloatPointer(velY,(y+1)*sy);
+		
+		vector float *vVelXP = (vector float*)fluidFloatPointer(velX,(y-1)*sy);
+		vector float *vVelYP = (vector float*)fluidFloatPointer(velY,(y-1)*sy);
+		
+		vector float vZero = {0,0,0,0};
+		
+		vec_dstst(vVelX, 0x01000001, 0);
+		vec_dst(vVelXN, 0x01000001, 1);
+		vec_dst(vVelXP, 0x01000001, 2);
+		
+		int x;
+		{
+			vector float tmp;
+			tmp = vec_madd(vVelX[0], vAlpha, vVelXN[0]);
+			tmp = vec_add(tmp, vVelXP[0]);
+			
+			vector float sl = vec_sld(vVelX[0], vVelX[1], 4);
+			vector float sr = vec_sld(vZero, vVelX[0], 12);
+			
+			tmp = vec_add(tmp, vec_add(sl,sr));
+			vVelX[0] = vec_madd(tmp, vBeta, vZero);
+			
+			velXRow[0] = -velXRow[1];
+		}
+		for (x=1; x<w/4-1; x++)
+		{
+			vector float tmp;
+			tmp = vec_madd(vVelX[x], vAlpha, vVelXN[x]);
+			tmp = vec_add(tmp, vVelXP[x]);
+			
+			vector float sl = vec_sld(vVelX[x], vVelX[x+1], 4);
+			vector float sr = vec_sld(vVelX[x-1], vVelX[x], 12);
+			
+			tmp = vec_add(tmp, vec_add(sl,sr));
+			vVelX[x] = vec_madd(tmp, vBeta, vZero);
+		}
+		{
+			vec_dstst(vVelY, 0x01000001, 0);
+			vec_dst(vVelYN, 0x01000001, 1);
+			vec_dst(vVelYP, 0x01000001, 2);
+			
+			vector float tmp;
+			tmp = vec_madd(vVelX[0], vAlpha, vVelXN[0]);
+			tmp = vec_add(tmp, vVelXP[0]);
+			
+			vector float sl = vec_sld(vVelX[x], vZero, 4);
+			vector float sr = vec_sld(vVelX[x-1], vVelX[x], 12);
+			
+			tmp = vec_add(tmp, vec_add(sl,sr));
+			vVelX[x] = vec_madd(tmp, vBeta, vZero);
+			
+			velXRow[w-1] = -velXRow[w-2];
+		}
+		
+		
+		{
+			vector float tmp;
+			tmp = vec_madd(vVelY[0], vAlpha, vVelYN[0]);
+			tmp = vec_add(tmp, vVelYP[0]);
+			
+			vector float sl = vec_sld(vVelY[0], vVelY[1], 4);
+			vector float sr = vec_sld(vZero, vVelY[0], 12);
+			
+			tmp = vec_add(tmp, vec_add(sl,sr));
+			vVelY[0] = vec_madd(tmp, vBeta, vZero);
+			
+			velYRow[0] = 0;//-velYRow[1];
+		}
+		for (x=1; x<w/4-1; x++)
+		{
+			vector float tmp;
+			tmp = vec_madd(vVelY[x], vAlpha, vVelYN[x]);
+			tmp = vec_add(tmp, vVelYP[x]);
+			
+			vector float sl = vec_sld(vVelY[x], vVelY[x+1], 4);
+			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
+			
+			tmp = vec_add(tmp, vec_add(sl,sr));
+			vVelY[x] = vec_madd(tmp, vBeta, vZero);
+		}
+		{
+			vector float tmp;
+			tmp = vec_madd(vVelY[x], vAlpha, vVelYN[x]);
+			tmp = vec_add(tmp, vVelYP[x]);
+			
+			vector float sl = vec_sld(vVelY[x], vZero, 4);
+			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
+			
+			tmp = vec_add(tmp, vec_add(sl,sr));
+			vVelY[x] = vec_madd(tmp, vBeta, vZero);
+			
+			velYRow[w-1] = -velYRow[w-2];
+		}
+		
+#elif defined __SSE3__
 		__m128 vAlpha = {alpha, alpha, alpha, alpha};
 		__m128 vBeta = {beta, beta, beta, beta};
 		

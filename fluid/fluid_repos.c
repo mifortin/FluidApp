@@ -5,6 +5,7 @@
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
+#include <math.h>
 
 
 //Simple repositioning of the data
@@ -33,17 +34,51 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		float *fDst = fluidFloatPointer(dst, x*dX + y*dY);
 		
-		float nBackX = (int)fReposX;
-		float nBackY = (int)fReposY;
+		float nBackX = floorf(fReposX);
+		float nBackY = floorf(fReposY);
 		
-		float scaleX = fReposX - (float)nBackX;
-		float scaleY = fReposY - (float)nBackY;
+		float scaleX = fReposX - nBackX;
+		float scaleY = fReposY - nBackY;
 		
-		int offBackX = nBackX * dX;
-		int offBackY = nBackY * dY;
-		int offX2 = (nBackX+1) * dX;
-		int offY2 = (nBackY+1) * dY;
+		int inBackX = (int)fReposX;
+		int inBackY = (int)fReposY;
 		
+		int offBackX = inBackX * dX;
+		int offBackY = inBackY * dY;
+		int offX2 = (inBackX+1) * dX;
+		int offY2 = (inBackY+1) * dY;
+		
+#ifdef __APPLE_ALTIVEC__
+		vector float *bZZ = (vector float*)fluidFloatPointer(src, offBackX + offBackY);
+		vector float *bOZ = (vector float*)fluidFloatPointer(src, offX2 + offBackY);
+		vector float *bZO = (vector float*)fluidFloatPointer(src, offBackX + offY2);
+		vector float *bOO = (vector float*)fluidFloatPointer(src, offX2 + offY2);
+		
+		vector float vSx = {scaleX, scaleX, scaleX, scaleX};
+		vector float vSy = {scaleY, scaleY, scaleY, scaleY};
+		vector float vOne = {1,1,1,1};
+		vector float vZero = {0,0,0,0};
+		
+		vector float *vDst = (vector float*)fDst;
+		
+		int c;
+		for (c=0; c<dC/4; c++)
+		{
+			vDst[c] = vec_madd(
+							vec_sub(vOne, vSy),
+							vec_madd(
+								vec_sub(vOne, vSx),
+								bZZ[c],
+								vec_madd(vSx, bOZ[c], vZero)),
+						vec_madd(
+							vSy,
+							vec_madd(
+								vec_sub(vOne, vSx),
+								bZO[c],
+								vec_madd(vSx,bOO[c],vZero)),
+							vZero));
+		}
+#else
 		float *bZZ = fluidFloatPointer(src, offBackX + offBackY);
 		float *bOZ = fluidFloatPointer(src, offX2 + offBackY);
 		float *bZO = fluidFloatPointer(src, offBackX + offY2);
@@ -56,6 +91,7 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 			fDst[c] = fluidLinearInterpolation(scaleX, scaleY,
 											bZZ[c], bOZ[c], bZO[c], bOO[c]);
 		}
+#endif
 	}
 }
 
