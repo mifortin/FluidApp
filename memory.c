@@ -67,9 +67,11 @@ void x_retain(void *in_o)
 
 //Handle the key used for per-thread exceptions...
 pthread_key_t g_except_key;
+pthread_key_t g_error_key;
 void x_init()
 {
 	pthread_key_create(&g_except_key, NULL);
+	pthread_key_create(&g_error_key, NULL);
 }
 
 
@@ -97,7 +99,15 @@ void x_raise(error *e)
 		abort();
 	}
 	
-	_longjmp(*jmp, (int)e);
+	errorAssert(pthread_setspecific(g_error_key, e) == 0, error_create,
+				"Failed setting key to error");
+	
+	_longjmp(*jmp, 1);
+}
+
+error *x_raisedError()
+{
+	return pthread_getspecific(g_error_key);
 }
 
 double x_time()

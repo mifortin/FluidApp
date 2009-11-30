@@ -8,8 +8,12 @@
 
 #include "error.h"
 
+//The used protocol
 #define NETS_UDP	0x00000001
 #define NETS_TCP	0x00000002
+
+//Should a single client be used?
+#define NETS_SINGLE_CLIENT	0x00000010
 
 ////////////////////////////////////////////////////////////////////////////////
 //Creation of clients (connection to another machine)
@@ -41,6 +45,11 @@ typedef int(*netServerFn_onConnect)(void *d, netServer *in_svr,
 //fn_oConn on a new thread...	The server is on a new thread...
 netServer *netServerCreate(char *port, int flags, void *in_d,
 												netServerFn_onConnect fn_oConn);
+
+//Query the quit status of the server.  Sometimes the server is being shut-down,
+//but still handling requests.  This ensures that the server shuts down
+//properly.
+int netServerTryingToQuit(netServer *in_server);
 
 
 ////////////////////////////////////////////////////////////////////////////////

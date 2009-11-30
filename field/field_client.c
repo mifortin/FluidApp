@@ -50,10 +50,10 @@ restart:
 	for (x=0; x<32; x++)
 		mtx.dimStride[x] = 0;
 	
-	mtx.dim[0] = fieldWidth(fc->fld_sending);
-	mtx.dim[1] = fieldHeight(fc->fld_sending);
-	mtx.dimStride[0] = fieldStrideX(fc->fld_sending);
-	mtx.dimStride[1] = fieldStrideY(fc->fld_sending);
+	mtx.dim[0] =htonl(fieldWidth(fc->fld_sending));
+	mtx.dim[1] = htonl(fieldHeight(fc->fld_sending));
+	mtx.dimStride[0] = htonl(fieldStrideX(fc->fld_sending));
+	mtx.dimStride[1] = htonl(fieldStrideY(fc->fld_sending));
 	
 	struct fieldServerJitHeader head =	{htonl('JMTX'),
 									htonl(sizeof(mtx))};
@@ -124,18 +124,18 @@ fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
 	pthread_mutex_init(&fc->mtx, NULL);
 	x_pthread_cond_init(&fc->cnd, NULL);
 	
-	char szPort[64];
-	snprintf(szPort, 64, "%i",in_port);
 	x_try
 	{
+		char szPort[64];
+		snprintf(szPort, 64, "%i",in_port);
 		fc->client = netClientCreate(szHost, szPort, NETS_TCP);
-		
 		x_pthread_create(&fc->thr, NULL, fieldClientThread, fc);
 	}
 	x_catch(e)
-	{ /* Skip this error... */ }
+	{
+		errorListAdd(e);
+	}
 	x_finally
-	{}
 	
 	return fc;
 }

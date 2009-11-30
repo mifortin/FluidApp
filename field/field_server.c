@@ -169,7 +169,7 @@ fieldServer *fieldServerCreate(int in_width, int in_height, int in_components,
 	char szPort[64];
 	snprintf(szPort, 64, "%i", in_port);
 	
-	r->server = netServerCreate(szPort, NETS_TCP, r, fieldServerOnConnect);
+	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
 	
 	return r;
 }

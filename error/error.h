@@ -22,18 +22,40 @@
 
 typedef struct error error;
 
-error *errorCreate(error *in_prev, int in_code, const char *in_text, ...);
+error *errorCreate_pvt(int in_line, const char *szFile, error *in_prev, int in_code, const char *in_text, ...);
+#define errorCreate(prev, code, text, args...) \
+	errorCreate_pvt(__LINE__, __FILE__, prev, code, text, ## args)
+
 error *errorReply(error *in_error, int in_reply_code, const char *in_text, ...);
 
 error *errorNext(error *in_error);
 
-error *errorReplyTo(error *in_error);
-
 int errorCode(error *in_error);
+
 const char *errorMsg(error *in_error);
+int errorLine(error *in_error);
+const char *errorFile(error *in_error);
 
 //Extensions to raise exceptions more easily
-void errorRaise(int in_code, const char *in_text, ...);
-void errorAssert(int condition, int in_code, const char *in_text, ...);
+void errorRaise_pvt(int in_line, const char *szFile, int in_code, const char *in_text, ...);
+
+#define errorRaise(code, text, args...) \
+	errorRaise_pvt(__LINE__, __FILE__, code, text, ## args)
+
+#define errorAssert(condition, code, text, args...) \
+	if (!(condition)) errorRaise(code,text, ## args)
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Sometimes we need a way to store errors; (recuperated from them,
+//	but should list them somewhere consistent.)
+//
+//		This is the place.
+//
+void errorListAdd(error *in_error);
+
+void errorListReset();			//To fetch the errors added to the list
+error *errorListNext();
 
 #endif
