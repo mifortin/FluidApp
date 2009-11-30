@@ -392,7 +392,6 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	int w = fieldWidth(p->velX);
 	int h = fieldHeight(p->velX);
 	
-	int sx = fieldStrideX(p->velX);
 	int sy = fieldStrideY(p->velY);
 	
 	float *velX = fieldData(p->velX);
@@ -407,13 +406,55 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	{
 	}
 	else
-	{		
+	{
+//#undef __APPLE_ALTIVEC__
+#ifdef __APPLE_ALTIVEC__
+		int x;
+		
+		vector float vNegNine = {-9,-9,-9,-9};
+		vector float vNine = {9,9,9,9};
+		
+		vector float *vVelX = (vector float*)fluidFloatPointer(velX,y*sy);
+		vector float *vVelY = (vector float*)fluidFloatPointer(velY,y*sy);
+		vector float *vPressureN = (vector float*)fluidFloatPointer(pressure,(y+1)*sy);
+		vector float *vPressureP = (vector float*)fluidFloatPointer(pressure,(y-1)*sy);
+		vector float *vPressure = (vector float*)fluidFloatPointer(pressure,y*sy);
+		
+		w/=4;
+		
+		for (x=1; x<w-1; x++)
+		{
+			vector float sl = vec_sld(vPressure[x], vPressure[x+1], 4);
+			vector float sr = vec_sld(vPressure[x-1], vPressure[x], 12);
+			
+			vector float tmp = vec_sub(sl, sr);
+			tmp = vec_sub(vVelX[x], tmp);
+			
+			vector bool int mask = vec_cmpgt(tmp, vNine);
+			tmp = vec_sel(tmp, vNine, mask);
+			
+			mask = vec_cmplt(tmp, vNegNine);
+			vVelX[x] = vec_sel(tmp, vNegNine, mask);
+		}
+		for (x=1; x<w-1; x++)
+		{			
+			vector float tmp = vec_sub(vPressureN[x], vPressureP[x]);
+			tmp = vec_sub(vVelY[x], tmp);
+			
+			vector bool int mask = vec_cmpgt(tmp, vNine);
+			tmp = vec_sel(tmp, vNine, mask);
+			
+			mask = vec_cmplt(tmp, vNegNine);
+			vVelY[x] = vec_sel(tmp, vNegNine, mask);
+		}
+#else
+		int sx = fieldStrideX(p->velX);
 		int x;
 		for (x=1; x<w-1; x++)
 		{
 			*fluidFloatPointer(velX,x*sx + y*sy)
 				-= *fluidFloatPointer(pressure,(x+1)*sx+y*sy)
-					- *fluidFloatPointer(pressure,(x-1)*sx+y*sy);
+						- *fluidFloatPointer(pressure,(x-1)*sx+y*sy);
 			
 			
 			*fluidFloatPointer(velX,x*sx + y*sy)
@@ -430,5 +471,6 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			*fluidFloatPointer(velY,x*sx + y*sy)
 				= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
 		}
+#endif
 	}
 }

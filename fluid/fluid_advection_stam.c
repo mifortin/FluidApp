@@ -5,6 +5,7 @@
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
+#include <math.h>
 
 //Basic advection of only the velocity...
 void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
@@ -28,20 +29,22 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	float bZZ_x, bOZ_x, bZO_x, bOO_x, bZZ_y, bOZ_y, bZO_y, bOO_y;
 	
 	//Loop over the data and do the desired computation
-	for (x=0; x<w; x++)
+	float fx;
+	float fy = (float)y;
+	for (x=0, fx=0; x<w; x++, fx++)
 	{
 		float fDataX = fluidFloatPointer(velX, x*sX + y*sY)[0];
 		float fDataY = fluidFloatPointer(velY, x*sX + y*sY)[0];
 		
 		//Find the cell back in time	(keep a -10,10 radius)
-		float backX = -timestep * fDataX + (float)x;
-		float backY = -timestep * fDataY + (float)y;
+		float backX = -timestep * fDataX + fx;
+		float backY = -timestep * fDataY + fy;
 		
 		int nBackX = (int)backX;
 		int nBackY = (int)backY;
 		
-		float scaleX = backX - (float)nBackX;
-		float scaleY = backY - (float)nBackY;
+		float scaleX = backX - floorf(nBackX);
+		float scaleY = backY - floorf(nBackY);
 		
 		//Clamp as it's easier to parallelize given the scheduler
 		nBackX = fluidClamp(nBackX, 0,w-2);
@@ -53,8 +56,8 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		int offBackX = nBackX * sX;
 		int offBackY = nBackY * sY;
-		int offX2 = (nBackX+1)*sX;
-		int offY2 = (nBackY+1)*sY;
+		int offX2 = offBackX + sX;
+		int offY2 = offBackY + sY;
 		
 		bZZ_x = fluidFloatPointer(velX, offBackX + offBackY)[0];
 		bOZ_x = fluidFloatPointer(velX, offX2 + offBackY)[0];

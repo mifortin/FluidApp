@@ -153,7 +153,7 @@ void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 		f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
 		f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
 		f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
-		f->m_fns[curFn].times = f->m_times + TIME_PRESSURE;
+		f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_PRESSURE;
 		
 		int i;
 		for (i=0; i<in_iterations; i++)

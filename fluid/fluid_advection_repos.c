@@ -14,8 +14,108 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	int x;										//Simple looping var
 	int w = fieldWidth(data->srcVelX);			//Width of the data
 	int h = fieldHeight(data->srcVelX);
-	int sX = fieldStrideX(data->srcVelX);
 	int sY = fieldStrideY(data->srcVelY);
+	float timestep = data->timestep;
+	
+#ifdef __APPLE_ALTIVEC__
+	int curxy = y*sY;
+	
+	
+	vector float *srcVelX		= (vector float *)fluidFloatPointer(fieldData(data->srcVelX), curxy);
+	vector float *srcVelY		= (vector float *)fluidFloatPointer(fieldData(data->srcVelY), curxy);
+	
+	vector float *srcErrVelX	= (vector float *)fluidFloatPointer(fieldData(data->srcErrVelX), curxy);
+	vector float *srcErrVelY	= (vector float *)fluidFloatPointer(fieldData(data->srcErrVelY), curxy);
+	
+	vector float *srcAdvX		= (vector float *)fluidFloatPointer(fieldData(data->srcAdvX), curxy);
+	vector float *srcAdvY		= (vector float *)fluidFloatPointer(fieldData(data->srcAdvY), curxy);
+	
+	vector float *dstReposX		= (vector float *)fluidFloatPointer(fieldData(data->dstReposX), curxy);
+	vector float *dstReposY		= (vector float *)fluidFloatPointer(fieldData(data->dstReposY), curxy);
+	
+	vector float *dstVelX		= (vector float *)fluidFloatPointer(fieldData(data->dstVelX), curxy);
+	vector float *dstVelY		= (vector float *)fluidFloatPointer(fieldData(data->dstVelY), curxy);
+	
+	vector float vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
+	vector float negTimestep = {-timestep, -timestep, -timestep, -timestep};
+	vector float vTimestep = {timestep, timestep, timestep, timestep};
+	vector float vZero = {0,0,0,0};
+	
+	vector float vNine = {9,9,9,9};
+	vector float vNegNine = {-9,-9,-9,-9};
+	vector float wm2 = {w-2,w-2,w-2,w-2};
+	vector float hm2 = {h-2,h-2,h-2,h-2};
+	
+	vector float vOne = {4,4,4,4};
+	vector float v1234 = {0,1,2,3};
+	
+	w/=4;
+	
+	for (x=0; x<w; x++)
+	{
+		vector float errX = vec_sub(srcErrVelX[x], srcVelX[x]);
+		dstVelX[x] = vec_madd(vHalf, errX, srcAdvX[x]);
+	}
+	
+	for (x=0; x<w; x++)
+	{		
+		vector float tmp = vec_madd(
+								negTimestep,
+								srcVelX[x],
+								vec_madd(
+									vTimestep,
+									vec_madd(vHalf,vec_sub(srcErrVelX[x],srcVelX[x]),vZero),
+									 vZero));
+		
+		vector bool int mask = vec_cmpgt(tmp, vNine);
+		tmp = vec_sel(tmp, vNine, mask);
+		
+		mask = vec_cmplt(tmp, vNegNine);
+		tmp = vec_sel(tmp, vNegNine, mask);
+		
+		tmp = vec_add(tmp, v1234);
+		v1234 = vec_add(v1234, vOne);
+		
+		mask = vec_cmpgt(tmp, wm2);
+		tmp = vec_sel(tmp, wm2, mask);
+		
+		mask = vec_cmplt(tmp, vZero);
+		dstReposX[x] = vec_sel(tmp, vZero, mask);
+	}
+	
+	for (x=0; x<w; x++)
+	{
+		vector float errY = vec_sub(srcErrVelY[x], srcVelY[x]);
+		dstVelY[x] = vec_madd(vHalf, errY, srcAdvY[x]);
+	}
+	
+  vector float vY = {y,y,y,y};
+	for (x=0; x<w; x++)
+	{
+		vector float tmp = vec_madd(
+						negTimestep,
+						srcVelY[x],
+						vec_madd(
+							 vTimestep,
+							 vec_madd(vHalf,vec_sub(srcErrVelY[x],srcVelY[x]),vZero),
+							 vZero));
+		
+		vector bool int mask = vec_cmpgt(tmp, vNine);
+		tmp = vec_sel(tmp, vNine, mask);
+		
+		mask = vec_cmplt(tmp, vNegNine);
+		tmp = vec_sel(tmp, vNegNine, mask);
+		
+		tmp = vec_add(tmp, vY);
+		
+		mask = vec_cmpgt(tmp, hm2);
+		tmp = vec_sel(tmp, hm2, mask);
+		
+		mask = vec_cmplt(tmp, vZero);
+		dstReposY[x] = vec_sel(tmp, vZero, mask);
+	}
+#else
+	int sX = fieldStrideX(data->srcVelX);
 	
 	float *srcVelX		= fieldData(data->srcVelX);
 	float *srcVelY		= fieldData(data->srcVelY);
@@ -32,7 +132,6 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	float *dstVelX		= fieldData(data->dstVelX);
 	float *dstVelY		= fieldData(data->dstVelY);
 	
-	float timestep = data->timestep;
 	
 	int curxy = y*sY;
 	for (x=0; x<w; x++)
@@ -130,4 +229,5 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		curxy += sX;
 	}
+#endif
 }

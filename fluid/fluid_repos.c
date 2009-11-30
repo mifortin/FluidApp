@@ -27,6 +27,11 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	float *src = fieldData(data->src);
 	float *dst = fieldData(data->dst);
 	
+#ifdef __APPLE_ALTIVEC__
+	vector float vOne = {1,1,1,1};
+	vector float vZero = {0,0,0,0};
+#endif
+	
 	for (x=0; x<w; x++)
 	{
 		float fReposX = fluidFloatPointer(reposX, x*sX + y*sY)[0];
@@ -34,19 +39,19 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		float *fDst = fluidFloatPointer(dst, x*dX + y*dY);
 		
-		float nBackX = floorf(fReposX);
-		float nBackY = floorf(fReposY);
+		int inBackX = (int)fReposX;
+		int inBackY = (int)fReposY;
+		
+		float nBackX = floorf(inBackX);
+		float nBackY = floorf(inBackY);
 		
 		float scaleX = fReposX - nBackX;
 		float scaleY = fReposY - nBackY;
 		
-		int inBackX = (int)fReposX;
-		int inBackY = (int)fReposY;
-		
 		int offBackX = inBackX * dX;
 		int offBackY = inBackY * dY;
-		int offX2 = (inBackX+1) * dX;
-		int offY2 = (inBackY+1) * dY;
+		int offX2 = offBackX + dX;
+		int offY2 = offBackY + dY;
 		
 #ifdef __APPLE_ALTIVEC__
 		vector float *bZZ = (vector float*)fluidFloatPointer(src, offBackX + offBackY);
@@ -56,8 +61,6 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		vector float vSx = {scaleX, scaleX, scaleX, scaleX};
 		vector float vSy = {scaleY, scaleY, scaleY, scaleY};
-		vector float vOne = {1,1,1,1};
-		vector float vZero = {0,0,0,0};
 		
 		vector float *vDst = (vector float*)fDst;
 		

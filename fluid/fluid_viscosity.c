@@ -144,7 +144,7 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = vec_add(tmp, vec_add(sl,sr));
 			vVelY[0] = vec_madd(tmp, vBeta, vZero);
 			
-			velYRow[0] = 0;//-velYRow[1];
+			velYRow[0] = -velYRow[1];
 		}
 		for (x=1; x<w/4-1; x++)
 		{
@@ -255,7 +255,7 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = _mm_add_ps(tmp, sr);
 			
 			vVelY[0] = _mm_mul_ps(tmp, vBeta);
-			velYRow[0] = 0;//-velYRow[1];
+			velYRow[0] = -velYRow[1];
 		}
 		for (x=1; x<w/4-1; x++)
 		{
