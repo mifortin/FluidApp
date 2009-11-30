@@ -14,6 +14,10 @@ void *fieldClientThread(void *o)
 {
 	fieldClient *fc = (fieldClient*)o;
 	netClient *c = fc->client;
+	
+	//Count the number of times we've sent data past 3, start
+	//receiving timing info.
+	int count = 0;
 
 restart:
 	pthread_mutex_lock(&fc->mtx);
@@ -59,6 +63,31 @@ restart:
 	netClientSendBinary(c, &mtx, sizeof(mtx));
 	netClientSendBinary(c, fieldData(fc->fld_sending), mtx.dataSize);
 	//printf("FIELD SENT!\n");
+	//
+	//	- 
+	//	- Crystallography (1950's tech)
+	//	- Protonomics
+	//
+	
+	if (count < 3)
+		count++;
+	else
+	{
+		struct fieldServerJitLatency latency;
+		netClientGetBinary(c, &latency, sizeof(latency), 10);
+		
+		if (htonl(latency.id) == 'JMLP')
+		{
+			//printf("LATENCY INFO:\n");
+			//printf(" - send: %f\n", latency.client_time);
+			//printf(" - receive: %f\n", latency.parsed_header);
+			//printf(" - complete: %f\n", latency.parsed_done);
+		}
+		else
+		{
+			printf("ERROR: NOT LATENCY!!\n");
+		}
+	}
 	
 	goto restart;
 }
@@ -97,9 +126,16 @@ fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
 	
 	char szPort[64];
 	snprintf(szPort, 64, "%i",in_port);
-	fc->client = netClientCreate(szHost, szPort, NETS_TCP);
-	
-	x_pthread_create(&fc->thr, NULL, fieldClientThread, fc);
+	x_try
+	{
+		fc->client = netClientCreate(szHost, szPort, NETS_TCP);
+		
+		x_pthread_create(&fc->thr, NULL, fieldClientThread, fc);
+	}
+	x_catch(e)
+	{ /* Skip this error... */ }
+	x_finally
+	{}
 	
 	return fc;
 }

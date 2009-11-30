@@ -12,8 +12,12 @@
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 
+#include <stdio.h>
+
 void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 {
+#ifdef __APPLE_ALTIVEC__
+#endif
 	struct viscosity *v = &mode->viscosity;
 	
 	int w = fieldWidth(v->velX);
