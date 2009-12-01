@@ -196,9 +196,9 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = _mm_add_ps(tmp, vVelXP[0]);
 			
 			//NB: right does left, left does right!  (little endian woes)
-			__m128 sl = _mm_srli_si128(vVelX[0],4);
-			__m128 sr = _mm_slli_si128(vVelX[0],4);
-			sl = _mm_add_ps(sl, _mm_slli_si128(vVelX[1],12));
+			__m128 sl = _mm_srli_sf128(vVelX[0],4);
+			__m128 sr = _mm_slli_sf128(vVelX[0],4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelX[1],12));
 			
 			tmp = _mm_add_ps(tmp, sl);
 			tmp = _mm_add_ps(tmp, sr);
@@ -213,10 +213,10 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = _mm_add_ps(tmp, vVelXN[x]);
 			tmp = _mm_add_ps(tmp, vVelXP[x]);
 			
-			__m128 sl = _mm_srli_si128(vVelX[x],4);
-			__m128 sr = _mm_slli_si128(vVelX[x],4);
-			sl = _mm_add_ps(sl, _mm_slli_si128(vVelX[x+1],12));
-			sr = _mm_add_ps(sr, _mm_srli_si128(vVelX[x-1],12));
+			__m128 sl = _mm_srli_sf128(vVelX[x],4);
+			__m128 sr = _mm_slli_sf128(vVelX[x],4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelX[x+1],12));
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vVelX[x-1],12));
 			
 			tmp = _mm_add_ps(tmp, sl);
 			tmp = _mm_add_ps(tmp, sr);
@@ -229,9 +229,9 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = _mm_add_ps(tmp, vVelXN[x]);
 			tmp = _mm_add_ps(tmp, vVelXP[x]);
 			
-			__m128 sl = _mm_srli_si128(vVelX[x],4);
-			__m128 sr = _mm_slli_si128(vVelX[x],4);
-			sr = _mm_add_ps(sr, _mm_srli_si128(vVelX[x-1],12));
+			__m128 sl = _mm_srli_sf128(vVelX[x],4);
+			__m128 sr = _mm_slli_sf128(vVelX[x],4);
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vVelX[x-1],12));
 			
 			tmp = _mm_add_ps(tmp, sl);
 			tmp = _mm_add_ps(tmp, sr);
@@ -247,9 +247,9 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = _mm_add_ps(tmp, vVelYN[0]);
 			tmp = _mm_add_ps(tmp, vVelYP[0]);
 			
-			__m128 sl = _mm_srli_si128(vVelY[0],4);
-			__m128 sr = _mm_slli_si128(vVelY[0],4);
-			sl = _mm_add_ps(sl, _mm_slli_si128(vVelY[1],12));
+			__m128 sl = _mm_srli_sf128(vVelY[0],4);
+			__m128 sr = _mm_slli_sf128(vVelY[0],4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelY[1],12));
 			
 			tmp = _mm_add_ps(tmp, sl);
 			tmp = _mm_add_ps(tmp, sr);
@@ -264,10 +264,10 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = _mm_add_ps(tmp, vVelYN[x]);
 			tmp = _mm_add_ps(tmp, vVelYP[x]);
 			
-			__m128 sl = _mm_srli_si128(vVelY[x],4);
-			__m128 sr = _mm_slli_si128(vVelY[x],4);
-			sl = _mm_add_ps(sl, _mm_slli_si128(vVelY[x+1],12));
-			sr = _mm_add_ps(sr, _mm_srli_si128(vVelY[x-1],12));
+			__m128 sl = _mm_srli_sf128(vVelY[x],4);
+			__m128 sr = _mm_slli_sf128(vVelY[x],4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelY[x+1],12));
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vVelY[x-1],12));
 			
 			tmp = _mm_add_ps(tmp, sl);
 			tmp = _mm_add_ps(tmp, sr);
@@ -280,9 +280,9 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = _mm_add_ps(tmp, vVelYN[x]);
 			tmp = _mm_add_ps(tmp, vVelYP[x]);
 			
-			__m128 sl = _mm_srli_si128(vVelY[x],4);
-			__m128 sr = _mm_slli_si128(vVelY[x],4);
-			sr = _mm_add_ps(sr, _mm_srli_si128(vVelY[x-1],12));
+			__m128 sl = _mm_srli_sf128(vVelY[x],4);
+			__m128 sr = _mm_slli_sf128(vVelY[x],4);
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vVelY[x-1],12));
 			
 			tmp = _mm_add_ps(tmp, sl);
 			tmp = _mm_add_ps(tmp, sr);

@@ -3,6 +3,14 @@
  *  FluidApp
  */
 
+#ifdef __SSE3__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+//#undef __SSE3__
+#endif
+
+
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 #include <math.h>
@@ -30,6 +38,8 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 #ifdef __APPLE_ALTIVEC__
 	vector float vOne = {1,1,1,1};
 	vector float vZero = {0,0,0,0};
+#elif defined __SSE3__
+	__m128 vOne = {1,1,1,1};
 #endif
 	
 	for (x=0; x<w; x++)
@@ -42,8 +52,8 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		int inBackX = (int)fReposX;
 		int inBackY = (int)fReposY;
 		
-		float nBackX = floorf(inBackX);
-		float nBackY = floorf(inBackY);
+		float nBackX = (float)(inBackX);
+		float nBackY = (float)(inBackY);
 		
 		float scaleX = fReposX - nBackX;
 		float scaleY = fReposY - nBackY;
@@ -80,6 +90,34 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 								bZO[c],
 								vec_madd(vSx,bOO[c],vZero)),
 							vZero));
+		}
+#elif defined __SSE3__
+		__m128 *bZZ = (__m128*)fluidFloatPointer(src, offBackX + offBackY);
+		__m128 *bOZ = (__m128*)fluidFloatPointer(src, offX2 + offBackY);
+		__m128 *bZO = (__m128*)fluidFloatPointer(src, offBackX + offY2);
+		__m128 *bOO = (__m128*)fluidFloatPointer(src, offX2 + offY2);
+		
+		__m128 vSx = {scaleX, scaleX, scaleX, scaleX};
+		__m128 vSy = {scaleY, scaleY, scaleY, scaleY};
+		
+		__m128 *vDst = (__m128*)fDst;
+		
+		int c;
+		for (c=0; c<dC/4; c++)
+		{
+			vDst[c] = _mm_add_ps(_mm_mul_ps(
+							   _mm_sub_ps(vOne, vSy),
+							   _mm_add_ps(_mm_mul_ps(
+										_mm_sub_ps(vOne, vSx),
+										bZZ[c]),
+										_mm_mul_ps(vSx, bOZ[c]))),
+							   _mm_mul_ps(
+										vSy,
+										_mm_add_ps(_mm_mul_ps(
+												 _mm_sub_ps(vOne, vSx),
+												 bZO[c]),
+												 _mm_mul_ps(vSx,bOO[c]))
+										));
 		}
 #else
 		float *bZZ = fluidFloatPointer(src, offBackX + offBackY);

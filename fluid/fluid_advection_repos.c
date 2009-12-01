@@ -2,6 +2,12 @@
  *  fluid_advection_repos.c
  *  FluidApp
  */
+#ifdef __SSE3__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+//#undef __SSE3__
+#endif
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
@@ -114,6 +120,96 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		mask = vec_cmplt(tmp, vZero);
 		dstReposY[x] = vec_sel(tmp, vZero, mask);
 	}
+
+#elif defined __SSE3__
+	
+	int curxy = y*sY;
+	
+	__m128 *srcVelX		= (__m128 *)fluidFloatPointer(fieldData(data->srcVelX), curxy);
+	__m128 *srcVelY		= (__m128 *)fluidFloatPointer(fieldData(data->srcVelY), curxy);
+	
+	__m128 *srcErrVelX	= (__m128 *)fluidFloatPointer(fieldData(data->srcErrVelX), curxy);
+	__m128 *srcErrVelY	= (__m128 *)fluidFloatPointer(fieldData(data->srcErrVelY), curxy);
+	
+	__m128 *srcAdvX		= (__m128 *)fluidFloatPointer(fieldData(data->srcAdvX), curxy);
+	__m128 *srcAdvY		= (__m128 *)fluidFloatPointer(fieldData(data->srcAdvY), curxy);
+	
+	__m128 *dstReposX		= (__m128 *)fluidFloatPointer(fieldData(data->dstReposX), curxy);
+	__m128 *dstReposY		= (__m128 *)fluidFloatPointer(fieldData(data->dstReposY), curxy);
+	
+	__m128 *dstVelX		= (__m128 *)fluidFloatPointer(fieldData(data->dstVelX), curxy);
+	__m128 *dstVelY		= (__m128 *)fluidFloatPointer(fieldData(data->dstVelY), curxy);
+	
+	__m128 vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
+	__m128 negTimestep = {-timestep, -timestep, -timestep, -timestep};
+	__m128 vTimestep = {timestep, timestep, timestep, timestep};
+	__m128 vZero = {0,0,0,0};
+	
+	__m128 vNine = {9,9,9,9};
+	__m128 vNegNine = {-9,-9,-9,-9};
+	__m128 wm2 = {w-2,w-2,w-2,w-2};
+	__m128 hm2 = {h-2,h-2,h-2,h-2};
+	
+	__m128 vOne = {4,4,4,4};
+	__m128 v1234 = {0,1,2,3};
+	
+	w/=4;
+	
+	for (x=0; x<w; x++)
+	{
+		__m128 errX = _mm_sub_ps(srcErrVelX[x], srcVelX[x]);
+		dstVelX[x] = _mm_add_ps(_mm_mul_ps(vHalf, errX), srcAdvX[x]);
+	}
+	
+	for (x=0; x<w; x++)
+	{		
+		__m128 tmp = _mm_add_ps(_mm_mul_ps(
+							negTimestep,
+							srcVelX[x]),
+							_mm_mul_ps(
+									 vTimestep,
+									 _mm_mul_ps(
+											  vHalf,
+											  _mm_sub_ps(srcErrVelX[x],srcVelX[x]))
+									));
+		
+		tmp = _mm_min_ps(tmp, vNine);
+		tmp = _mm_max_ps(tmp, vNegNine);
+		
+		tmp = _mm_add_ps(tmp, v1234);
+		v1234 = _mm_add_ps(v1234, vOne);
+		
+		tmp = _mm_min_ps(tmp, wm2);
+		dstReposX[x] = _mm_max_ps(tmp, vZero);
+	}
+	
+	for (x=0; x<w; x++)
+	{
+		__m128 errY = _mm_sub_ps(srcErrVelY[x], srcVelY[x]);
+		dstVelY[x] = _mm_add_ps(_mm_mul_ps(vHalf, errY), srcAdvY[x]);
+	}
+	
+	__m128 vY = {y,y,y,y};
+	for (x=0; x<w; x++)
+	{
+		__m128 tmp = _mm_add_ps(_mm_mul_ps(
+								negTimestep,
+								srcVelY[x]),
+								_mm_mul_ps(
+									 vTimestep,
+									 _mm_mul_ps(
+										vHalf,
+									_mm_sub_ps(srcErrVelY[x],srcVelY[x]))));
+		
+		tmp = _mm_min_ps(tmp, vNine);
+		tmp = _mm_max_ps(tmp, vNegNine);
+		
+		tmp = _mm_add_ps(tmp, vY);
+		
+		tmp = _mm_min_ps(tmp, hm2);
+		dstReposY[x] = _mm_max_ps(tmp, vZero);
+	}
+	
 #else
 	int sX = fieldStrideX(data->srcVelX);
 	

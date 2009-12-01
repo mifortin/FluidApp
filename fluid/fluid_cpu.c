@@ -214,7 +214,7 @@ void fluidTaskVorticity(fluid *f)
 	f->m_fns[curFn].mode.vorticity.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.vorticity.z = f->r_tmpVelX;
 	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
-	f->m_fns[curFn].times = f->m_times + TIME_VORTICITY;
+	f->m_fns[curFn].times = /*NULL; //*/f->m_times + TIME_VORTICITY;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	
@@ -228,7 +228,7 @@ void fluidTaskVorticity(fluid *f)
 	f->m_fns[curFn].mode.vorticity.velY = f->r_velocityY;
 	f->m_fns[curFn].mode.vorticity.z = f->r_tmpVelX;
 	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
-	f->m_fns[curFn].times = f->m_times + TIME_VORTICITY;
+	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_VORTICITY;
 	
 	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
 	

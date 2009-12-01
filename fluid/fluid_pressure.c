@@ -7,6 +7,7 @@
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #include <pmmintrin.h>
+#include <tmmintrin.h>
 //#undef __SSE3__
 #endif
 
@@ -24,7 +25,10 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	int w = fieldWidth(p->velX);
 	int h = fieldHeight(p->velX);
 	
+#ifdef __SSE3__
+#else
 	int sx = fieldStrideX(p->velX);
+#endif
 	int sy = fieldStrideY(p->velY);
 	
 	float *velX = fieldData(p->velX);
@@ -34,20 +38,46 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	if (y == 0)
 	{
+#ifdef __SSE3__
+		__m128 *vPressure = (__m128*)fluidFloatPointer(pressure, 0*sy);
+		__m128 *vPressureP = (__m128*)fluidFloatPointer(pressure, 1*sy);
+		
+		int x;
+		w/=4;
+		for (x=0; x<w; x++)
+		{
+			vPressure[x] = vPressureP[x];
+		}
+		
+#else
 		int x;
 		for (x=0; x<w; x++)
 		{
 			fluidFloatPointer(pressure,x*sx)[0] = fluidFloatPointer(pressure,x*sx + sy)[0];
 		}
+#endif
 	}
 	else if (y == h-1)
 	{
+#ifdef __SSE3__
+		__m128 *vPressure = (__m128*)fluidFloatPointer(pressure, y*sy);
+		__m128 *vPressureP = (__m128*)fluidFloatPointer(pressure, (y-1)*sy);
+		
+		int x;
+		w/=4;
+		for (x=0; x<w; x++)
+		{
+			vPressure[x] = vPressureP[x];
+		}
+		
+#else
 		int x;
 		for (x=0; x<w; x++)
 		{
 			fluidFloatPointer(pressure,x*sx + y*sy)[0] =
 					fluidFloatPointer(pressure,x*sx + (y-1)*sy)[0];
 		}
+#endif
 	}
 	else
 	{
@@ -159,15 +189,15 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 tmp;
 			
 			//Compute shifts
-			__m128 sl_p = _mm_srli_si128(vPressure[0],4);
-			sl_p = _mm_add_ps(sl_p,_mm_slli_si128(vPressure[1],12));
+			__m128 sl_p = _mm_srli_sf128(vPressure[0],4);
+			sl_p = _mm_add_ps(sl_p,_mm_slli_sf128(vPressure[1],12));
 			
-			__m128 sr_p = _mm_slli_si128(vPressure[0],4);
+			__m128 sr_p = _mm_slli_sf128(vPressure[0],4);
 			
-			__m128 sl_vx = _mm_srli_si128(vVelX[0],4);
-			sl_vx = _mm_add_ps(sl_vx,_mm_slli_si128(vVelX[1],12));
+			__m128 sl_vx = _mm_srli_sf128(vVelX[0],4);
+			sl_vx = _mm_add_ps(sl_vx,_mm_slli_sf128(vVelX[1],12));
 			
-			__m128 sr_vx = _mm_slli_si128(vVelX[0],4);
+			__m128 sr_vx = _mm_slli_sf128(vVelX[0],4);
 			
 			//Sum everything!!!
 			tmp = _mm_add_ps(sl_p, sr_p);
@@ -186,17 +216,17 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 tmp;
 			
 			//Compute shifts
-			__m128 sl_p = _mm_srli_si128(vPressure[x],4);
-			sl_p = _mm_add_ps(sl_p,_mm_slli_si128(vPressure[x+1],12));
+			__m128 sl_p = _mm_srli_sf128(vPressure[x],4);
+			sl_p = _mm_add_ps(sl_p,_mm_slli_sf128(vPressure[x+1],12));
 			
-			__m128 sr_p = _mm_slli_si128(vPressure[x],4);
-			sr_p = _mm_add_ps(sr_p,_mm_srli_si128(vPressure[x-1],12));
+			__m128 sr_p = _mm_slli_sf128(vPressure[x],4);
+			sr_p = _mm_add_ps(sr_p,_mm_srli_sf128(vPressure[x-1],12));
 			
-			__m128 sl_vx = _mm_srli_si128(vVelX[x],4);
-			sl_vx = _mm_add_ps(sl_vx,_mm_slli_si128(vVelX[x+1],12));
+			__m128 sl_vx = _mm_srli_sf128(vVelX[x],4);
+			sl_vx = _mm_add_ps(sl_vx,_mm_slli_sf128(vVelX[x+1],12));
 			
-			__m128 sr_vx = _mm_slli_si128(vVelX[x],4);
-			sr_vx = _mm_add_ps(sr_vx,_mm_srli_si128(vVelX[x-1],12));
+			__m128 sr_vx = _mm_slli_sf128(vVelX[x],4);
+			sr_vx = _mm_add_ps(sr_vx,_mm_srli_sf128(vVelX[x-1],12));
 			
 			//Sum everything!!!
 			tmp = _mm_add_ps(sl_p, sr_p);
@@ -213,15 +243,15 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 tmp;
 			
 			//Compute shifts
-			__m128 sl_p = _mm_srli_si128(vPressure[x],4);
+			__m128 sl_p = _mm_srli_sf128(vPressure[x],4);
 			
-			__m128 sr_p = _mm_slli_si128(vPressure[x],4);
-			sr_p = _mm_add_ps(sr_p,_mm_srli_si128(vPressure[x-1],12));
+			__m128 sr_p = _mm_slli_sf128(vPressure[x],4);
+			sr_p = _mm_add_ps(sr_p,_mm_srli_sf128(vPressure[x-1],12));
 			
-			__m128 sl_vx = _mm_srli_si128(vVelX[x],4);
+			__m128 sl_vx = _mm_srli_sf128(vVelX[x],4);
 			
-			__m128 sr_vx = _mm_slli_si128(vVelX[x],4);
-			sr_vx = _mm_add_ps(sr_vx,_mm_srli_si128(vVelX[x-1],12));
+			__m128 sr_vx = _mm_slli_sf128(vVelX[x],4);
+			sr_vx = _mm_add_ps(sr_vx,_mm_srli_sf128(vVelX[x-1],12));
 			
 			//Sum everything!!!
 			tmp = _mm_add_ps(sl_p, sr_p);
@@ -446,6 +476,85 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			
 			mask = vec_cmplt(tmp, vNegNine);
 			vVelY[x] = vec_sel(tmp, vNegNine, mask);
+		}
+#elif defined __SSE3__
+		int x;
+		
+		__m128 vNegNine = {-9,-9,-9,-9};
+		__m128 vNine = {9,9,9,9};
+		
+		__m128 *vVelX = (__m128*)fluidFloatPointer(velX,y*sy);
+		__m128 *vVelY = (__m128*)fluidFloatPointer(velY,y*sy);
+		__m128 *vPressureN = (__m128*)fluidFloatPointer(pressure,(y+1)*sy);
+		__m128 *vPressureP = (__m128*)fluidFloatPointer(pressure,(y-1)*sy);
+		__m128 *vPressure = (__m128*)fluidFloatPointer(pressure,y*sy);
+		
+		w/=4;
+		
+		{
+			__m128 sl = _mm_srli_sf128(vPressure[0], 4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vPressure[1],12));
+			
+			__m128 sr = _mm_slli_sf128(vPressure[0], 4);
+			
+			__m128 tmp = _mm_sub_ps(sl, sr);
+			__m128i mask = {0x00000000FFFFFFFF,0xFFFFFFFFFFFFFFFF};
+			tmp = _mm_sub_ps(vVelX[0], _mm_and_ps((__m128)mask,tmp));
+			
+			vVelX[0] = _mm_max_ps(tmp, vNegNine);
+			vVelX[0] = _mm_min_ps(vVelX[0], vNine);
+		}
+		for (x=1; x<w-1; x++)
+		{
+			__m128 sl = _mm_srli_sf128(vPressure[x], 4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vPressure[x+1],12));
+			
+			__m128 sr = _mm_slli_sf128(vPressure[x], 4);
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vPressure[x-1], 12));
+			
+			__m128 tmp = _mm_sub_ps(sl, sr);
+			tmp = _mm_sub_ps(vVelX[x], tmp);
+			
+			vVelX[x] = _mm_max_ps(tmp, vNegNine);
+			vVelX[x] = _mm_min_ps(vVelX[x], vNine);
+		}
+		{
+			__m128 sl = _mm_srli_sf128(vPressure[x], 4);
+			
+			__m128 sr = _mm_slli_sf128(vPressure[x], 4);
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vPressure[x-1], 12));
+			
+			__m128i mask = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFF00000000};
+			__m128 tmp = _mm_sub_ps(sl, sr);
+			tmp = _mm_sub_ps(vVelX[x], _mm_and_ps((__m128)mask,tmp));
+			
+			vVelX[x] = _mm_max_ps(tmp, vNegNine);
+			vVelX[x] = _mm_min_ps(vVelX[x], vNine);
+		}
+		
+		{			
+			__m128 tmp = _mm_sub_ps(vPressureN[0], vPressureP[0]);
+			__m128i mask = {0x00000000FFFFFFFF,0xFFFFFFFFFFFFFFFF};
+			tmp = _mm_sub_ps(vVelY[0], _mm_and_ps((__m128)mask,tmp));
+			
+			vVelY[0] = _mm_max_ps(tmp, vNegNine);
+			vVelY[0] = _mm_min_ps(vVelY[0], vNine);
+		}
+		for (x=1; x<w-1; x++)
+		{			
+			__m128 tmp = _mm_sub_ps(vPressureN[x], vPressureP[x]);
+			tmp = _mm_sub_ps(vVelY[x], tmp);
+			
+			vVelY[x] = _mm_max_ps(tmp, vNegNine);
+			vVelY[x] = _mm_min_ps(vVelY[x], vNine);
+		}
+		{			
+			__m128 tmp = _mm_sub_ps(vPressureN[x], vPressureP[x]);
+			__m128i mask = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFF00000000};
+			tmp = _mm_sub_ps(vVelY[x], _mm_and_ps((__m128)mask,tmp));
+			
+			vVelY[x] = _mm_max_ps(tmp, vNegNine);
+			vVelY[x] = _mm_min_ps(vVelY[x], vNine);
 		}
 #else
 		int sx = fieldStrideX(p->velX);

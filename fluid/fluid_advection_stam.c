@@ -43,8 +43,8 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		int nBackX = (int)backX;
 		int nBackY = (int)backY;
 		
-		float scaleX = backX - floorf(nBackX);
-		float scaleY = backY - floorf(nBackY);
+		float scaleX = backX - (float)(nBackX);
+		float scaleY = backY - (float)(nBackY);
 		
 		//Clamp as it's easier to parallelize given the scheduler
 		nBackX = fluidClamp(nBackX, 0,w-2);

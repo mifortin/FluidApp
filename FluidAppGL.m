@@ -276,7 +276,7 @@
 		float *i2 = fieldData(fluidDensity(r_fluid));
 		for (x=0; x<t; x++)
 		{
-			i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
+			//i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
 		}
 		fieldServerUnlock(r_background);
 		
