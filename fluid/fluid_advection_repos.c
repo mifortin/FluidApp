@@ -73,20 +73,14 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 									vec_madd(vHalf,vec_sub(srcErrVelX[x],srcVelX[x]),vZero),
 									 vZero));
 		
-		vector bool int mask = vec_cmpgt(tmp, vNine);
-		tmp = vec_sel(tmp, vNine, mask);
-		
-		mask = vec_cmplt(tmp, vNegNine);
-		tmp = vec_sel(tmp, vNegNine, mask);
+		tmp = vec_min(vNine, tmp);
+		tmp = vec_max(vNegNine, tmp);
 		
 		tmp = vec_add(tmp, v1234);
 		v1234 = vec_add(v1234, vOne);
 		
-		mask = vec_cmpgt(tmp, wm2);
-		tmp = vec_sel(tmp, wm2, mask);
-		
-		mask = vec_cmplt(tmp, vZero);
-		dstReposX[x] = vec_sel(tmp, vZero, mask);
+		tmp = vec_min(tmp, wm2);
+		dstReposX[x] = vec_max(tmp, vZero);
 	}
 	
 	for (x=0; x<w; x++)
@@ -106,19 +100,13 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 							 vec_madd(vHalf,vec_sub(srcErrVelY[x],srcVelY[x]),vZero),
 							 vZero));
 		
-		vector bool int mask = vec_cmpgt(tmp, vNine);
-		tmp = vec_sel(tmp, vNine, mask);
-		
-		mask = vec_cmplt(tmp, vNegNine);
-		tmp = vec_sel(tmp, vNegNine, mask);
+		tmp = vec_min(vNine, tmp);
+		tmp = vec_max(vNegNine, tmp);
 		
 		tmp = vec_add(tmp, vY);
 		
-		mask = vec_cmpgt(tmp, hm2);
-		tmp = vec_sel(tmp, hm2, mask);
-		
-		mask = vec_cmplt(tmp, vZero);
-		dstReposY[x] = vec_sel(tmp, vZero, mask);
+		tmp = vec_min(tmp, hm2);
+		dstReposY[x] = vec_max(tmp, vZero);
 	}
 
 #elif defined __SSE3__

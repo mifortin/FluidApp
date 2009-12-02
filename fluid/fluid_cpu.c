@@ -41,7 +41,7 @@ void fluidTaskAddForwardAdvection(fluid *f)
 														f->m_timestep);
 	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
 	
-	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
+	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 0);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -59,7 +59,7 @@ void fluidTaskAddBackwardAdvection(fluid *f)
 														-f->m_timestep);
 	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
 	
-	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 1);
+	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 0);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -83,7 +83,7 @@ void fluidTaskCorrectorRepos(fluid *f)
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.timestep = f->m_timestep;
 	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
-	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 0);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -101,7 +101,7 @@ void fluidTaskAdvectDensity(fluid *f)
 	f->m_fns[curFn].mode.repos.dst = f->r_density_swap;
 	f->m_fns[curFn].times = /*NULL;//*/ f->m_times + TIME_ADVECTION;
 	
-	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 0);
 	
 	f->m_usedFunctions = curFn+1;
 	
@@ -216,7 +216,7 @@ void fluidTaskVorticity(fluid *f)
 	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
 	f->m_fns[curFn].times = /*NULL; //*/f->m_times + TIME_VORTICITY;
 	
-	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 0);
 	
 	f->m_usedFunctions = curFn+1;
 	
@@ -230,7 +230,7 @@ void fluidTaskVorticity(fluid *f)
 	f->m_fns[curFn].mode.vorticity.e = f->m_vorticity;
 	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_VORTICITY;
 	
-	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 1);
+	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 0);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -261,20 +261,31 @@ void fluidMP(void *in_o)
 	fluid *o = (fluid*)in_o;
 	mpCoherence *c = o->r_coherence;
 	
-	int tid, fn, tsk;
-	mpCTaskObtain(c, &tid, &fn, &tsk);
-	while (tid != -1)
+	x_try
 	{
-		//Execute the desired function from the list of functions...
-		o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
-		
-		//Fetch another function!
-		mpCTaskComplete(c, tid, fn, tsk,
-						&tid, &fn, &tsk);
+		int tid, fn, tsk;
+		mpCTaskObtain(c, &tid, &fn, &tsk);
+		//printf("Obtained first task %i %i %i\n",tid,fn,tsk);
+		while (tid != -1)
+		{
+			//Execute the desired function from the list of functions...
+			o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
+			
+			//Fetch another function!
+			mpCTaskComplete(c, tid, fn, tsk,
+							&tid, &fn, &tsk);
+			//printf("Obtained task %i %i %i\n",tid,fn,tsk);
+			
+		}
 	}
-	
-	
-	mpQueuePush(o->r_blocker, NULL);
+	x_catch(e)
+	{
+		errorListAdd(e);
+	}
+	x_finally
+	{
+		mpQueuePush(o->r_blocker, NULL);
+	}
 }
 
 //Version of fluidMP for debugging (eg. it captures timing information)

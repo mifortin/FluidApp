@@ -106,7 +106,6 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 	int h = fieldHeight(v->velX);
 	int w = fieldWidth(v->velX);
 	
-	int sx = fieldStrideX(v->velX);
 	int sy = fieldStrideY(v->velY);
 	
 	float *velX = fieldData(v->velX);
@@ -126,7 +125,124 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 	else
 	{
 //#undef __SSE3__
-#ifdef __SSE3__
+//#undef __APPLE_ALTIVEC__
+#ifdef __APPLE_ALTIVEC__
+		int vW = w/4;
+		
+		vector float *vZ = (vector float*)fluidFloatPointer(z, y*sy);
+		
+		vector float *vVelX = (vector float*)fluidFloatPointer(velX, y*sy);
+		vector float *vVelY = (vector float*)fluidFloatPointer(velY, y*sy);
+		
+		vector float *vZP = (vector float*)fluidFloatPointer(z, (y-1)*sy);
+		vector float *vZN = (vector float*)fluidFloatPointer(z, (y+1)*sy);
+		
+		vector float smallValue = {0.001f, 0.001f, 0.001f, 0.001f};
+		vector float smallValueLeft = {INFINITY,0.001f, 0.001f, 0.001f};
+		vector float smallValueRight = {0.001f, 0.001f, 0.001f, INFINITY};
+		vector float vE = {e,e,e,e};
+		
+		vector float vNegNine = {-9,-9,-9,-9};
+		vector float vNine = {9,9,9,9};
+		
+		vector float vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
+		vector float vZero = {0.0f, 0.0f, 0.0f, 0.0f};
+		
+		{
+			vector float sl = vec_sld(vZ[0],vZ[1], 4);
+			
+			vector float sr = vec_sld(vZero,vZ[0], 12);
+			
+			vector float dzdx = vec_madd(vHalf,vec_sub(vec_abs(sl),vec_abs(sr)), vZero);
+			vector float dzdy = vec_madd(vHalf,vec_sub(vec_abs(vZP[0]), vec_abs(vZN[0])), vZero);
+			
+			vector float mag = vec_madd(dzdx,dzdx, vec_madd(dzdy,dzdy, vZero));
+			
+			vector bool int magMask = vec_cmpgt(mag,smallValueLeft);
+			int *mm = (int*)&magMask;
+			if (mm[0] || mm[1] || mm[2] || mm[3])
+			{
+				mag = vec_madd(vE,vec_rsqrte(mag), vZero);
+				
+				dzdx = vec_madd(dzdx,mag, vZero);
+				dzdy = vec_madd(dzdy,mag, vZero);
+				
+				dzdx = vec_and(dzdx, magMask);
+				dzdy = vec_and(dzdy, magMask);
+				
+				vVelX[0] = vec_madd(dzdy,vZ[0],vVelX[0]);
+				vVelX[0] = vec_max(vVelX[0], vNegNine);
+				vVelX[0] = vec_min(vVelX[0], vNine);
+				
+				vVelY[0] = vec_sub(vVelY[0],vec_madd(dzdx,vZ[0],vZero));
+				vVelY[0] = vec_max(vVelY[0], vNegNine);
+				vVelY[0] = vec_min(vVelY[0], vNine);
+			}
+		}
+		for (x=1; x<vW-1; x++)
+		{
+			vector float sl = vec_sld(vZ[x],vZ[x+1], 4);
+			
+			vector float sr = vec_sld(vZ[x-1],vZ[x], 12);
+			
+			vector float dzdx = vec_madd(vHalf,vec_sub(vec_abs(sl),vec_abs(sr)), vZero);
+			vector float dzdy = vec_madd(vHalf,vec_sub(vec_abs(vZP[x]), vec_abs(vZN[x])), vZero);
+			
+			vector float mag = vec_madd(dzdx,dzdx, vec_madd(dzdy,dzdy, vZero));
+			
+			vector bool int magMask = vec_cmpgt(mag,smallValue);
+			int *mm = (int*)&magMask;
+			if (mm[0] || mm[1] || mm[2] || mm[3])
+			{
+				mag = vec_madd(vE,vec_rsqrte(mag), vZero);
+				
+				dzdx = vec_madd(dzdx,mag, vZero);
+				dzdy = vec_madd(dzdy,mag, vZero);
+				
+				dzdx = vec_and(dzdx, magMask);
+				dzdy = vec_and(dzdy, magMask);
+				
+				vVelX[x] = vec_madd(dzdy,vZ[x],vVelX[x]);
+				vVelX[x] = vec_max(vVelX[x], vNegNine);
+				vVelX[x] = vec_min(vVelX[x], vNine);
+				
+				vVelY[x] = vec_sub(vVelY[x],vec_madd(dzdx,vZ[x],vZero));
+				vVelY[x] = vec_max(vVelY[x], vNegNine);
+				vVelY[x] = vec_min(vVelY[x], vNine);
+			}
+		}
+		{
+			vector float sl = vec_sld(vZ[x],vZero, 4);
+			
+			vector float sr = vec_sld(vZ[x-1],vZ[x], 12);
+			
+			vector float dzdx = vec_madd(vHalf,vec_sub(vec_abs(sl),vec_abs(sr)), vZero);
+			vector float dzdy = vec_madd(vHalf,vec_sub(vec_abs(vZP[x]), vec_abs(vZN[x])), vZero);
+			
+			vector float mag = vec_madd(dzdx,dzdx, vec_madd(dzdy,dzdy, vZero));
+			
+			vector bool int magMask = vec_cmpgt(mag,smallValueRight);
+			int *mm = (int*)&magMask;
+			if (mm[0] || mm[1] || mm[2] || mm[3])
+			{
+				mag = vec_madd(vE,vec_rsqrte(mag), vZero);
+				
+				dzdx = vec_madd(dzdx,mag, vZero);
+				dzdy = vec_madd(dzdy,mag, vZero);
+				
+				dzdx = vec_and(dzdx, magMask);
+				dzdy = vec_and(dzdy, magMask);
+				
+				vVelX[x] = vec_madd(dzdy,vZ[x],vVelX[x]);
+				vVelX[x] = vec_max(vVelX[x], vNegNine);
+				vVelX[x] = vec_min(vVelX[x], vNine);
+				
+				vVelY[x] = vec_sub(vVelY[x],vec_madd(dzdx,vZ[x],vZero));
+				vVelY[x] = vec_max(vVelY[x], vNegNine);
+				vVelY[x] = vec_min(vVelY[x], vNine);
+			}
+		}
+#elif defined __SSE3__
 		int vW = w/4;
 		
 		__m128 *vZ = (__m128*)fluidFloatPointer(z, y*sy);
@@ -182,6 +298,7 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 			}
 		}
 #else
+		int sx = fieldStrideX(v->velX);
 		
 		float dzdx, dzdy, mag;
 		for (x=1; x<w-1; x++)

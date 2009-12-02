@@ -38,6 +38,18 @@ union mpCoDescription
 	} data;
 };
 
+//Union to send status messages across...
+typedef union mpCoMessage mpCoMessage;
+union mpCoMessage
+{
+	int	msg;
+	struct
+	{
+		uint16_t	tid;		//We can obtain fn from tid
+		uint16_t	task;		//We need task
+	} data;
+};
+
 //Task for memory-coherent operations.
 typedef struct mpCoTask mpCoTask;
 struct mpCoTask
@@ -167,8 +179,10 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 	mpCoProgress tmp;
 	tmp.atom = AtomicExtract(o->r_tasks[x].progress.atom);
 
-	if (tmp.data.completed == tmp.data.working
-		&& tmp.data.completed != o->m_nData)
+	if ((tmp.data.completed == tmp.data.working
+		&& tmp.data.completed != o->m_nData) ||
+		(o->r_tasks[x].description.data.depend == DEPEND_ANY_0
+		 && tmp.data.working != o->m_nData))
 	{
 		int cacheStart = AtomicExtract(o->m_nCacheStart);
 		if (tmp.data.working+1 < AtomicExtract(o->m_nCacheStart))
@@ -186,7 +200,7 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 			mpCoProgress tM1;
 			tM1.atom = AtomicExtract(o->r_tasks[x-1].progress.atom);
 			
-			int prevLimit = tmp.data.completed + o->r_tasks[x].description.data.bottom;
+			int prevLimit = tmp.data.working + o->r_tasks[x].description.data.bottom;
 			if (prevLimit >= o->m_nData)
 				prevLimit = o->m_nData-1;
 			
@@ -197,15 +211,20 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 
 		mpCoProgress t2;
 		t2.atom = tmp.atom;
+		int work = t2.data.working;
 		t2.data.working++;
+		//printf("OBTAINING: %i %i %i\n", x, o->r_tasks[x].description.data.function, work);
 		if (AtomicCompareAndSwapInt(o->r_tasks[x].progress.atom,
 									tmp.atom, t2.atom))
 		{
+			//printf("GIVEN: %i %i %i\n", x, o->r_tasks[x].description.data.function, work);
 			if (t2.data.working > cacheStart + o->m_cacheSize)
 				AtomicCompareAndSwapInt(o->m_nCacheStart, cacheStart, cacheStart+1);
 			*out_tid = x;
 			*out_fn = o->r_tasks[x].description.data.function;
-			*out_tsk = tmp.data.completed;
+			*out_tsk = work;
+			
+			//printf("ASSIGNED: %i %i %i\n", x, o->r_tasks[x].description.data.function, work);
 			return 1;
 		}
 		else
@@ -229,7 +248,10 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 	for (x=min; x<=max; x++)
 	{
 		if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x))
+		{
+			//printf("OBTAINED: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
 			return;
+		}
 	}
 	
 	//Done?
@@ -244,7 +266,7 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		} while (!AtomicCompareAndSwapInt(o->m_nBlocking, v, -100));
 		if (v >= 0)
 		{
-			mpQueuePushInt(o->r_q, -1);
+			mpQueuePushInt(o->r_q, 0xFFFFFFFF);
 		}
 		return;
 	}
@@ -254,52 +276,105 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		AtomicAdd32Barrier(o->m_nBlocking, 1);
 	x_pthread_mutex_unlock(&o->m_mutex);
 	*out_tid = mpQueuePopInt(o->r_q);
-	if (*out_tid != -1)
+	if (*out_tid != 0xFFFFFFFF)
 	{
-		tmp.atom = AtomicExtract(o->r_tasks[*out_tid].progress.atom);
-		*out_fn = o->r_tasks[*out_tid].description.data.function;
-		*out_tsk = tmp.data.completed;
+		mpCoMessage msg;
+		msg.msg = *out_tid;
+		
+		tmp.atom = AtomicExtract(o->r_tasks[msg.data.tid].progress.atom);
+		*out_tid = msg.data.tid;
+		*out_fn = o->r_tasks[msg.data.tid].description.data.function;
+		*out_tsk = msg.data.task;
+		//printf("WAIT_FOR_TASK: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
 	}
 	else
-		mpQueuePushInt(o->r_q, -1);		//Unlock next thread...
+	{
+		mpQueuePushInt(o->r_q, 0xFFFFFFFF);		//Unlock next thread...
+		*out_tid = -1;
+	}
 }
 
 void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 									 int *out_tid, int *out_fn, int *out_tsk)
 {
+	//printf("COMPLETED: %i %i %i\n", in_tid, in_fn, in_tsk);
 	//Mark the task as completed
 	mpCoProgress tmp;
 	tmp.atom = AtomicExtract(o->r_tasks[in_tid].progress.atom);
 	int min = AtomicExtract(o->m_min);
 	int max = AtomicExtract(o->m_max);
 	
+	mpCoDescription desc;
+	desc.atom = o->r_tasks[in_tid].description.atom;
+	
+	if (desc.data.depend == DEPEND_ANY_0)
+	{
+		while (tmp.data.completed != in_tsk)		//Spin until task completes
+			tmp.atom = AtomicExtract(o->r_tasks[in_tid].progress.atom);
+	}
+	
 	mpCoProgress newVal;
 	newVal.atom = tmp.atom;
-	newVal.data.completed = newVal.data.working;
+	newVal.data.completed = newVal.data.completed+1;
 	
 	if (tmp.data.working == o->m_nData)
 	{
 		if (min == in_tid)
 		{
-			errorAssert(AtomicCompareAndSwapInt(o->m_min, min, min+1),
-						error_thread, "Failed incrementing min!");
-			while (!AtomicCompareAndSwapInt(o->m_nCacheStart,
-						AtomicExtract(o->m_nCacheStart), 0));
+			if (desc.data.depend == DEPEND_ANY_0)
+			{
+				if (AtomicCompareAndSwapInt(o->m_min, min, min+1))
+				{
+					while (!AtomicCompareAndSwapInt(o->m_nCacheStart,
+										AtomicExtract(o->m_nCacheStart), 0));
+				}
+			}
+			else
+			{
+				errorAssert(AtomicCompareAndSwapInt(o->m_min, min, min+1),
+							error_thread, "Failed incrementing min!");
+				while (!AtomicCompareAndSwapInt(o->m_nCacheStart,
+							AtomicExtract(o->m_nCacheStart), 0));
+			}
 		}
 		min++;
 	}
 	
 	if (in_tid == max)
-		errorAssert(AtomicCompareAndSwapInt(o->m_max, max, max+1),
+	{
+		if (desc.data.depend == DEPEND_ANY_0)
+		{
+			AtomicCompareAndSwapInt(o->m_max, max, max+1);
+		}
+		else
+		{
+			errorAssert(AtomicCompareAndSwapInt(o->m_max, max, max+1),
 						error_thread, "Failed incrementing max!");
+		}
+	}
 	
-	errorAssert(tmp.data.completed+1 == tmp.data.working,
+	errorAssert(tmp.data.completed+1 == tmp.data.working
+				|| desc.data.depend == DEPEND_ANY_0,
 					error_thread, "Already marked as completed (%i %i)!",
 						tmp.data.completed+1, tmp.data.working);
 
-	errorAssert(AtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+	if (desc.data.depend == DEPEND_ANY_0)
+	{
+		while (!AtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+										tmp.atom, newVal.atom))
+		{
+			tmp.atom = AtomicExtract(o->r_tasks[in_tid].progress.atom);
+			newVal.atom = tmp.atom;
+			
+			newVal.data.completed = newVal.data.completed + 1;
+		}
+	}
+	else
+	{
+		errorAssert(AtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
 										tmp.atom, newVal.atom),
 						error_thread, "Only 1 thread per task!!!");
+	}
 	
 	int totalTasks = AtomicExtract(o->m_nTasks);
 	max++;
@@ -339,7 +414,11 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 			x_pthread_mutex_unlock(&o->m_mutex);
 			return;
 		}
-		mpQueuePushInt(o->r_q,*out_tid);
+		mpCoMessage data;
+		data.data.tid = *out_tid;
+		data.data.task = *out_tsk;
+		mpQueuePushInt(o->r_q,data.msg);
+		//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
 		AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
 		
 		
@@ -352,8 +431,11 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 			int tmp_tid, tmp_fn, tmp_tsk;
 			if (mpCTaskObtainPvt(o, &tmp_tid, &tmp_fn, &tmp_tsk, x))
 			{
+				//printf("FORWARDING: %i %i %i\n", tmp_tid, tmp_fn, tmp_tsk);
 				AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
-				mpQueuePushInt(o->r_q,x);
+				data.data.tid = tmp_tid;
+				data.data.task = tmp_tsk;
+				mpQueuePushInt(o->r_q,data.msg);
 			}
 		}
 		
@@ -363,4 +445,7 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 		//Finally worry about this thread...
 		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
 	}
+	//printf("RETURNING: (%i %i %i) %i %i %i\n",
+	//	   in_tid, in_fn, in_tsk,
+	//	   *out_tid, *out_fn, *out_tsk);
 }

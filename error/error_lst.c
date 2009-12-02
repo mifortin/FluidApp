@@ -43,6 +43,8 @@ void errorListAdd(error *in_error)
 		
 		x_pthread_mutex_unlock(&errorList_sync);
 	}
+	else
+		printf("Error: NULL\n");
 }
 
 void errorListReset()

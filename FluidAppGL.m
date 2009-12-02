@@ -269,16 +269,16 @@
 		}
 	
 		//Add in whatever comes from Jitter as densities...
-		field *tmp = fieldServerLock(r_background);
-		int x;
-		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
-		float *i1 = fieldData(tmp);
-		float *i2 = fieldData(fluidDensity(r_fluid));
-		for (x=0; x<t; x++)
-		{
-			//i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
-		}
-		fieldServerUnlock(r_background);
+//		field *tmp = fieldServerLock(r_background);
+//		int x;
+//		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
+//		float *i1 = fieldData(tmp);
+//		float *i2 = fieldData(fluidDensity(r_fluid));
+//		for (x=0; x<t; x++)
+//		{
+//			i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
+//		}
+//		fieldServerUnlock(r_background);
 		
 		fieldClientSend(r_client, fluidDensity(r_fluid));
 	

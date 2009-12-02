@@ -443,6 +443,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		vector float vNegNine = {-9,-9,-9,-9};
 		vector float vNine = {9,9,9,9};
+		vector float vZero = {0,0,0,0};
 		
 		vector float *vVelX = (vector float*)fluidFloatPointer(velX,y*sy);
 		vector float *vVelY = (vector float*)fluidFloatPointer(velY,y*sy);
@@ -450,8 +451,22 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		vector float *vPressureP = (vector float*)fluidFloatPointer(pressure,(y-1)*sy);
 		vector float *vPressure = (vector float*)fluidFloatPointer(pressure,y*sy);
 		
+		vector bool int leftMask = {0x00000000,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF};
+		vector bool int rightMask = {0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0x00000000};
+		
 		w/=4;
 		
+		{
+			vector float sl = vec_sld(vPressure[0], vPressure[1], 4);
+			vector float sr = vec_sld(vZero, vPressure[0], 12);
+			
+			vector float tmp = vec_sub(sl, sr);
+			tmp = vec_and(tmp, leftMask);
+			tmp = vec_sub(vVelX[0], tmp);
+			
+			tmp = vec_min(tmp, vNine);
+			vVelX[0] = vec_max(tmp, vNegNine);
+		}
 		for (x=1; x<w-1; x++)
 		{
 			vector float sl = vec_sld(vPressure[x], vPressure[x+1], 4);
@@ -460,22 +475,44 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vector float tmp = vec_sub(sl, sr);
 			tmp = vec_sub(vVelX[x], tmp);
 			
-			vector bool int mask = vec_cmpgt(tmp, vNine);
-			tmp = vec_sel(tmp, vNine, mask);
+			tmp = vec_min(tmp, vNine);
+			vVelX[x] = vec_max(tmp, vNegNine);
+		}
+		{
+			vector float sl = vec_sld(vPressure[x], vZero, 4);
+			vector float sr = vec_sld(vPressure[x-1], vPressure[x], 12);
 			
-			mask = vec_cmplt(tmp, vNegNine);
-			vVelX[x] = vec_sel(tmp, vNegNine, mask);
+			vector float tmp = vec_sub(sl, sr);
+			tmp = vec_and(tmp, rightMask);
+			tmp = vec_sub(vVelX[x], tmp);
+			
+			tmp = vec_min(tmp, vNine);
+			vVelX[x] = vec_max(tmp, vNegNine);
+		}
+		
+		{			
+			vector float tmp = vec_sub(vPressureN[0], vPressureP[0]);
+			tmp = vec_and(tmp, leftMask);
+			tmp = vec_sub(vVelY[0], tmp);
+			
+			tmp = vec_min(tmp, vNine);
+			vVelY[0] = vec_max(tmp, vNegNine);
 		}
 		for (x=1; x<w-1; x++)
 		{			
 			vector float tmp = vec_sub(vPressureN[x], vPressureP[x]);
 			tmp = vec_sub(vVelY[x], tmp);
 			
-			vector bool int mask = vec_cmpgt(tmp, vNine);
-			tmp = vec_sel(tmp, vNine, mask);
+			tmp = vec_min(tmp, vNine);
+			vVelY[x] = vec_max(tmp, vNegNine);
+		}
+		{			
+			vector float tmp = vec_sub(vPressureN[x], vPressureP[x]);
+			tmp = vec_and(tmp, rightMask);
+			tmp = vec_sub(vVelY[x], tmp);
 			
-			mask = vec_cmplt(tmp, vNegNine);
-			vVelY[x] = vec_sel(tmp, vNegNine, mask);
+			tmp = vec_min(tmp, vNine);
+			vVelY[x] = vec_max(tmp, vNegNine);
 		}
 #elif defined __SSE3__
 		int x;
