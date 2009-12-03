@@ -76,6 +76,55 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	else
 	{
+#ifdef __SSE3__
+		w/=4;
+		
+		__m128 *vVelY = (__m128*)fluidFloatPointer(velY, y*sy);
+		
+		__m128 *vVelXN = (__m128*)fluidFloatPointer(velX, (y+1)*sy);
+		__m128 *vVelXP = (__m128*)fluidFloatPointer(velX, (y-1)*sy);
+		
+		__m128 *vZ = (__m128*)fluidFloatPointer(z, y*sy);
+		__m128 vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
+		__m128 vHalfLeft = {0.0f, 0.5f, 0.5f, 0.5f};
+		__m128 vHalfRight = {0.5f, 0.5f, 0.5f, 0.0f};
+		
+		{
+			__m128 sl = _mm_srli_sf128(vVelY[0], 4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelY[1],12));
+			
+			__m128 sr = _mm_slli_sf128(vVelY[0], 4);
+			
+			__m128 dydx = _mm_mul_ps(vHalfLeft, _mm_sub_ps(sl,sr));
+			__m128 dxdy = _mm_mul_ps(vHalf, _mm_sub_ps(vVelXN[0], vVelXP[0]));
+			
+			vZ[0] = _mm_sub_ps(dydx,dxdy);
+		}
+		for (x=1; x<w-1; x++)
+		{
+			__m128 sl = _mm_srli_sf128(vVelY[x], 4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelY[x+1],12));
+			
+			__m128 sr = _mm_slli_sf128(vVelY[x], 4);
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vVelY[x-1], 12));
+			
+			__m128 dydx = _mm_mul_ps(vHalf, _mm_sub_ps(sl,sr));
+			__m128 dxdy = _mm_mul_ps(vHalf, _mm_sub_ps(vVelXN[x], vVelXP[x]));
+			
+			vZ[x] = _mm_sub_ps(dydx,dxdy);
+		}
+		{
+			__m128 sl = _mm_srli_sf128(vVelY[x], 4);
+			
+			__m128 sr = _mm_slli_sf128(vVelY[x], 4);
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vVelY[x-1], 12));
+			
+			__m128 dydx = _mm_mul_ps(vHalfRight, _mm_sub_ps(sl,sr));
+			__m128 dxdy = _mm_mul_ps(vHalf, _mm_sub_ps(vVelXN[x], vVelXP[x]));
+			
+			vZ[x] = _mm_sub_ps(dydx,dxdy);
+		}
+#else
 		x = 0;
 		float dydx = 0;
 		float dxdy = (fluidFloatPointer(velX, sx + (y+1)*sy)[0]
@@ -95,6 +144,7 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 		dxdy = (fluidFloatPointer(velX, sx + (y+1)*sy)[0]
 				- fluidFloatPointer(velX, sx + (y-1)*sy)[0])/2;
 		fluidFloatPointer(z, sx*x + sy*y)[0] = (dydx - dxdy);
+#endif
 	}
 }
 
@@ -256,6 +306,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 		__m128i absMask = {0x7FFFFFFF7FFFFFFF,0x7FFFFFFF7FFFFFFF};
 		
 		__m128 smallValue = {0.001f, 0.001f, 0.001f, 0.001f};
+		__m128 smallLeftValue = {INFINITY,0.001f, 0.001f, 0.001f};
+		__m128 smallRightValue = {0.001f, 0.001f, 0.001f, INFINITY};
 		__m128 vE = {e,e,e,e};
 		
 		__m128 vNegNine = {-9,-9,-9,-9};
@@ -263,6 +315,38 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		__m128 vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
 		
+		{
+			__m128 sl = _mm_srli_sf128(vZ[0], 4);
+			sl = _mm_add_ps(sl, _mm_slli_sf128(vZ[1],12));
+			
+			__m128 sr = _mm_slli_sf128(vZ[0], 4);
+			
+			__m128 dzdx = _mm_mul_ps(vHalf,_mm_sub_ps(_mm_and_ps((__m128)absMask,sl),_mm_and_ps((__m128)absMask,sr)));
+			__m128 dzdy = _mm_mul_ps(vHalf,_mm_sub_ps(_mm_and_ps((__m128)absMask,vZP[0]), _mm_and_ps((__m128)absMask,vZN[0])));
+			
+			__m128 mag = _mm_add_ps(_mm_mul_ps(dzdx,dzdx), _mm_mul_ps(dzdy,dzdy));
+			
+			__m128 magMask = _mm_cmpgt_ps(mag,smallLeftValue);
+			//int *mm = (int*)&magMask;
+			//if (mm[0] || mm[1] || mm[2] || mm[3])
+			{
+				mag = _mm_mul_ps(vE,_mm_rsqrt_ps(mag));
+				
+				dzdx = _mm_mul_ps(dzdx,mag);
+				dzdy = _mm_mul_ps(dzdy,mag);
+				
+				dzdx = _mm_and_ps(dzdx, magMask);
+				dzdy = _mm_and_ps(dzdy, magMask);
+				
+				vVelX[0] = _mm_add_ps(vVelX[0],_mm_mul_ps(dzdy,vZ[0]));
+				vVelX[0] = _mm_max_ps(vVelX[0], vNegNine);
+				vVelX[0] = _mm_min_ps(vVelX[0], vNine);
+				
+				vVelY[0] = _mm_sub_ps(vVelY[0],_mm_mul_ps(dzdx,vZ[0]));
+				vVelY[0] = _mm_max_ps(vVelY[0], vNegNine);
+				vVelY[0] = _mm_min_ps(vVelY[0], vNine);
+			}
+		}
 		for (x=1; x<vW-1; x++)
 		{
 			__m128 sl = _mm_srli_sf128(vZ[x], 4);
@@ -277,6 +361,38 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 mag = _mm_add_ps(_mm_mul_ps(dzdx,dzdx), _mm_mul_ps(dzdy,dzdy));
 			
 			__m128 magMask = _mm_cmpgt_ps(mag,smallValue);
+			//int *mm = (int*)&magMask;
+			//if (mm[0] || mm[1] || mm[2] || mm[3])
+			{
+				mag = _mm_mul_ps(vE,_mm_rsqrt_ps(mag));
+				
+				dzdx = _mm_mul_ps(dzdx,mag);
+				dzdy = _mm_mul_ps(dzdy,mag);
+				
+				dzdx = _mm_and_ps(dzdx, magMask);
+				dzdy = _mm_and_ps(dzdy, magMask);
+				
+				vVelX[x] = _mm_add_ps(vVelX[x],_mm_mul_ps(dzdy,vZ[x]));
+				vVelX[x] = _mm_max_ps(vVelX[x], vNegNine);
+				vVelX[x] = _mm_min_ps(vVelX[x], vNine);
+				
+				vVelY[x] = _mm_sub_ps(vVelY[x],_mm_mul_ps(dzdx,vZ[x]));
+				vVelY[x] = _mm_max_ps(vVelY[x], vNegNine);
+				vVelY[x] = _mm_min_ps(vVelY[x], vNine);
+			}
+		}
+		{
+			__m128 sl = _mm_srli_sf128(vZ[x], 4);
+			
+			__m128 sr = _mm_slli_sf128(vZ[x], 4);
+			sr = _mm_add_ps(sr, _mm_srli_sf128(vZ[x-1], 12));
+			
+			__m128 dzdx = _mm_mul_ps(vHalf,_mm_sub_ps(_mm_and_ps((__m128)absMask,sl),_mm_and_ps((__m128)absMask,sr)));
+			__m128 dzdy = _mm_mul_ps(vHalf,_mm_sub_ps(_mm_and_ps((__m128)absMask,vZP[x]), _mm_and_ps((__m128)absMask,vZN[x])));
+			
+			__m128 mag = _mm_add_ps(_mm_mul_ps(dzdx,dzdx), _mm_mul_ps(dzdy,dzdy));
+			
+			__m128 magMask = _mm_cmpgt_ps(mag,smallRightValue);
 			//int *mm = (int*)&magMask;
 			//if (mm[0] || mm[1] || mm[2] || mm[3])
 			{
