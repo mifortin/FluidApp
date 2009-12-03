@@ -25,7 +25,10 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 	int w = fieldWidth(v->velX);
 	int h = fieldHeight(v->velX);
 	
+#ifdef __APPLE_ALTIVEC__
+#else
 	int sx = fieldStrideX(v->velX);
+#endif
 	int sy = fieldStrideY(v->velY);
 	
 	float *velX = fieldData(v->velX);
@@ -36,6 +39,26 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	if (y == 0)
 	{
+#ifdef __APPLE_ALTIVEC__
+		vector float *vVelX = (vector float*)fluidFloatPointer(velX, 0*sy);
+		vector float *vVelXP = (vector float*)fluidFloatPointer(velX, 1*sy);
+		
+		vector float *vVelY = (vector float*)fluidFloatPointer(velY, 0*sy);
+		vector float *vVelYP = (vector float*)fluidFloatPointer(velY, 1*sy);
+		
+		vector bool int vSignBig = {0x80000000,0x80000000,0x80000000,0x80000000};
+		
+		int x;
+		w/=4;
+		for (x=0; x<w; x++)
+		{
+			vVelX[x] = vec_xor(vSignBig,vVelXP[x]);
+		}
+		for (x=0; x<w; x++)
+		{
+			vVelY[x] = vec_xor(vSignBig,vVelYP[x]);
+		}
+#else
 		int x;
 		for (x=0; x<w; x++)
 		{
@@ -47,9 +70,30 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			*fluidFloatPointer(velY,x*sx + y*sy)
 							= - *fluidFloatPointer(velY,x*sx + (y+1)*sy);
 		}
+#endif
 	}
 	else if (y == h-1)
 	{
+#ifdef __APPLE_ALTIVEC__
+		vector float *vVelX = (vector float*)fluidFloatPointer(velX, y*sy);
+		vector float *vVelXP = (vector float*)fluidFloatPointer(velX, (y-1)*sy);
+		
+		vector float *vVelY = (vector float*)fluidFloatPointer(velY, y*sy);
+		vector float *vVelYP = (vector float*)fluidFloatPointer(velY, (y-1)*sy);
+		
+		vector bool int vSignBig = {0x80000000,0x80000000,0x80000000,0x80000000};
+		
+		int x;
+		w/=4;
+		for (x=0; x<w; x++)
+		{
+			vVelX[x] = vec_xor(vSignBig,vVelXP[x]);
+		}
+		for (x=0; x<w; x++)
+		{
+			vVelY[x] = vec_xor(vSignBig,vVelYP[x]);
+		}
+#else
 		int x;
 		for (x=0; x<w; x++)
 		{			
@@ -61,6 +105,7 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			*fluidFloatPointer(velY,x*sx + y*sy)
 							= - *fluidFloatPointer(velY,x*sx + (y-1)*sy);
 		}
+#endif
 	}
 	else
 	{

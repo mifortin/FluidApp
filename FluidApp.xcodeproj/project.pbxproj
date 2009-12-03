@@ -84,6 +84,9 @@
 		4C76D4ED0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */; };
 		4C76D4EE0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */; };
 		4C76D4EF0FDC2F8A00FED6DB /* mp_taskWorld.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */; };
+		4C78C0D510C852AD0048858A /* fluid_visual.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C78C0D410C852AD0048858A /* fluid_visual.c */; };
+		4C78C0D610C852AD0048858A /* fluid_visual.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C78C0D410C852AD0048858A /* fluid_visual.c */; };
+		4C78C0D710C852AD0048858A /* fluid_visual.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C78C0D410C852AD0048858A /* fluid_visual.c */; };
 		4C7C7ACE1062D87F00214ADB /* FluidTools.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C7C7ACD1062D87F00214ADB /* FluidTools.m */; };
 		4C7C7ACF1062D87F00214ADB /* FluidTools.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C7C7ACD1062D87F00214ADB /* FluidTools.m */; };
 		4C86232210665D9400C466CE /* fluid_vorticity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C86232110665D9400C466CE /* fluid_vorticity.c */; };
@@ -214,6 +217,7 @@
 		4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_NumberFormatter.h; sourceTree = "<group>"; };
 		4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_NumberFormatter.m; sourceTree = "<group>"; };
 		4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_taskWorld.c; sourceTree = "<group>"; };
+		4C78C0D410C852AD0048858A /* fluid_visual.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_visual.c; sourceTree = "<group>"; };
 		4C7C7ACC1062D87F00214ADB /* FluidTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTools.h; sourceTree = "<group>"; };
 		4C7C7ACD1062D87F00214ADB /* FluidTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTools.m; sourceTree = "<group>"; };
 		4C86232110665D9400C466CE /* fluid_vorticity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_vorticity.c; sourceTree = "<group>"; };
@@ -521,6 +525,7 @@
 				4CC757211063060F003C1369 /* fluid_pressure.c */,
 				4C86232110665D9400C466CE /* fluid_vorticity.c */,
 				4CE8F07A108E43430014AD01 /* fluid_dampen.c */,
+				4C78C0D410C852AD0048858A /* fluid_visual.c */,
 				4CFA69690FAA952000E6847C /* fluid_macros.h */,
 				4CD34055104055D200C318A4 /* fluid_macros_2.h */,
 			);
@@ -703,6 +708,7 @@
 				4C618B9010BC854800C8790C /* field_server.c in Sources */,
 				4C618C7E10BCBDA500C8790C /* field_client.c in Sources */,
 				4C72961310C1E9AD001A515D /* error_lst.c in Sources */,
+				4C78C0D610C852AD0048858A /* fluid_visual.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -774,6 +780,7 @@
 				4C618B9110BC854800C8790C /* field_server.c in Sources */,
 				4C618C7F10BCBDA500C8790C /* field_client.c in Sources */,
 				4C72961210C1E9AD001A515D /* error_lst.c in Sources */,
+				4C78C0D710C852AD0048858A /* fluid_visual.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -815,6 +822,7 @@
 				4C618B8F10BC854800C8790C /* field_server.c in Sources */,
 				4C618C7D10BCBDA500C8790C /* field_client.c in Sources */,
 				4C72961410C1E9AD001A515D /* error_lst.c in Sources */,
+				4C78C0D510C852AD0048858A /* fluid_visual.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -24,8 +24,9 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	int w = fieldWidth(p->velX);
 	int h = fieldHeight(p->velX);
-	
-#ifdef __SSE3__
+
+#ifdef __APPLE_ALTIVEC__
+#elif defined __SSE3__
 #else
 	int sx = fieldStrideX(p->velX);
 #endif
@@ -38,7 +39,17 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	if (y == 0)
 	{
-#ifdef __SSE3__
+#ifdef __APPLE_ALTIVEC__
+		vector float *vPressure = (vector float*)fluidFloatPointer(pressure, 0*sy);
+		vector float *vPressureP = (vector float*)fluidFloatPointer(pressure, 1*sy);
+		
+		int x;
+		w/=4;
+		for (x=0; x<w; x++)
+		{
+			vPressure[x] = vPressureP[x];
+		}
+#elif defined __SSE3__
 		__m128 *vPressure = (__m128*)fluidFloatPointer(pressure, 0*sy);
 		__m128 *vPressureP = (__m128*)fluidFloatPointer(pressure, 1*sy);
 		
@@ -59,7 +70,17 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	else if (y == h-1)
 	{
-#ifdef __SSE3__
+#ifdef __APPLE_ALTIVEC__
+		vector float *vPressure = (vector float*)fluidFloatPointer(pressure, y*sy);
+		vector float *vPressureP = (vector float*)fluidFloatPointer(pressure, (y-1)*sy);
+		
+		int x;
+		w/=4;
+		for (x=0; x<w; x++)
+		{
+			vPressure[x] = vPressureP[x];
+		}
+#elif defined __SSE3__
 		__m128 *vPressure = (__m128*)fluidFloatPointer(pressure, y*sy);
 		__m128 *vPressureP = (__m128*)fluidFloatPointer(pressure, (y-1)*sy);
 		

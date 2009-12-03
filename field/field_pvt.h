@@ -12,6 +12,7 @@
 #include "net.h"
 
 #define Field_NoRelease		0x00000001		/* Do not release data (someone else will) */
+#define Field_TypeChar		0x00000010		/* Character data within */
 
 struct field
 {
@@ -29,6 +30,7 @@ struct field
 	union {
 		float *f;
 		int *i;
+		unsigned char *c;
 	} r_data;
 };
 

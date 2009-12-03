@@ -255,6 +255,21 @@ void fluidTaskDampen(fluid *f, field *dst, float amt)
 }
 
 
+void fluidTaskVideoDensity2Char(fluid *f)
+{	
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn < MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_video_dens2char;
+	f->m_fns[curFn].mode.video.f = f->r_density;
+	f->m_fns[curFn].mode.video.o = f->r_vidOutput;
+	f->m_fns[curFn].times = NULL;
+	mpCTaskAdd(f->r_coherence, curFn, 0,0,0);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o)
 {
@@ -353,6 +368,7 @@ void fluidAdvance(fluid *in_f)
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);
 	fluidTaskAdvectDensity(in_f);
+	fluidTaskVideoDensity2Char(in_f);
 	
 	//We just need to run the tasks that have already been setup...
 	int spawned;

@@ -93,6 +93,14 @@ struct dampen
 	float e;			//Dampening scale
 };
 
+//Video output data
+struct video
+{
+	field *f;			//Can be anything...	(float)
+	
+	field *o;			//Must be an output matrix (char)
+};
+
 //Ensure that parameters are passed around somewhat cleanly
 typedef union
 {
@@ -116,6 +124,10 @@ typedef union
 	
 	//When dampening
 	struct dampen dampen;
+	
+	//When doing video
+	struct video video;
+	
 } pvt_fluidMode;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -157,6 +169,9 @@ struct fluid
 	field *r_velocityY;
 	field *r_density;
 	field *r_pressure;
+	
+	//Output buffers	(video-out)
+	field *r_vidOutput;
 	
 	//The following fields can be used temporarily
 	//	for a sequence of operations.

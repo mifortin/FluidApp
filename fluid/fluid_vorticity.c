@@ -26,8 +26,11 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	int h = fieldHeight(v->velX);
 	int w = fieldWidth(v->velX);
-	
+
+#ifdef __APPLE_ALTIVEC__
+#else
 	int sx = fieldStrideX(v->velX);
+#endif
 	int sy = fieldStrideY(v->velY);
 	
 	float *velX = fieldData(v->velX);
@@ -36,8 +39,45 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 	float *z = fieldData(v->z);
 	
 	int x;
-	if (y==0)
+	if (y==0 || y == h-1)
 	{
+#ifdef __APPLE_ALTIVEC__
+		w/=4;
+		
+		vector float *vVelY = (vector float*)fluidFloatPointer(velY, y*sy);
+		
+		vector float *vZ = (vector float*)fluidFloatPointer(z, y*sy);
+		vector float vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
+		vector float vHalfLeft = {0.0f, 0.5f, 0.5f, 0.5f};
+		vector float vHalfRight = {0.5f, 0.5f, 0.5f, 0.0f};
+		vector float vZero = {0.0f, 0.0f, 0.0f, 0.0f};
+		
+		{
+			vector float sl = vec_sld(vVelY[0], vVelY[1], 4);
+			vector float sr = vec_sld(vZero, vVelY[0], 12);
+			
+			vector float dydx = vec_madd(vHalfLeft, vec_sub(sl,sr), vZero);
+			
+			vZ[0] = dydx;
+		}
+		for (x=1; x<w-1; x++)
+		{
+			vector float sl = vec_sld(vVelY[x], vVelY[x+1], 4);
+			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
+			
+			vector float dydx = vec_madd(vHalf, vec_sub(sl,sr), vZero);
+			
+			vZ[x] = dydx;
+		}
+		{
+			vector float sl = vec_sld(vVelY[x], vZero, 4);
+			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
+			
+			vector float dydx = vec_madd(vHalfRight, vec_sub(sl,sr), vZero);
+			
+			vZ[x] = dydx;
+		}
+#else
 		x = 0;
 		float dydx = 0;
 		float dxdy = 0;
@@ -54,29 +94,56 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 		dydx = 0;
 		dxdy = 0;
 		fluidFloatPointer(z, sx*x + sy*y)[0] = (dydx - dxdy);
-	}
-	else if (y == h-1)
-	{
-		x = 0;
-		float dydx = 0;
-		float dxdy = 0;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = (dydx - dxdy);
-		
-		for (x=1; x<w-1; x++)
-		{
-			dydx = (fluidFloatPointer(velY, (x+1)*sx + y*sy)[0]
-					- fluidFloatPointer(velY, (x-1)*sx + y*sy)[0])/2;
-			dxdy = 0;
-			fluidFloatPointer(z, sx*x + sy*y)[0] = (dydx - dxdy);
-		}
-		
-		dydx = 0;
-		dxdy = 0;
-		fluidFloatPointer(z, sx*x + sy*y)[0] = (dydx - dxdy);
+#endif
 	}
 	else
 	{
-#ifdef __SSE3__
+#ifdef __APPLE_ALTIVEC__
+		w/=4;
+		
+		vector float *vVelY = (vector float*)fluidFloatPointer(velY, y*sy);
+		
+		vector float *vVelXN = (vector float*)fluidFloatPointer(velX, (y+1)*sy);
+		vector float *vVelXP = (vector float*)fluidFloatPointer(velX, (y-1)*sy);
+		
+		vector float *vZ = (vector float*)fluidFloatPointer(z, y*sy);
+		vector float vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
+		vector float vHalfLeft = {0.0f, 0.5f, 0.5f, 0.5f};
+		vector float vHalfRight = {0.5f, 0.5f, 0.5f, 0.0f};
+		vector float vZero = {0.0f, 0.0f, 0.0f, 0.0f};
+		
+		{
+			vector float sl = vec_sld(vVelY[0], vVelY[1], 4);
+			
+			vector float sr = vec_sld(vZero, vVelY[0], 12);
+			
+			vector float dydx = vec_madd(vHalfLeft, vec_sub(sl,sr), vZero);
+			vector float dxdy = vec_madd(vHalf, vec_sub(vVelXN[0], vVelXP[0]), vZero);
+			
+			vZ[0] = vec_sub(dydx,dxdy);
+		}
+		for (x=1; x<w-1; x++)
+		{
+			vector float sl = vec_sld(vVelY[x], vVelY[x+1], 4);
+			
+			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
+			
+			vector float dydx = vec_madd(vHalf, vec_sub(sl,sr), vZero);
+			vector float dxdy = vec_madd(vHalf, vec_sub(vVelXN[x], vVelXP[x]), vZero);
+			
+			vZ[x] = vec_sub(dydx,dxdy);
+		}
+		{
+			vector float sl = vec_sld(vVelY[x], vZero, 4);
+			
+			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
+			
+			vector float dydx = vec_madd(vHalfRight, vec_sub(sl,sr), vZero);
+			vector float dxdy = vec_madd(vHalf, vec_sub(vVelXN[x], vVelXP[x]), vZero);
+			
+			vZ[x] = vec_sub(dydx,dxdy);
+		}
+#elif defined __SSE3__
 		w/=4;
 		
 		__m128 *vVelY = (__m128*)fluidFloatPointer(velY, y*sy);

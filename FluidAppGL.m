@@ -200,14 +200,14 @@
 {
 	if ([FluidTools viewDensity])
 	{
-		field *dens = fluidMovedDensity(r_fluid);
+		field *dens = fluidVideoOut(r_fluid);
 		int w = fieldWidth(dens);
 		int h = fieldHeight(dens);
 		float *d = fieldData(dens);
 		
 		glBindTexture(GL_TEXTURE_2D, r_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-					 GL_RGBA, GL_FLOAT, d);
+					 GL_RGBA, GL_UNSIGNED_BYTE, d);
 	}
 	else if ([FluidTools viewVelocity])
 	{
@@ -286,7 +286,7 @@
 		[self generateView];
 
 	x_catch(e)
-		printf("Something bad happened %s\n", errorMsg(e));
+		errorListAdd(e);
 	x_finally
 	
 #if defined( __SSE__ )

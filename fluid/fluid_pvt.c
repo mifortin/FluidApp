@@ -39,6 +39,8 @@ void fluidFree(void *in_o)
 	
 	if (o->r_reposX)		x_free(o->r_reposX);
 	if (o->r_reposY)		x_free(o->r_reposY);
+	
+	if (o->r_vidOutput)		x_free(o->r_vidOutput);
 }
 
 
@@ -56,6 +58,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_pressure = fieldCreate(in_width, in_height, 1);
 	toRet->r_density = fieldCreate(in_width, in_height, 4);
 	toRet->r_density_swap = fieldCreate(in_width, in_height, 4);
+	toRet->r_vidOutput = fieldCreateChar(in_width, in_height, 4);
 	
 	toRet->r_blocker = mpQueueCreate(2);
 	
@@ -175,4 +178,7 @@ float fluidThreadSchedulerTime(fluid *f)
 	return (float)f->m_times[TIME_TASKSCHED]/1000000;
 }
 
-
+field *fluidVideoOut(fluid *in_f)
+{
+	return in_f->r_vidOutput;
+}

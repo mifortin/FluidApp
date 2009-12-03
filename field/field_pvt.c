@@ -64,6 +64,48 @@ field *fieldCreate(int in_width, int in_height, int in_components)
 }
 
 
+field *fieldFromCharData(unsigned char *in_data, int in_width, int in_height,
+						  int in_strideX, int in_strideY,
+						  int in_components)
+{
+	field *toRet = x_malloc(sizeof(field), fieldFree);
+	
+	toRet->r_data.c = in_data;
+	if (toRet->r_data.c == NULL)
+	{
+		errorRaise(error_memory, "Failed creating field data");
+	}
+	
+	toRet->m_width = in_width;
+	toRet->m_height = in_height;
+	toRet->m_components = in_components;
+	
+	toRet->m_strideX = in_strideX;
+	toRet->m_strideY = in_strideY;
+	
+	toRet->m_flags = Field_NoRelease | Field_TypeChar;
+	
+	return toRet;
+}
+
+
+field *fieldCreateChar(int in_width, int in_height, int in_components)
+{
+	int numData = in_width * in_height * in_components * sizeof(unsigned char);
+	
+	field *toRet = fieldFromCharData(malloc(numData),	in_width, in_height,
+									  in_components * sizeof(unsigned char),
+									  in_components * sizeof(unsigned char)*in_width,
+									  in_components);
+	
+	toRet->m_flags = Field_TypeChar;
+	
+	memset(toRet->r_data.i, 0, numData);
+	
+	return toRet;
+}
+
+
 int fieldWidth(field *in_f)
 {
 	return in_f->m_width;
@@ -82,6 +124,12 @@ int fieldComponents(field *in_f)
 }
 
 
+int fieldIsCharData(field *in_f)
+{
+	return in_f->m_flags & Field_TypeChar;
+}
+
+
 int fieldStrideX(field *in_f)
 {
 	return in_f->m_strideX;
@@ -95,5 +143,11 @@ int fieldStrideY(field *in_f)
 float *fieldData(field *in_f)
 {
 	return in_f->r_data.f;
+}
+
+
+unsigned char *fieldCharData(field *in_f)
+{
+	return in_f->r_data.c;
 }
 

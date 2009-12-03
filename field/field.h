@@ -15,6 +15,9 @@ typedef struct field field;
 //Create a new field with new data
 field *fieldCreate(int in_width, int in_height, int in_components);
 
+//Create a new field with char data
+field *fieldCreateChar(int in_width, int in_height, int in_components);
+
 //Create a field with existing data
 //	A copy of the data is not made; rather we just store the pointer and
 //	pass it along.  For compatibility with other API's and frameworks,
@@ -30,8 +33,11 @@ int fieldComponents(field *in_f);
 int fieldStrideX(field *in_f);
 int fieldStrideY(field *in_f);
 
-//Be careful with thread safety!!!
+int fieldIsCharData(field *in_f);
+
+//Be careful with thread safety and type!!!
 float *fieldData(field *in_f);
+unsigned char *fieldCharData(field *in_f);
 
 
 typedef struct fieldServer fieldServer;
