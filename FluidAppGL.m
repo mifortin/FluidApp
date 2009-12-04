@@ -286,7 +286,6 @@
 		fieldClientSend(r_client, fluidVideoOut(r_fluid));
 	
 		fluidAdvance(r_fluid);
-		[self generateView];
 
 	x_catch(e)
 		errorListAdd(e);
