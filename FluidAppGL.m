@@ -22,6 +22,9 @@
 	r_client = fieldClientCreate(512, 512, 4, "127.0.0.1", 7575);
 	r_background = fieldServerCreate(512, 512, 4, 7474);
 	glGenTextures(1, &r_texture);
+	glBindTexture(GL_TEXTURE_2D, r_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0,
+				 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 }
 
 
@@ -206,7 +209,7 @@
 		float *d = fieldData(dens);
 		
 		glBindTexture(GL_TEXTURE_2D, r_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, w, h,
 					 GL_RGBA, GL_UNSIGNED_BYTE, d);
 	}
 	else if ([FluidTools viewVelocity])
@@ -283,7 +286,6 @@
 		fieldClientSend(r_client, fluidDensity(r_fluid));
 	
 		fluidAdvance(r_fluid);
-		[self generateView];
 
 	x_catch(e)
 		errorListAdd(e);
