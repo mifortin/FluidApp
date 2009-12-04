@@ -38,10 +38,11 @@ restart:
 	struct fieldServerJitMatrix mtx = {htonl('JMTX'),
 										htonl(sizeof(mtx)),
 										htonl(fieldComponents(fc->fld_sending)),
-										htonl(FIELD_JIT_FLOAT32),
+										htonl(FIELD_JIT_CHAR),
 										htonl(2)};
-	mtx.dataSize = fieldWidth(fc->fld_sending)*fieldHeight(fc->fld_sending)
-						*fieldComponents(fc->fld_sending)*4;
+	int dataSize = fieldWidth(fc->fld_sending)*fieldHeight(fc->fld_sending)
+						*fieldComponents(fc->fld_sending);
+	mtx.dataSize = htonl(dataSize);
 	mtx.time = x_time()*1000;
 	
 	int x;
@@ -61,7 +62,7 @@ restart:
 	//printf("SENDING FIELD\n");
 	netClientSendBinary(c, &head, sizeof(head));
 	netClientSendBinary(c, &mtx, sizeof(mtx));
-	netClientSendBinary(c, fieldData(fc->fld_sending), mtx.dataSize);
+	netClientSendBinary(c, fieldCharData(fc->fld_sending), dataSize);
 	//printf("FIELD SENT!\n");
 	//
 	//	- 
@@ -117,7 +118,7 @@ fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
 	fieldClient *fc = x_malloc(sizeof(fieldClient), fieldClientOnFree);
 	memset(fc, 0, sizeof(fieldClient));
 	
-	fc->fld_sending = fieldCreate(in_width, in_height, in_components);
+	fc->fld_sending = fieldCreateChar(in_width, in_height, in_components);
 	
 	fc->allSent = 2;
 	
@@ -157,7 +158,7 @@ void fieldClientSend(fieldClient *fc, field *f)
 	}
 	
 	memcpy(fieldData(fc->fld_sending), fieldData(f),
-		   fieldWidth(f)*fieldHeight(f)*fieldComponents(f)*4);
+		   fieldWidth(f)*fieldHeight(f)*fieldComponents(f));
 	
 	fc->allSent = 1;
 	x_pthread_cond_signal(&fc->cnd);
