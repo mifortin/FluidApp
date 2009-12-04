@@ -32,7 +32,7 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	float fx;
 	float fy = (float)y;
 	for (x=0, fx=0; x<w; x++, fx++)
-	{
+	{		
 		float fDataX = fluidFloatPointer(velX, x*sX + y*sY)[0];
 		float fDataY = fluidFloatPointer(velY, x*sX + y*sY)[0];
 		

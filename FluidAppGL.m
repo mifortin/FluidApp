@@ -18,12 +18,12 @@
 {
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
-	r_fluid = fluidCreate(1024,512);
-	r_client = fieldClientCreate(1024, 512, 4, "127.0.0.1", 7575);
-	r_background = fieldServerCreate(1024, 512, 4, 7474);
+	r_fluid = fluidCreate(512,512);
+	r_client = fieldClientCreate(512, 512, 4, "127.0.0.1", 7575);
+	r_background = fieldServerCreate(512, 512, 4, 7474);
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 512, 0,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0,
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
 }
 
