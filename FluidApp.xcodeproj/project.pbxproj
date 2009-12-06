@@ -122,6 +122,12 @@
 		4CE8F07B108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
 		4CE8F07C108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
 		4CE8F07D108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
+		4CF1CC3610CAC3B000B770B7 /* FluidTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */; };
+		4CF1CC3710CAC3B000B770B7 /* FluidTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */; };
+		4CF1CC8610CB206A00B770B7 /* FluidTabTopView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */; };
+		4CF1CC8710CB206A00B770B7 /* FluidTabTopView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */; };
+		4CF1CCA110CB21A900B770B7 /* FluidTabButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */; };
+		4CF1CCA210CB21A900B770B7 /* FluidTabButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */; };
 		4CF20D69109DC08300BB2332 /* FluidFPSView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D68109DC08300BB2332 /* FluidFPSView.m */; };
 		4CF20D6A109DC08300BB2332 /* FluidFPSView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D68109DC08300BB2332 /* FluidFPSView.m */; };
 		4CF20D94109DC6E800BB2332 /* FluidApp_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D93109DC6E800BB2332 /* FluidApp_Delegate.m */; };
@@ -243,6 +249,12 @@
 		4CD92DED10A351FE00714BD3 /* fluid_cpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_cpu.h; sourceTree = "<group>"; };
 		4CD92DEE10A351FE00714BD3 /* fluid_cpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_cpu.c; sourceTree = "<group>"; };
 		4CE8F07A108E43430014AD01 /* fluid_dampen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_dampen.c; sourceTree = "<group>"; };
+		4CF1CC3410CAC3B000B770B7 /* FluidTabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabView.h; sourceTree = "<group>"; };
+		4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabView.m; sourceTree = "<group>"; };
+		4CF1CC8410CB206A00B770B7 /* FluidTabTopView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabTopView.h; sourceTree = "<group>"; };
+		4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabTopView.m; sourceTree = "<group>"; };
+		4CF1CC9F10CB21A900B770B7 /* FluidTabButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabButton.h; sourceTree = "<group>"; };
+		4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabButton.m; sourceTree = "<group>"; };
 		4CF20D67109DC08300BB2332 /* FluidFPSView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidFPSView.h; sourceTree = "<group>"; };
 		4CF20D68109DC08300BB2332 /* FluidFPSView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidFPSView.m; sourceTree = "<group>"; };
 		4CF20D92109DC6E800BB2332 /* FluidApp_Delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Delegate.h; sourceTree = "<group>"; };
@@ -429,6 +441,12 @@
 				4CC84839108F74AB00CCE02D /* FluidToolbar.m */,
 				4CF20D67109DC08300BB2332 /* FluidFPSView.h */,
 				4CF20D68109DC08300BB2332 /* FluidFPSView.m */,
+				4CF1CC3410CAC3B000B770B7 /* FluidTabView.h */,
+				4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */,
+				4CF1CC8410CB206A00B770B7 /* FluidTabTopView.h */,
+				4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */,
+				4CF1CC9F10CB21A900B770B7 /* FluidTabButton.h */,
+				4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -781,6 +799,9 @@
 				4C618C7F10BCBDA500C8790C /* field_client.c in Sources */,
 				4C72961210C1E9AD001A515D /* error_lst.c in Sources */,
 				4C78C0D710C852AD0048858A /* fluid_visual.c in Sources */,
+				4CF1CC3610CAC3B000B770B7 /* FluidTabView.m in Sources */,
+				4CF1CC8610CB206A00B770B7 /* FluidTabTopView.m in Sources */,
+				4CF1CCA110CB21A900B770B7 /* FluidTabButton.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -823,6 +844,9 @@
 				4C618C7D10BCBDA500C8790C /* field_client.c in Sources */,
 				4C72961410C1E9AD001A515D /* error_lst.c in Sources */,
 				4C78C0D510C852AD0048858A /* fluid_visual.c in Sources */,
+				4CF1CC3710CAC3B000B770B7 /* FluidTabView.m in Sources */,
+				4CF1CC8710CB206A00B770B7 /* FluidTabTopView.m in Sources */,
+				4CF1CCA210CB21A900B770B7 /* FluidTabButton.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

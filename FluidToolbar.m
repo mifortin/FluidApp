@@ -13,6 +13,8 @@
 	[headerContainer setNeedsDisplay:YES];
 	visibleView = basicTools;
 	
+	[btnBasic makeLeftMost];
+	
 	allItems = [NSArray arrayWithObjects:btnBasic, btnDiffusion, btnQuality, nil];
 	[allItems retain];
 }

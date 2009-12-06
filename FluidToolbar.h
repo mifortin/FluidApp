@@ -4,6 +4,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "FluidTabButton.h"
 
 
 @interface FluidToolbar : NSObject
@@ -15,9 +16,9 @@
 	
 	IBOutlet NSView* headerContainer;
 	
-	IBOutlet NSButton *btnBasic;
-	IBOutlet NSButton *btnDiffusion;
-	IBOutlet NSButton *btnQuality;
+	IBOutlet FluidTabButton *btnBasic;
+	IBOutlet FluidTabButton *btnDiffusion;
+	IBOutlet FluidTabButton *btnQuality;
 	
 	NSView *visibleView;
 	
