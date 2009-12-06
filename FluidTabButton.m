@@ -70,10 +70,10 @@
 	
 	NSBezierPath *bp = [NSBezierPath bezierPath];
 	
-	[bp setLineWidth:2.23065f];
+	[bp setLineWidth:1.0f];
 	
 	NSPoint tmp = rect.origin;
-	tmp.x += 2.5f;
+	tmp.x += 5.5f;
 	
 	[bp moveToPoint:tmp];
 	

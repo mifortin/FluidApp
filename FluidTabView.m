@@ -21,16 +21,16 @@
 	
 	NSRect rect = [self bounds];
 	rect.origin.x+=0.7f;
-	rect.origin.y+=0.7f;
+	rect.origin.y+=1.5f;
 	rect.size.width -=2.5f;
-	rect.size.height +=0.5f;
+	rect.size.height -=0.5f;
 	
 	NSBezierPath *bp = [NSBezierPath bezierPath];
 	
-	[bp setLineWidth:2.23065f];
+	[bp setLineWidth:1.0f];
 	
 	NSPoint tmp = rect.origin;
-	tmp.x += 2.5f;
+	tmp.x += 4.5f;
 	
 	[bp moveToPoint:tmp];
 	

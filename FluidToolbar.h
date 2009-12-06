@@ -13,12 +13,16 @@
 	IBOutlet NSView* basicTools;
 	IBOutlet NSView* diffusionTools;
 	IBOutlet NSView* qualityTools;
+	IBOutlet NSView* clientTools;
+	IBOutlet NSView* serverTools;
 	
 	IBOutlet NSView* headerContainer;
 	
 	IBOutlet FluidTabButton *btnBasic;
 	IBOutlet FluidTabButton *btnDiffusion;
 	IBOutlet FluidTabButton *btnQuality;
+	IBOutlet FluidTabButton *btnClient;
+	IBOutlet FluidTabButton *btnServer;
 	
 	NSView *visibleView;
 	

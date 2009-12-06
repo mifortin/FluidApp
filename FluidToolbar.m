@@ -14,8 +14,9 @@
 	visibleView = basicTools;
 	
 	[btnBasic makeLeftMost];
+	[btnClient makeRightMost];
 	
-	allItems = [NSArray arrayWithObjects:btnBasic, btnDiffusion, btnQuality, nil];
+	allItems = [NSArray arrayWithObjects:btnBasic, btnDiffusion, btnQuality, btnClient, btnServer, nil];
 	[allItems retain];
 }
 
@@ -49,6 +50,10 @@
 				visibleView = diffusionTools;
 			else if (in_btn == btnQuality)
 				visibleView = qualityTools;
+			else if (in_btn == btnClient)
+				visibleView = clientTools;
+			else if (in_btn == btnServer)
+				visibleView = serverTools;
 			else
 				visibleView = nil;
 			

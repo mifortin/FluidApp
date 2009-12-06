@@ -12,10 +12,8 @@
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="112"/>
-			<integer value="68"/>
-			<integer value="16"/>
-			<integer value="90"/>
+			<integer value="201"/>
+			<integer value="205"/>
 			<integer value="148"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
@@ -111,7 +109,7 @@
 				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 			</object>
 			<object class="NSCustomView" id="677594885">
-				<reference key="NSNextResponder"/>
+				<nil key="NSNextResponder"/>
 				<int key="NSvFlags">4362</int>
 				<object class="NSMutableArray" key="NSSubviews">
 					<bool key="EncodedWithXMLCoder">YES</bool>
@@ -296,34 +294,54 @@
 					</object>
 				</object>
 				<string key="NSFrameSize">{372, 59}</string>
-				<reference key="NSSuperview"/>
 				<string key="NSClassName">FluidTabView</string>
 			</object>
 			<object class="NSCustomView" id="838957802">
-				<reference key="NSNextResponder"/>
+				<nil key="NSNextResponder"/>
 				<int key="NSvFlags">268</int>
 				<object class="NSMutableArray" key="NSSubviews">
 					<bool key="EncodedWithXMLCoder">YES</bool>
-					<object class="NSCustomView" id="694504484">
+					<object class="NSButton" id="221372085">
 						<reference key="NSNextResponder" ref="838957802"/>
 						<int key="NSvFlags">268</int>
-						<string key="NSFrame">{{196, 59}, {176, 20}}</string>
+						<string key="NSFrame">{{196, 59}, {50, 20}}</string>
+						<reference key="NSSuperview" ref="838957802"/>
+						<bool key="NSViewCanDrawConcurrently">YES</bool>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSButtonCell" key="NSCell" id="601843334">
+							<int key="NSCellFlags">67239424</int>
+							<int key="NSCellFlags2">168067072</int>
+							<string key="NSContents">Client</string>
+							<reference key="NSSupport" ref="22"/>
+							<reference key="NSControlView" ref="221372085"/>
+							<int key="NSButtonFlags">914637055</int>
+							<int key="NSButtonFlags2">6</int>
+							<string key="NSAlternateContents"/>
+							<string key="NSKeyEquivalent"/>
+							<int key="NSPeriodicDelay">400</int>
+							<int key="NSPeriodicInterval">75</int>
+						</object>
+					</object>
+					<object class="NSCustomView" id="630461450">
+						<reference key="NSNextResponder" ref="838957802"/>
+						<int key="NSvFlags">268</int>
+						<string key="NSFrame">{{245, 59}, {127, 20}}</string>
 						<reference key="NSSuperview" ref="838957802"/>
 						<string key="NSClassName">FluidTabTopView</string>
 					</object>
-					<object class="NSButton" id="754079073">
+					<object class="NSButton" id="905466865">
 						<reference key="NSNextResponder" ref="838957802"/>
 						<int key="NSvFlags">268</int>
 						<string key="NSFrame">{{147, 59}, {50, 20}}</string>
 						<reference key="NSSuperview" ref="838957802"/>
 						<bool key="NSViewCanDrawConcurrently">YES</bool>
 						<bool key="NSEnabled">YES</bool>
-						<object class="NSButtonCell" key="NSCell" id="546315551">
+						<object class="NSButtonCell" key="NSCell" id="438440196">
 							<int key="NSCellFlags">67239424</int>
 							<int key="NSCellFlags2">168067072</int>
-							<string key="NSContents">Net</string>
+							<string key="NSContents">Server</string>
 							<reference key="NSSupport" ref="22"/>
-							<reference key="NSControlView" ref="754079073"/>
+							<reference key="NSControlView" ref="905466865"/>
 							<int key="NSButtonFlags">914637055</int>
 							<int key="NSButtonFlags2">6</int>
 							<string key="NSAlternateContents"/>
@@ -405,14 +423,13 @@
 					</object>
 				</object>
 				<string key="NSFrameSize">{372, 79}</string>
-				<reference key="NSSuperview"/>
 				<string key="NSClassName">NSView</string>
 			</object>
 			<object class="NSCustomObject" id="535341810">
 				<string key="NSClassName">FluidToolbar</string>
 			</object>
 			<object class="NSCustomView" id="335063460">
-				<reference key="NSNextResponder"/>
+				<nil key="NSNextResponder"/>
 				<int key="NSvFlags">4364</int>
 				<object class="NSMutableArray" key="NSSubviews">
 					<bool key="EncodedWithXMLCoder">YES</bool>
@@ -524,7 +541,6 @@
 					</object>
 				</object>
 				<string key="NSFrameSize">{372, 59}</string>
-				<reference key="NSSuperview"/>
 				<string key="NSClassName">FluidTabView</string>
 			</object>
 			<object class="NSCustomView" id="58567546">
@@ -537,6 +553,7 @@
 						<int key="NSvFlags">268</int>
 						<string key="NSFrame">{{16, 26}, {105, 18}}</string>
 						<reference key="NSSuperview" ref="58567546"/>
+						<reference key="NSWindow"/>
 						<bool key="NSEnabled">YES</bool>
 						<object class="NSButtonCell" key="NSCell" id="723235703">
 							<int key="NSCellFlags">67239424</int>
@@ -557,6 +574,63 @@
 							<string key="NSKeyEquivalent"/>
 							<int key="NSPeriodicDelay">200</int>
 							<int key="NSPeriodicInterval">25</int>
+						</object>
+					</object>
+				</object>
+				<string key="NSFrameSize">{372, 59}</string>
+				<reference key="NSSuperview"/>
+				<reference key="NSWindow"/>
+				<string key="NSClassName">FluidTabView</string>
+			</object>
+			<object class="NSCustomView" id="230962775">
+				<reference key="NSNextResponder"/>
+				<int key="NSvFlags">4364</int>
+				<object class="NSMutableArray" key="NSSubviews">
+					<bool key="EncodedWithXMLCoder">YES</bool>
+					<object class="NSTextField" id="159041868">
+						<reference key="NSNextResponder" ref="230962775"/>
+						<int key="NSvFlags">268</int>
+						<string key="NSFrame">{{17, 22}, {286, 17}}</string>
+						<reference key="NSSuperview" ref="230962775"/>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSTextFieldCell" key="NSCell" id="523930182">
+							<int key="NSCellFlags">68288064</int>
+							<int key="NSCellFlags2">272630784</int>
+							<string key="NSContents">Michael: TODO: IMPLEMENT SERVER UI HERE!</string>
+							<object class="NSFont" key="NSSupport" id="307039822">
+								<string key="NSName">LucidaGrande</string>
+								<double key="NSSize">13</double>
+								<int key="NSfFlags">1044</int>
+							</object>
+							<reference key="NSControlView" ref="159041868"/>
+							<reference key="NSBackgroundColor" ref="987025056"/>
+							<reference key="NSTextColor" ref="1065584321"/>
+						</object>
+					</object>
+				</object>
+				<string key="NSFrameSize">{372, 59}</string>
+				<reference key="NSSuperview"/>
+				<string key="NSClassName">FluidTabView</string>
+			</object>
+			<object class="NSCustomView" id="241730220">
+				<reference key="NSNextResponder"/>
+				<int key="NSvFlags">4364</int>
+				<object class="NSMutableArray" key="NSSubviews">
+					<bool key="EncodedWithXMLCoder">YES</bool>
+					<object class="NSTextField" id="669521881">
+						<reference key="NSNextResponder" ref="241730220"/>
+						<int key="NSvFlags">268</int>
+						<string key="NSFrame">{{17, 20}, {286, 17}}</string>
+						<reference key="NSSuperview" ref="241730220"/>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSTextFieldCell" key="NSCell" id="112073976">
+							<int key="NSCellFlags">68288064</int>
+							<int key="NSCellFlags2">272630784</int>
+							<string key="NSContents">Michael: TODO: IMPLEMENT CLIENT UI HERE!</string>
+							<reference key="NSSupport" ref="307039822"/>
+							<reference key="NSControlView" ref="669521881"/>
+							<reference key="NSBackgroundColor" ref="987025056"/>
+							<reference key="NSTextColor" ref="1065584321"/>
 						</object>
 					</object>
 				</object>
@@ -844,9 +918,49 @@
 					<object class="IBActionConnection" key="connection">
 						<string key="label">onPressButton:</string>
 						<reference key="source" ref="535341810"/>
-						<reference key="destination" ref="754079073"/>
+						<reference key="destination" ref="905466865"/>
 					</object>
 					<int key="connectionID">155</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">onPressButton:</string>
+						<reference key="source" ref="535341810"/>
+						<reference key="destination" ref="221372085"/>
+					</object>
+					<int key="connectionID">160</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">btnServer</string>
+						<reference key="source" ref="535341810"/>
+						<reference key="destination" ref="905466865"/>
+					</object>
+					<int key="connectionID">161</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">btnClient</string>
+						<reference key="source" ref="535341810"/>
+						<reference key="destination" ref="221372085"/>
+					</object>
+					<int key="connectionID">162</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">clientTools</string>
+						<reference key="source" ref="535341810"/>
+						<reference key="destination" ref="241730220"/>
+					</object>
+					<int key="connectionID">209</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">serverTools</string>
+						<reference key="source" ref="535341810"/>
+						<reference key="destination" ref="230962775"/>
+					</object>
+					<int key="connectionID">210</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -1047,9 +1161,10 @@
 							<reference ref="460746881"/>
 							<reference ref="577918064"/>
 							<reference ref="138077286"/>
-							<reference ref="754079073"/>
+							<reference ref="905466865"/>
 							<reference ref="654731238"/>
-							<reference ref="694504484"/>
+							<reference ref="630461450"/>
+							<reference ref="221372085"/>
 						</object>
 						<reference key="parent" ref="0"/>
 						<string key="objectName">FluidHeader</string>
@@ -1266,22 +1381,84 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">153</int>
-						<reference key="object" ref="754079073"/>
+						<reference key="object" ref="905466865"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="546315551"/>
+							<reference ref="438440196"/>
 						</object>
 						<reference key="parent" ref="838957802"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">154</int>
-						<reference key="object" ref="546315551"/>
-						<reference key="parent" ref="754079073"/>
+						<reference key="object" ref="438440196"/>
+						<reference key="parent" ref="905466865"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">157</int>
-						<reference key="object" ref="694504484"/>
+						<reference key="object" ref="630461450"/>
 						<reference key="parent" ref="838957802"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">158</int>
+						<reference key="object" ref="221372085"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="601843334"/>
+						</object>
+						<reference key="parent" ref="838957802"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">159</int>
+						<reference key="object" ref="601843334"/>
+						<reference key="parent" ref="221372085"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">201</int>
+						<reference key="object" ref="230962775"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="159041868"/>
+						</object>
+						<reference key="parent" ref="0"/>
+						<string key="objectName">FluidServer</string>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">205</int>
+						<reference key="object" ref="241730220"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="669521881"/>
+						</object>
+						<reference key="parent" ref="0"/>
+						<string key="objectName">FluidClient</string>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">211</int>
+						<reference key="object" ref="159041868"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="523930182"/>
+						</object>
+						<reference key="parent" ref="230962775"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">212</int>
+						<reference key="object" ref="523930182"/>
+						<reference key="parent" ref="159041868"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">213</int>
+						<reference key="object" ref="669521881"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="112073976"/>
+						</object>
+						<reference key="parent" ref="241730220"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">214</int>
+						<reference key="object" ref="112073976"/>
+						<reference key="parent" ref="669521881"/>
 					</object>
 				</object>
 			</object>
@@ -1312,9 +1489,22 @@
 					<string>153.IBPluginDependency</string>
 					<string>154.IBPluginDependency</string>
 					<string>157.IBPluginDependency</string>
+					<string>158.CustomClassName</string>
+					<string>158.IBPluginDependency</string>
+					<string>159.IBPluginDependency</string>
 					<string>16.IBEditorWindowLastContentRect</string>
 					<string>16.IBPluginDependency</string>
 					<string>16.ImportedFromIB2</string>
+					<string>201.IBEditorWindowLastContentRect</string>
+					<string>201.IBPluginDependency</string>
+					<string>201.ImportedFromIB2</string>
+					<string>205.IBEditorWindowLastContentRect</string>
+					<string>205.IBPluginDependency</string>
+					<string>205.ImportedFromIB2</string>
+					<string>211.IBPluginDependency</string>
+					<string>212.IBPluginDependency</string>
+					<string>213.IBPluginDependency</string>
+					<string>214.IBPluginDependency</string>
 					<string>35.IBPluginDependency</string>
 					<string>36.IBPluginDependency</string>
 					<string>37.IBPluginDependency</string>
@@ -1388,9 +1578,22 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>{{379, 751}, {372, 59}}</string>
+					<string>FluidTabButton</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>{{229, 982}, {372, 59}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
+					<string>{{532, 843}, {372, 59}}</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<boolean value="YES"/>
+					<string>{{499, 628}, {372, 59}}</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<boolean value="YES"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -1417,7 +1620,7 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>{{434, 560}, {372, 79}}</string>
+					<string>{{399, 899}, {372, 79}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>FluidTabButton</string>
@@ -1456,7 +1659,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">157</int>
+			<int key="maxID">214</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -1596,19 +1799,27 @@
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>basicTools</string>
 							<string>btnBasic</string>
+							<string>btnClient</string>
 							<string>btnDiffusion</string>
 							<string>btnQuality</string>
+							<string>btnServer</string>
+							<string>clientTools</string>
 							<string>diffusionTools</string>
 							<string>header</string>
 							<string>headerContainer</string>
 							<string>qualityTools</string>
+							<string>serverTools</string>
 						</object>
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>NSView</string>
-							<string>NSButton</string>
-							<string>NSButton</string>
-							<string>NSButton</string>
+							<string>FluidTabButton</string>
+							<string>FluidTabButton</string>
+							<string>FluidTabButton</string>
+							<string>FluidTabButton</string>
+							<string>FluidTabButton</string>
+							<string>NSView</string>
+							<string>NSView</string>
 							<string>NSView</string>
 							<string>NSView</string>
 							<string>NSView</string>
