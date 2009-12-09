@@ -12,12 +12,14 @@
 void fieldServerFree(void *i)
 {
 	fieldServer *r = (fieldServer*)i;
-	
-	if (r->server)		x_free(r->server);
+	netServer *ns = r->server;
 	
 	pthread_mutex_lock(&r->mtx);
+	r->server = NULL;
 	x_pthread_cond_signal(&r->cnd);
 	pthread_mutex_unlock(&r->mtx);
+	
+	if (ns)		x_free(ns);
 	
 	if (r->fld_net)		x_free(r->fld_net);
 	if (r->fld_local)	x_free(r->fld_local);
@@ -94,7 +96,18 @@ nextPacket:
 			
 			pthread_mutex_lock(&r->mtx);
 			r->needSwap = 1;
+			if (r->server == NULL)
+			{
+				pthread_mutex_unlock(&r->mtx);
+				return 0;
+			}
 			x_pthread_cond_wait(&r->cnd, &r->mtx);
+			
+			if (r->server == NULL)
+			{
+				pthread_mutex_unlock(&r->mtx);
+				return 0;
+			}
 			//printf("AWAKE!!\n");
 			pthread_mutex_unlock(&r->mtx);
 			
@@ -148,7 +161,7 @@ nextPacket:
 		return 0;
 	}
 	
-	
+	printf("FieldServer: Completed Processing!\n");
 	return 0;
 }
 
@@ -191,4 +204,10 @@ void fieldServerUnlock(fieldServer *fs)
 		pthread_cond_signal(&fs->cnd);
 	}
 	pthread_mutex_unlock(&fs->mtx);
+}
+
+
+void fieldServerSetDelegate(fieldServer *fs, netServerDelegate *d)
+{
+	netServerSetDelegate(fs->server, d);
 }

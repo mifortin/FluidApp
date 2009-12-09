@@ -13,6 +13,50 @@
 
 @implementation FluidAppGL
 
+- (void)onServerConnect:(netServer*)ns
+{
+	[ib_serverController setStatus:FluidServerStatusGood forServer:1];
+}
+
+
+- (void)onServerDisconnect:(netServer*)ns
+{
+	[ib_serverController setStatus:FluidServerStatusPending forServer:1];
+}
+
+
+void FluidAppGLOnConnect(void *obj, netServer*ns)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onServerConnect:)
+									 withObject:(id)obj waitUntilDone:NO]; 
+}
+
+
+void FluidAppGLOnDisconnect(void *obj, netServer*ns)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onServerDisconnect:)
+									 withObject:(id)obj waitUntilDone:NO];
+}
+
+
+- (void)createServerOnPort:(int)in_port
+{
+	x_try
+	{
+		[ib_serverController setStatus:FluidServerStatusPending forServer:1];
+		r_background = fieldServerCreate(512, 512, 4, in_port);
+		netServerDelegate d = {self, FluidAppGLOnConnect, FluidAppGLOnDisconnect};
+		fieldServerSetDelegate(r_background, &d);
+	}
+	x_catch(e)
+	{
+		[ib_serverController setStatus:FluidServerStatusFail forServer:1];
+		errorListAdd(e);
+	}
+	x_finally
+	{}
+}
+
 
 - (void)awakeFromNib
 {
@@ -20,11 +64,11 @@
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(512,512);
 	r_client = fieldClientCreate(512, 512, 4, "127.0.0.1", 7575);
-	r_background = fieldServerCreate(512, 512, 4, 7474);
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0,
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
+	[self createServerOnPort:2626];
 }
 
 
@@ -272,16 +316,16 @@
 		}
 	
 		//Add in whatever comes from Jitter as densities...
-//		field *tmp = fieldServerLock(r_background);
-//		int x;
-//		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
-//		float *i1 = fieldData(tmp);
-//		float *i2 = fieldData(fluidDensity(r_fluid));
-//		for (x=0; x<t; x++)
-//		{
-//			i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
-//		}
-//		fieldServerUnlock(r_background);
+		field *tmp = fieldServerLock(r_background);
+		int x;
+		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
+		float *i1 = fieldData(tmp);
+		float *i2 = fieldData(fluidDensity(r_fluid));
+		for (x=0; x<t; x++)
+		{
+			i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
+		}
+		fieldServerUnlock(r_background);
 		
 		fieldClientSend(r_client, fluidVideoOut(r_fluid));
 	
@@ -409,6 +453,10 @@
 				 forServer:(int)in_serv
 				changePort:(int)in_port
 {
+	if (in_serv != 1)	return;
+	
+	x_free(r_background);
+	[self createServerOnPort:in_port];
 }
 
 @end

@@ -28,6 +28,9 @@ void *netServerConnection(void *eData)
 	
 	mpMutexLock(sData->r_mutex);
 	
+	if (sData->m_delegate.onConnect != NULL)
+		sData->m_delegate.onConnect(sData->m_delegate.obj, sData);
+	
 	netClient *cur = sData->m_client;
 	sData->m_client = NULL;
 	
@@ -43,6 +46,10 @@ void *netServerConnection(void *eData)
 	
 	mpMutexLock(sData->r_mutex);
 	sData->m_runningThreads--;
+	
+	if (sData->m_delegate.onDisconnect != NULL)
+		sData->m_delegate.onDisconnect(sData->m_delegate.obj, sData);
+	
 	mpMutexUnlock(sData->r_mutex);
 	
 	return NULL;
@@ -155,6 +162,12 @@ void netServerFree(void *in_o)
 	//as needed.
 	while (AtomicCompareAndSwapInt(in_svr->m_isDead, 0, 1) != 1) {}
 	
+	
+	mpMutexLock(mtx);
+	if (in_svr->m_socket != -1)
+		close(in_svr->m_socket);
+	mpMutexUnlock(mtx);
+	
 	if (mtx != NULL)
 	{
 		pthread_t tmp = in_svr->m_serverThread;
@@ -170,11 +183,6 @@ void netServerFree(void *in_o)
 		}
 		mpMutexUnlock(mtx);
 	}
-	
-	mpMutexLock(mtx);
-	if (in_svr->m_socket != -1)
-		close(in_svr->m_socket);
-	mpMutexUnlock(mtx);
 		
 	memset(in_svr, 0, sizeof(netServer));
 	
@@ -243,6 +251,9 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 	toRet->m_userData = in_d;
 	toRet->m_userFunction = fn_oConn;
 	toRet->r_mutex = NULL;
+	toRet->m_delegate.obj = NULL;
+	toRet->m_delegate.onConnect = NULL;
+	toRet->m_delegate.onDisconnect = NULL;
 	
 	toRet->r_mutex = mpMutexCreate();
 	
@@ -251,3 +262,11 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 	return toRet;
 }
 
+void netServerSetDelegate(netServer *s, netServerDelegate *d)
+{
+	mpMutex *mtx = s->r_mutex;
+	
+	mpMutexLock(mtx);
+	s->m_delegate = *d;
+	mpMutexUnlock(mtx);
+}

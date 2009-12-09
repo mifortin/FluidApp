@@ -6,6 +6,7 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+#include "net.h"
 #include "error.h"
 #include "mpx.h"
 
@@ -50,13 +51,14 @@ fieldServer *fieldServerCreate(int in_width, int in_height, int in_components,
 field *fieldServerLock(fieldServer *fs);
 void fieldServerUnlock(fieldServer *fs);
 
+void fieldServerSetDelegate(fieldServer *fs, netServerDelegate *d);
 
 //A field backed with a client (one buffer for send)
 typedef struct fieldClient fieldClient;
 
 //Connect to a given host with port.
 fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
-							   char *szHost, int in_port);
+							   const char *szHost, int in_port);
 
 //Send a field
 void fieldClientSend(fieldClient *fc, field *f);

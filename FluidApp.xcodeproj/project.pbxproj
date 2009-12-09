@@ -26,6 +26,8 @@
 		27BD78E70FB10B450077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD791E0FB111C60077C0B0 /* half.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD78E50FB10B450077C0B0 /* half.c */; };
 		27BD79250FB112070077C0B0 /* FluidTest.c in Sources */ = {isa = PBXBuildFile; fileRef = 27BD79240FB112070077C0B0 /* FluidTest.c */; };
+		4C04EAFA10D0318500D95ED8 /* FluidAppClientController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C04EAF910D0318500D95ED8 /* FluidAppClientController.m */; };
+		4C04EAFB10D0318500D95ED8 /* FluidAppClientController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C04EAF910D0318500D95ED8 /* FluidAppClientController.m */; };
 		4C0B4AC8100422F100C7C081 /* error_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18BB10F6700DF0023F24B /* error_pvt.c */; };
 		4C0B4ACA1004230700C7C081 /* netClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A662F90F645E8D009AC619 /* netClient.c */; };
 		4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */; };
@@ -211,6 +213,8 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* FluidApp_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Prefix.pch; sourceTree = "<group>"; };
+		4C04EAF810D0318500D95ED8 /* FluidAppClientController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidAppClientController.h; sourceTree = "<group>"; };
+		4C04EAF910D0318500D95ED8 /* FluidAppClientController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidAppClientController.m; sourceTree = "<group>"; };
 		4C1BA6700FBC6D3900A74684 /* FluidZip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidZip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C1BA6720FBC6D3A00A74684 /* FluidZip-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FluidZip-Info.plist"; sourceTree = "<group>"; };
 		4C1BA6760FBC6D7200A74684 /* FluidZip_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_main.m; sourceTree = "<group>"; };
@@ -466,6 +470,8 @@
 				4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */,
 				4C91C59F10CEF47B00FC4080 /* FluidAppServerController.h */,
 				4C91C5A010CEF47B00FC4080 /* FluidAppServerController.m */,
+				4C04EAF810D0318500D95ED8 /* FluidAppClientController.h */,
+				4C04EAF910D0318500D95ED8 /* FluidAppClientController.m */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -841,6 +847,7 @@
 				4CF1CC8610CB206A00B770B7 /* FluidTabTopView.m in Sources */,
 				4CF1CCA110CB21A900B770B7 /* FluidTabButton.m in Sources */,
 				4C91C5A210CEF47B00FC4080 /* FluidAppServerController.m in Sources */,
+				4C04EAFA10D0318500D95ED8 /* FluidAppClientController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -887,6 +894,7 @@
 				4CF1CC8710CB206A00B770B7 /* FluidTabTopView.m in Sources */,
 				4CF1CCA210CB21A900B770B7 /* FluidTabButton.m in Sources */,
 				4C91C5A110CEF47B00FC4080 /* FluidAppServerController.m in Sources */,
+				4C04EAFB10D0318500D95ED8 /* FluidAppClientController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

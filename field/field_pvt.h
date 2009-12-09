@@ -61,6 +61,9 @@ struct fieldClient
 	pthread_t thr;			//Thread (spawned to send the data)
 	
 	int allSent;			//OS has all the data, we can send another field?
+	
+	int port;				//Port to connect to...
+	char szHost[256];		//Host to connect to...
 };
 
 

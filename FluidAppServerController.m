@@ -7,7 +7,7 @@
 
 @implementation FluidAppServerController
 
-NSString *g_ibData[] = {@"Velocity", @"Density"};
+static NSString *g_ibData[] = {@"Velocity", @"Density"};
 
 
 - (void)awakeFromNib
@@ -65,8 +65,13 @@ NSString *g_ibData[] = {@"Velocity", @"Density"};
 		
 		if (val <= 1024 || val > 65000)		//Block root ports
 			return;
-		else
+		else if (iPorts[r] != val)
+		{
 			iPorts[r] = val;
+			
+			if (ib_delegate != nil)
+				[ib_delegate onServerController:self forServer:r changePort:val];
+		}
 	}
 }
 

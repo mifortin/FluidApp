@@ -33,9 +33,21 @@ void netClientReadBinary(netClient *client, void *dest, int *cnt, int timeout);
 int netClientGetBinary(netClient *client, void *dest, int cnt, int timeout);
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 //Basic functions to set up a server... (we handle callbacks, that's it!)
 typedef struct netServer netServer;
+
+////////////////////////////////////////////////////////////////////////////////
+//A simple netServer delegate...
+typedef struct netServerDelegate netServerDelegate;
+struct netServerDelegate
+{
+	void *obj;			//Some sordid reference to object
+	
+	void(*onConnect)(void *obj, netServer *ns);
+	void(*onDisconnect)(void *obj, netServer *ns);
+};
 
 //Net does bare minimum...  The rest is for specialized code.
 typedef int(*netServerFn_onConnect)(void *d, netServer *in_svr,
@@ -50,6 +62,9 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 //but still handling requests.  This ensures that the server shuts down
 //properly.
 int netServerTryingToQuit(netServer *in_server);
+
+//Copies data from delegate...
+void netServerSetDelegate(netServer *s, netServerDelegate *d);
 
 
 ////////////////////////////////////////////////////////////////////////////////

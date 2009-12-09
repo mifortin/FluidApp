@@ -34,6 +34,9 @@ struct netServer {
 	
 	//Is the server dead?  (set to 1 if it's dead)
 	int32_t m_isDead;
+	
+	//Delegate (send messages to here)
+	netServerDelegate m_delegate;
 };
 
 #endif
