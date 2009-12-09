@@ -4,14 +4,17 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "FluidAppServerController.h"
 #include <OpenGL/gl.h>
 
 #include "mpx.h"
 #include "fluid.h"
 
 
-@interface FluidAppGL : NSOpenGLView
+@interface FluidAppGL : NSOpenGLView <FluidAppServerDelegate>
 {
+	IBOutlet FluidAppServerController *ib_serverController;
+	
 	fieldServer *r_background;
 	fieldClient *r_client;
 	fluid *r_fluid;

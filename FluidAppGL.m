@@ -405,4 +405,10 @@
 	return fluidThreadSchedulerTime(r_fluid);
 }
 
+- (void)onServerController:(FluidAppServerController*)in_fasc
+				 forServer:(int)in_serv
+				changePort:(int)in_port
+{
+}
+
 @end

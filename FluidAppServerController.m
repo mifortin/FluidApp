@@ -69,4 +69,19 @@ NSString *g_ibData[] = {@"Velocity", @"Density"};
 			iPorts[r] = val;
 	}
 }
+
+
+- (void)setStatus:(int)in_status forServer:(int)in_server
+{
+	if (in_status < 0 || in_status > 2)
+		return;
+	
+	if (in_server < 0 || in_server > 1)
+		return;
+	
+	iStat[in_server] = in_status;
+	
+	[[ib_port tableView] reloadData];
+}
+
 @end
