@@ -37,7 +37,6 @@ int fieldServerOnConnect(void *i, netServer *s, netClient *c)
 nextPacket:
 	netClientGetBinary(c, &header, sizeof(header), 10);
 	header.id = ntohl(header.id);
-	header.size = ntohl(header.size);
 	
 	if (header.id == 'JMTX')
 	{
@@ -47,10 +46,18 @@ nextPacket:
 		
 		//printf("FieldServer: Jitter Matrix!\n");
 		struct fieldServerJitMatrix matrixInfo;
+		int invByteOrder = 0;
 		if (sizeof(matrixInfo) != header.size)
 		{
-			printf("FieldServer: ERROR: More data sent than expected!\n");
-			return 0;
+			header.size = ntohl(header.size);
+			if (header.size != sizeof(matrixInfo))
+			{
+				printf("FieldServer: ERROR: More data sent than expected! (sent %i expected %u)\n",
+							header.size, (unsigned int)sizeof(matrixInfo));
+				return 0;
+			}
+			else
+				invByteOrder = 1;
 		}
 		
 		netClientGetBinary(c, &matrixInfo, sizeof(matrixInfo), 10);
@@ -60,16 +67,16 @@ nextPacket:
 		
 		if (matrixInfo.dimCount < 2 || matrixInfo.dimCount > 32)
 		{
-			printf("FieldServer: ERROR: More data sent than expected!\n");
+			printf("FieldServer: ERROR: Insane dim count! (sent %i)\n", matrixInfo.dimCount);
 			return 0;
 		}
 		
 		int x;
 		for (x=0; x<matrixInfo.dimCount; x++)
-			matrixInfo.planeCount = ntohl(matrixInfo.planeCount);
+			matrixInfo.dim[x] = ntohl(matrixInfo.dim[x]);
 		
 		for (x=0; x<matrixInfo.dimCount; x++)
-			matrixInfo.planeCount = ntohl(matrixInfo.planeCount);
+			matrixInfo.dimStride[x] = ntohl(matrixInfo.dimStride[x]);
 		
 		matrixInfo.dataSize = ntohl(matrixInfo.dataSize);
 		
@@ -91,8 +98,17 @@ nextPacket:
 		{
 			//printf(" - OPTIMAL!\n");
 			float *d = fieldData(r->fld_net);
+			int *invD = (int*)d;
 			
 			netClientGetBinary(c, d, matrixInfo.dataSize, 10);
+			
+			//if (invByteOrder)
+			{
+				for (x=0; x<matrixInfo.dataSize/4; x++)
+				{
+					invD[x] = ntohl(invD[x]);
+				}
+			}
 			
 			pthread_mutex_lock(&r->mtx);
 			r->needSwap = 1;
