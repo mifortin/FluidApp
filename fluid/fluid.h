@@ -50,5 +50,9 @@ float fluidThreadSchedulerTime(fluid *f);
 //Video-output functions
 field *fluidVideoOut(fluid *in_f);
 
+//Video-input functions
+void fluidVideoBlendIn(fluid *in_f, field *in_ch, float in_s);
+void fluidVelocityBlendIn(fluid *in_f, field *in_ch, float in_s);
+
 #endif
 

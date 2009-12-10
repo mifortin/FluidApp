@@ -99,6 +99,19 @@ struct video
 	field *f;			//Can be anything...	(float)
 	
 	field *o;			//Must be an output matrix (char)
+	
+	float scale;		//Some sort of scaling factor
+};
+
+//Velocity io data
+struct velocityIO
+{
+	field *velX;		//Internally, seperate X/Y
+	field *velY;
+	
+	field *velIn;		//Input is x/y interlaced
+	
+	float scale;		//We might use this at some point....
 };
 
 //Ensure that parameters are passed around somewhat cleanly
@@ -127,6 +140,8 @@ typedef union
 	
 	//When doing video
 	struct video video;
+	
+	struct velocityIO velocityIO;
 	
 } pvt_fluidMode;
 

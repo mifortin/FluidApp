@@ -119,6 +119,9 @@
 		4C9F2CA91065A87300651C4B /* fluid_viscosity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F2CA81065A87300651C4B /* fluid_viscosity.c */; };
 		4C9F2CAA1065A87300651C4B /* fluid_viscosity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F2CA81065A87300651C4B /* fluid_viscosity.c */; };
 		4C9F2CAB1065A87300651C4B /* fluid_viscosity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F2CA81065A87300651C4B /* fluid_viscosity.c */; };
+		4CA33EAF10D1729800C50A88 /* fluid_input.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CA33EAE10D1729800C50A88 /* fluid_input.c */; };
+		4CA33EB010D1729800C50A88 /* fluid_input.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CA33EAE10D1729800C50A88 /* fluid_input.c */; };
+		4CA33EB110D1729800C50A88 /* fluid_input.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CA33EAE10D1729800C50A88 /* fluid_input.c */; };
 		4CBC1E8D104496AC003F84A0 /* fluid_advection_repos.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */; };
 		4CBC1E8E104496AC003F84A0 /* fluid_advection_repos.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */; };
 		4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
@@ -256,6 +259,7 @@
 		4C9955C6102219A900C1AD6F /* FluidAppGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidAppGL.h; sourceTree = "<group>"; };
 		4C9955C7102219A900C1AD6F /* FluidAppGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidAppGL.m; sourceTree = "<group>"; };
 		4C9F2CA81065A87300651C4B /* fluid_viscosity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_viscosity.c; sourceTree = "<group>"; };
+		4CA33EAE10D1729800C50A88 /* fluid_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_input.c; sourceTree = "<group>"; };
 		4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_advection_repos.c; sourceTree = "<group>"; };
 		4CC5E7270F697C4900CE7928 /* lagrange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange.h; sourceTree = "<group>"; };
 		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
@@ -579,6 +583,7 @@
 				4C86232110665D9400C466CE /* fluid_vorticity.c */,
 				4CE8F07A108E43430014AD01 /* fluid_dampen.c */,
 				4C78C0D410C852AD0048858A /* fluid_visual.c */,
+				4CA33EAE10D1729800C50A88 /* fluid_input.c */,
 				4CFA69690FAA952000E6847C /* fluid_macros.h */,
 				4CD34055104055D200C318A4 /* fluid_macros_2.h */,
 			);
@@ -771,6 +776,7 @@
 				4C618C7E10BCBDA500C8790C /* field_client.c in Sources */,
 				4C72961310C1E9AD001A515D /* error_lst.c in Sources */,
 				4C78C0D610C852AD0048858A /* fluid_visual.c in Sources */,
+				4CA33EB110D1729800C50A88 /* fluid_input.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -848,6 +854,7 @@
 				4CF1CCA110CB21A900B770B7 /* FluidTabButton.m in Sources */,
 				4C91C5A210CEF47B00FC4080 /* FluidAppServerController.m in Sources */,
 				4C04EAFA10D0318500D95ED8 /* FluidAppClientController.m in Sources */,
+				4CA33EAF10D1729800C50A88 /* fluid_input.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -895,6 +902,7 @@
 				4CF1CCA210CB21A900B770B7 /* FluidTabButton.m in Sources */,
 				4C91C5A110CEF47B00FC4080 /* FluidAppServerController.m in Sources */,
 				4C04EAFB10D0318500D95ED8 /* FluidAppClientController.m in Sources */,
+				4CA33EB010D1729800C50A88 /* fluid_input.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -97,4 +97,13 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 	[[ib_port tableView] reloadData];
 }
 
+
+- (float)blendForServer:(int)in_server
+{
+	if (in_server < 0 || in_server > 1)
+		return 1.0f;
+	
+	return blend[in_server];
+}
+
 @end

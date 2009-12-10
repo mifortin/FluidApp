@@ -46,19 +46,19 @@ nextPacket:
 		
 		//printf("FieldServer: Jitter Matrix!\n");
 		struct fieldServerJitMatrix matrixInfo;
-		int invByteOrder = 0;
-		if (sizeof(matrixInfo) != header.size)
-		{
-			header.size = ntohl(header.size);
-			if (header.size != sizeof(matrixInfo))
-			{
-				printf("FieldServer: ERROR: More data sent than expected! (sent %i expected %u)\n",
-							header.size, (unsigned int)sizeof(matrixInfo));
-				return 0;
-			}
-			else
-				invByteOrder = 1;
-		}
+//		int invByteOrder = 0;
+//		if (sizeof(matrixInfo) != header.size)
+//		{
+//			header.size = ntohl(header.size);
+//			if (header.size != sizeof(matrixInfo))
+//			{
+//				printf("FieldServer: ERROR: More data sent than expected! (sent %i expected %u)\n",
+//							header.size, (unsigned int)sizeof(matrixInfo));
+//				return 0;
+//			}
+//			else
+//				invByteOrder = 1;
+//		}
 		
 		netClientGetBinary(c, &matrixInfo, sizeof(matrixInfo), 10);
 		matrixInfo.planeCount = ntohl(matrixInfo.planeCount);
@@ -105,17 +105,8 @@ nextPacket:
 		{
 			//printf(" - OPTIMAL!\n");
 			float *d = fieldData(r->fld_net);
-			int *invD = (int*)d;
 			
 			netClientGetBinary(c, d, matrixInfo.dataSize, 10);
-			
-			if (r->dataType == FIELD_JIT_FLOAT32)
-			{
-				for (x=0; x<matrixInfo.dataSize/4; x++)
-				{
-					invD[x] = ntohl(invD[x]);
-				}
-			}
 			
 			pthread_mutex_lock(&r->mtx);
 			r->needSwap = 1;

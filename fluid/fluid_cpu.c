@@ -270,6 +270,41 @@ void fluidTaskVideoDensity2Char(fluid *f)
 }
 
 
+void fluidVideoBlendIn(fluid *f, field *in_ch, float in_s)
+{
+	if (in_s >= 0.9999f)	return;
+	
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn < MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_input_char2dens;
+	f->m_fns[curFn].mode.video.f = f->r_density;
+	f->m_fns[curFn].mode.video.o = in_ch;
+	f->m_fns[curFn].mode.video.scale = in_s;
+	f->m_fns[curFn].times = NULL;
+	mpCTaskAdd(f->r_coherence, curFn, 0,0,0);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
+void fluidVelocityBlendIn(fluid *f, field *in_ch, float in_s)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn < MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_input_float2vel;
+	f->m_fns[curFn].mode.velocityIO.velX = f->r_velocityX;
+	f->m_fns[curFn].mode.velocityIO.velY = f->r_velocityY;
+	f->m_fns[curFn].mode.velocityIO.velIn = in_ch;
+	f->m_fns[curFn].mode.velocityIO.scale = in_s;
+	f->m_fns[curFn].times = NULL;
+	mpCTaskAdd(f->r_coherence, curFn, 0,0,0);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o)
 {

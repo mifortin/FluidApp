@@ -34,6 +34,8 @@
 
 - (void)setStatus:(int)in_status forServer:(int)in_server;
 
+- (float)blendForServer:(int)in_server;
+
 @end
 
 

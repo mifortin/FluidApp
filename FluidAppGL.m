@@ -39,18 +39,63 @@ void FluidAppGLOnDisconnect(void *obj, netServer*ns)
 }
 
 
-- (void)createServerOnPort:(int)in_port
+- (void)onVelServerConnect:(netServer*)ns
+{
+	[ib_serverController setStatus:FluidServerStatusGood forServer:0];
+}
+
+
+- (void)onVelServerDisconnect:(netServer*)ns
+{
+	[ib_serverController setStatus:FluidServerStatusPending forServer:0];
+}
+
+
+void FluidAppGLOnVelConnect(void *obj, netServer*ns)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerConnect:)
+									 withObject:nil waitUntilDone:NO]; 
+}
+
+
+void FluidAppGLOnVelDisconnect(void *obj, netServer*ns)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerDisconnect:)
+									 withObject:nil waitUntilDone:NO];
+}
+
+
+- (void)createDensityServerOnPort:(int)in_port
 {
 	x_try
 	{
 		[ib_serverController setStatus:FluidServerStatusPending forServer:1];
-		r_densityServer = fieldServerCreateFloat(512, 512, 4, in_port);
+		r_densityServer = fieldServerCreateChar(512, 512, 4, in_port);
 		netServerDelegate d = {self, FluidAppGLOnConnect, FluidAppGLOnDisconnect};
 		fieldServerSetDelegate(r_densityServer, &d);
 	}
 	x_catch(e)
 	{
 		[ib_serverController setStatus:FluidServerStatusFail forServer:1];
+		errorListAdd(e);
+	}
+	x_finally
+	{}
+}
+
+
+- (void)createVelocityServerOnPort:(int)in_port
+{
+	x_try
+	{
+		[ib_serverController setStatus:FluidServerStatusPending forServer:0];
+		r_velocityServer = fieldServerCreateFloat(512, 512, 2, in_port);
+		netServerDelegate d = {self, FluidAppGLOnVelConnect, FluidAppGLOnVelDisconnect};
+		fieldServerSetDelegate(r_velocityServer, &d);
+	}
+	x_catch(e)
+	{
+		[ib_serverController setStatus:FluidServerStatusFail forServer:0];
 		errorListAdd(e);
 	}
 	x_finally
@@ -106,7 +151,8 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	glBindTexture(GL_TEXTURE_2D, r_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0,
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
-	[self createServerOnPort:2626];
+	[self createVelocityServerOnPort:2525];
+	[self createDensityServerOnPort:2626];
 }
 
 
@@ -116,6 +162,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] update];
 	glDeleteTextures(1, &r_texture);
 	x_free(r_densityServer);
+	x_free(r_velocityServer);
 	x_free(r_densityClient);
 	x_free(r_fluid);
 	
@@ -338,6 +385,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	
 	//Jason Lewis - open source project / lettering / Mr. Softie
 	x_try
+	{
 		//Extract the densities if needed...
 		if (src_rad > 0.2f)
 		{
@@ -352,23 +400,17 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 			src_g = [FluidTools G];
 			src_b = [FluidTools B];
 		}
-	
-		//Add in whatever comes from Jitter as densities...
-//		field *tmp = fieldServerLock(r_densityServer);
-//		int x;
-//		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
-//		float *i1 = fieldData(tmp);
-//		float *i2 = fieldData(fluidDensity(r_fluid));
-//		for (x=0; x<t; x++)
-//		{
-//			i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
-//		}
-//		fieldServerUnlock(r_densityServer);
 		
 		fieldClientSend(r_densityClient, fluidVideoOut(r_fluid));
 	
+		field *tmp = fieldServerLock(r_densityServer);
+		field *velTmp = fieldServerLock(r_velocityServer);
+		fluidVideoBlendIn(r_fluid, tmp, [ib_serverController blendForServer:1]);
+		fluidVelocityBlendIn(r_fluid, velTmp, [ib_serverController blendForServer:0]);
 		fluidAdvance(r_fluid);
-
+		fieldServerUnlock(r_velocityServer);
+		fieldServerUnlock(r_densityServer);
+	}
 	x_catch(e)
 		errorListAdd(e);
 	x_finally
@@ -491,10 +533,16 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 				 forServer:(int)in_serv
 				changePort:(int)in_port
 {
-	if (in_serv != 1)	return;
-	
-	x_free(r_densityServer);
-	[self createServerOnPort:in_port];
+	if (in_serv == 1)
+	{
+		x_free(r_densityServer);
+		[self createDensityServerOnPort:in_port];
+	}
+	else if (in_serv == 0)
+	{
+		x_free(r_velocityServer);
+		[self createVelocityServerOnPort:in_port];
+	}
 }
 
 - (void)onAlterClient:(int)in_client host:(NSString*)in_host port:(int)in_port
