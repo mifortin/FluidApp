@@ -21,8 +21,11 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 	iPorts[0] = 3535;
 	iPorts[1] = 3636;
 	
-	hosts[0] = @"localhost";
-	hosts[1] = @"localhost";
+	hosts[0] = @"127.0.0.1";
+	hosts[1] = @"127.0.0.1";
+	
+	[hosts[0] retain];
+	[hosts[1] retain];
 	
 	int x;
 	for (x=0; x<3; x++)	[status[x] retain];
@@ -32,6 +35,9 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 {
 	int x;
 	for (x=0; x<3; x++)	[status[x] release];
+	
+	[hosts[0] release];
+	[hosts[1] release];
 	
 	[super dealloc];
 }
@@ -50,6 +56,46 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 	if (c == ib_port)	return [NSString stringWithFormat:@"%i",iPorts[r]];
 	
 	return nil;
+}
+
+- (void)tableView:(NSTableView *)v setObjectValue:(id)o forTableColumn:(NSTableColumn *)c row:(int)r
+{
+	if (c == ib_port)
+	{
+		int val = [o intValue];
+		
+		if (val <= 1024 ||  val > 65000)
+			return;
+		else if (iPorts[r] != val)
+		{
+			iPorts[r] = val;
+			
+			if (ib_delegate != nil)
+				[ib_delegate onAlterClient:r host:hosts[r] port:iPorts[r]];
+		}
+	}
+	else if (c == ib_host && [o isKindOfClass:[NSString class]])
+	{
+		if ([hosts[r] compare:o] != NSOrderedSame)
+		{
+			[hosts[r] release];
+			hosts[r] = o;
+			[hosts[r] retain];
+			
+			if (ib_delegate != nil)
+				[ib_delegate onAlterClient:r host:hosts[r] port:iPorts[r]];
+		}
+	}
+}
+
+- (void)setStatus:(int)in_stat forClient:(int)in_client
+{
+	if (in_stat < 0 || in_stat >2)	return;
+	if (in_client < 0 || in_client > 1) return;
+	
+	iStat[in_client] = in_stat;
+	
+	[[ib_port tableView] reloadData];
 }
 
 @end

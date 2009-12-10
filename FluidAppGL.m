@@ -28,14 +28,14 @@
 void FluidAppGLOnConnect(void *obj, netServer*ns)
 {
 	[(NSObject*)obj performSelectorOnMainThread:@selector(onServerConnect:)
-									 withObject:(id)obj waitUntilDone:NO]; 
+									 withObject:nil waitUntilDone:NO]; 
 }
 
 
 void FluidAppGLOnDisconnect(void *obj, netServer*ns)
 {
 	[(NSObject*)obj performSelectorOnMainThread:@selector(onServerDisconnect:)
-									 withObject:(id)obj waitUntilDone:NO];
+									 withObject:nil waitUntilDone:NO];
 }
 
 
@@ -58,12 +58,50 @@ void FluidAppGLOnDisconnect(void *obj, netServer*ns)
 }
 
 
+- (void)onClientConnect:(fieldClient*)fc
+{
+	[ib_clientController setStatus:FluidClientStatusGood forClient:1];
+}
+
+- (void)onClientDisconnect:(fieldClient*)fc
+{
+	[ib_clientController setStatus:FluidClientStatusFail forClient:1];
+}
+
+
+void FluidAppGLOnClientConnect(void *obj, fieldClient *fc)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onClientConnect:)
+									 withObject:nil waitUntilDone:NO]; 
+}
+
+
+void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onClientDisconnect:)
+									 withObject:nil waitUntilDone:NO]; 
+}
+
+
+- (void)createClientToHost:(NSString*)in_host port:(int)in_port
+{
+	const char *c = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
+	
+	[ib_clientController setStatus:FluidClientStatusFail forClient:1];
+	r_client = fieldClientCreate(512,512,4,c,in_port);
+	
+	fieldClientDelegate d = {self, FluidAppGLOnClientConnect,
+								FluidAppGLOnClientDisconnect};
+	fieldClientSetDelegate(r_client, &d);
+}
+
+
 - (void)awakeFromNib
 {
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(512,512);
-	r_client = fieldClientCreate(512, 512, 4, "127.0.0.1", 7575);
+	[self createClientToHost:@"127.0.0.1" port:3636];
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0,
@@ -457,6 +495,14 @@ void FluidAppGLOnDisconnect(void *obj, netServer*ns)
 	
 	x_free(r_background);
 	[self createServerOnPort:in_port];
+}
+
+- (void)onAlterClient:(int)in_client host:(NSString*)in_host port:(int)in_port
+{
+	if (in_client != 1)	return;
+	
+	x_free(r_client);
+	[self createClientToHost:in_host port:in_port];
 }
 
 @end

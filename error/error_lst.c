@@ -9,12 +9,14 @@
 #include <stdio.h>
 #include "mpx.h"
 
-pthread_mutex_t errorList_sync = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t errorList_sync = PTHREAD_MUTEX_INITIALIZER;
 
-error *errorList_first = NULL;
-error *errorList_last = NULL;
+static error *errorList_first = NULL;
+static error *errorList_last = NULL;
 
-error *errorList_scan = NULL;
+static error *errorList_scan = NULL;
+
+static int errorCount = 0;
 
 void errorListAdd(error *in_error)
 {
@@ -39,6 +41,15 @@ void errorListAdd(error *in_error)
 		{
 			errorList_last->m_list = in_error;
 			errorList_last = in_error;
+			errorCount ++;
+		}
+		
+		if (errorCount > 128)
+		{
+			errorCount = 128;
+			error *cur = errorList_first;
+			errorList_first = errorList_first->m_list;
+			x_free(cur);
 		}
 		
 		x_pthread_mutex_unlock(&errorList_sync);

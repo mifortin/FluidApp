@@ -46,6 +46,10 @@ reconnect:
 		x_finally
 		{}
 	}
+	pthread_mutex_lock(&fc->mtx);
+	if (fc->d.onClientConnect)
+		fc->d.onClientConnect(fc->d.obj, fc);
+	pthread_mutex_unlock(&fc->mtx);
 	
 	x_try
 	{
@@ -137,6 +141,9 @@ reconnect:
 		if (fc->client)			x_free(fc->client);
 		fc->client = NULL;
 		fc->allSent = 11;
+		
+		if (fc->d.onClientDisconnect)
+			fc->d.onClientDisconnect(fc->d.obj, fc);
 		pthread_mutex_unlock(&fc->mtx);
 		
 		goto reconnect;
@@ -230,5 +237,13 @@ void fieldClientSend(fieldClient *fc, field *f)
 	
 	fc->allSent = 1;
 	x_pthread_cond_signal(&fc->cnd);
+	pthread_mutex_unlock(&fc->mtx);
+}
+
+
+void fieldClientSetDelegate(fieldClient *fc, fieldClientDelegate *d)
+{
+	pthread_mutex_lock(&fc->mtx);
+	fc->d = *d;
 	pthread_mutex_unlock(&fc->mtx);
 }

@@ -17,7 +17,7 @@
 	IBOutlet NSTableColumn *ib_data;
 	IBOutlet NSTableColumn *ib_port;
 	IBOutlet NSTableColumn *ib_image;
-	IBOutlet NSTableColumn *ib_notes;
+	IBOutlet NSTableColumn *ib_blend;
 	
 	IBOutlet NSWindow		*ib_window;
 	
@@ -28,6 +28,8 @@
 	int iStat[2];		//Status for each row
 	
 	int iPorts[2];		//The ports (as selected by the user)
+	
+	float blend[2];		//Means of controlling the blending...
 }
 
 - (void)setStatus:(int)in_status forServer:(int)in_server;

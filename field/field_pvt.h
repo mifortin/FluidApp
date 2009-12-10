@@ -62,6 +62,8 @@ struct fieldClient
 	
 	int allSent;			//OS has all the data, we can send another field?
 	
+	fieldClientDelegate d;	//Delegate to send info to
+	
 	int port;				//Port to connect to...
 	char szHost[256];		//Host to connect to...
 };

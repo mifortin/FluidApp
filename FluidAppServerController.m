@@ -22,6 +22,9 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 	iPorts[0] = 2525;
 	iPorts[1] = 2626;
 	
+	blend[0] = 0.99f;
+	blend[1] = 0.99f;
+	
 	int x;
 	for (x=0; x<3; x++)	[status[x] retain];
 }
@@ -45,6 +48,7 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 	if (c == ib_data)	return g_ibData[r];
 	if (c == ib_image)	return status[iStat[r]];
 	if (c == ib_port)	return [NSString stringWithFormat:@"%i",iPorts[r]];
+	if (c == ib_blend)	return [NSNumber numberWithFloat:blend[r]];
 	
 	return nil;
 }
@@ -72,6 +76,10 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 			if (ib_delegate != nil)
 				[ib_delegate onServerController:self forServer:r changePort:val];
 		}
+	}
+	else if (c == ib_blend)
+	{
+		blend[r] = [o floatValue];
 	}
 }
 

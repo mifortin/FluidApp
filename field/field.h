@@ -55,6 +55,15 @@ void fieldServerSetDelegate(fieldServer *fs, netServerDelegate *d);
 
 //A field backed with a client (one buffer for send)
 typedef struct fieldClient fieldClient;
+typedef struct fieldClientDelegate fieldClientDelegate;
+struct fieldClientDelegate
+{
+	void *obj;				//Object we reference to
+	
+	//Invoked on connect
+	void(*onClientConnect)(void *obj, fieldClient *client);
+	void(*onClientDisconnect)(void *obj, fieldClient *client);
+};
 
 //Connect to a given host with port.
 fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
@@ -62,6 +71,9 @@ fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
 
 //Send a field
 void fieldClientSend(fieldClient *fc, field *f);
+
+//Other utilities
+void fieldClientSetDelegate(fieldClient *fc, fieldClientDelegate *d);
 
 //Utility macro to calculate offsets given strides
 #define fieldComputOffsetFromStride(x,y,sx,sy)	(x*sx+y*sy)
