@@ -84,9 +84,16 @@ nextPacket:
 		//printf(" - dimCount: %u\n", matrixInfo.dimCount);
 		//printf(" - time: %f\n", matrixInfo.time);
 		
+		int sizeOfData;
+		if (r->dataType == FIELD_JIT_FLOAT32)
+			sizeOfData = 4;
+		else
+			sizeOfData = 1;
+
+		
 		//Loop over and receive!!!
 		if (matrixInfo.dimCount == 2
-			&& matrixInfo.type == FIELD_JIT_FLOAT32
+			&& matrixInfo.type == r->dataType
 			&& matrixInfo.planeCount == fieldComponents(r->fld_net)
 			&& matrixInfo.dim[0] == fieldWidth(r->fld_net)
 			&& matrixInfo.dim[1] == fieldHeight(r->fld_net)
@@ -94,7 +101,7 @@ nextPacket:
 			&& matrixInfo.dimStride[1] == fieldStrideY(r->fld_net)
 			&& matrixInfo.dataSize ==
 						matrixInfo.dim[0]*matrixInfo.dim[1]*
-						matrixInfo.planeCount*4)
+						matrixInfo.planeCount*sizeOfData)
 		{
 			//printf(" - OPTIMAL!\n");
 			float *d = fieldData(r->fld_net);
@@ -102,7 +109,7 @@ nextPacket:
 			
 			netClientGetBinary(c, d, matrixInfo.dataSize, 10);
 			
-			//if (invByteOrder)
+			if (r->dataType == FIELD_JIT_FLOAT32)
 			{
 				for (x=0; x<matrixInfo.dataSize/4; x++)
 				{
@@ -142,9 +149,6 @@ nextPacket:
 			//printf("LATENCY (%f,%f,%f)\n",latency.client_time,
 			//							latency.parsed_done,
 			//							latency.parsed_header);
-			header.id = 'JMLP';
-			header.size = sizeof(latency);
-			//netClientSendBinary(c, &header, sizeof(header));
 			netClientSendBinary(c, &latency, sizeof(latency));
 			
 			goto nextPacket;
@@ -152,7 +156,7 @@ nextPacket:
 		else
 		{
 			printf(" - Backup data fetcher = discard...\n");
-			printf(" --> Type: %u\n", matrixInfo.type);
+			printf(" --> Type: %u (%u)\n", matrixInfo.type, r->dataType);
 			printf(" --> Dims: %u\n", matrixInfo.dimCount);
 			printf(" --> Planes: %u\n", matrixInfo.planeCount);
 			printf(" --> Width: %u\n", matrixInfo.dim[0]);
@@ -182,8 +186,9 @@ nextPacket:
 }
 
 
-fieldServer *fieldServerCreate(int in_width, int in_height, int in_components,
-							   int in_port)
+fieldServer *fieldServerCreateFloat(int in_width, int in_height,
+									int in_components,
+							   		int in_port)
 {
 	fieldServer *r = x_malloc(sizeof(fieldServer), fieldServerFree);
 	
@@ -198,10 +203,38 @@ fieldServer *fieldServerCreate(int in_width, int in_height, int in_components,
 	char szPort[64];
 	snprintf(szPort, 64, "%i", in_port);
 	
+	r->dataType = FIELD_JIT_FLOAT32;
+	
 	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
 	
 	return r;
 }
+
+
+fieldServer *fieldServerCreateChar(int in_width, int in_height,
+								   int in_components,
+								   int in_port)
+{
+	fieldServer *r = x_malloc(sizeof(fieldServer), fieldServerFree);
+	
+	memset(r, 0, sizeof(fieldServer));
+	
+	r->fld_net = fieldCreateChar(in_width, in_height, in_components);
+	r->fld_local = fieldCreateChar(in_width, in_height, in_components);
+	
+	pthread_mutex_init(&r->mtx, NULL);
+	x_pthread_cond_init(&r->cnd, NULL);
+	
+	char szPort[64];
+	snprintf(szPort, 64, "%i", in_port);
+	
+	r->dataType = FIELD_JIT_CHAR;
+	
+	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
+	
+	return r;
+}
+
 
 field *fieldServerLock(fieldServer *fs)
 {

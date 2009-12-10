@@ -44,9 +44,9 @@ void FluidAppGLOnDisconnect(void *obj, netServer*ns)
 	x_try
 	{
 		[ib_serverController setStatus:FluidServerStatusPending forServer:1];
-		r_background = fieldServerCreate(512, 512, 4, in_port);
+		r_densityServer = fieldServerCreateFloat(512, 512, 4, in_port);
 		netServerDelegate d = {self, FluidAppGLOnConnect, FluidAppGLOnDisconnect};
-		fieldServerSetDelegate(r_background, &d);
+		fieldServerSetDelegate(r_densityServer, &d);
 	}
 	x_catch(e)
 	{
@@ -83,16 +83,16 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 }
 
 
-- (void)createClientToHost:(NSString*)in_host port:(int)in_port
+- (void)createDensityClientToHost:(NSString*)in_host port:(int)in_port
 {
 	const char *c = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
 	
 	[ib_clientController setStatus:FluidClientStatusFail forClient:1];
-	r_client = fieldClientCreate(512,512,4,c,in_port);
+	r_densityClient = fieldClientCreateChar(512,512,4,c,in_port);
 	
 	fieldClientDelegate d = {self, FluidAppGLOnClientConnect,
 								FluidAppGLOnClientDisconnect};
-	fieldClientSetDelegate(r_client, &d);
+	fieldClientSetDelegate(r_densityClient, &d);
 }
 
 
@@ -101,7 +101,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(512,512);
-	[self createClientToHost:@"127.0.0.1" port:3636];
+	[self createDensityClientToHost:@"127.0.0.1" port:3636];
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0,
@@ -115,8 +115,8 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	glDeleteTextures(1, &r_texture);
-	x_free(r_background);
-	x_free(r_client);
+	x_free(r_densityServer);
+	x_free(r_densityClient);
 	x_free(r_fluid);
 	
 	if (work_buff)	free(work_buff);
@@ -354,18 +354,18 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 		}
 	
 		//Add in whatever comes from Jitter as densities...
-		field *tmp = fieldServerLock(r_background);
-		int x;
-		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
-		float *i1 = fieldData(tmp);
-		float *i2 = fieldData(fluidDensity(r_fluid));
-		for (x=0; x<t; x++)
-		{
-			i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
-		}
-		fieldServerUnlock(r_background);
+//		field *tmp = fieldServerLock(r_densityServer);
+//		int x;
+//		int t = fieldWidth(tmp)*fieldHeight(tmp)*fieldComponents(tmp);
+//		float *i1 = fieldData(tmp);
+//		float *i2 = fieldData(fluidDensity(r_fluid));
+//		for (x=0; x<t; x++)
+//		{
+//			i2[x] = i2[x]*0.99f + i1[x] * 0.01f;
+//		}
+//		fieldServerUnlock(r_densityServer);
 		
-		fieldClientSend(r_client, fluidVideoOut(r_fluid));
+		fieldClientSend(r_densityClient, fluidVideoOut(r_fluid));
 	
 		fluidAdvance(r_fluid);
 
@@ -493,7 +493,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 {
 	if (in_serv != 1)	return;
 	
-	x_free(r_background);
+	x_free(r_densityServer);
 	[self createServerOnPort:in_port];
 }
 
@@ -501,8 +501,8 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 {
 	if (in_client != 1)	return;
 	
-	x_free(r_client);
-	[self createClientToHost:in_host port:in_port];
+	x_free(r_densityClient);
+	[self createDensityClientToHost:in_host port:in_port];
 }
 
 @end

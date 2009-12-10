@@ -11,7 +11,8 @@
 #include <stdio.h>
 #include "net.h"
 
-#define Field_NoRelease		0x00000001		/* Do not release data (someone else will) */
+#define Field_NoRelease		0x00000001		/* Do not release data
+												(someone else will) */
 #define Field_TypeChar		0x00000010		/* Character data within */
 
 struct field
@@ -47,6 +48,8 @@ struct fieldServer
 	pthread_cond_t cnd;		//Simple condition
 	
 	int needSwap;		//Set to 1 when needed...
+	
+	int dataType;		//Type of data from Jitter that we can accept.
 };
 
 
@@ -61,6 +64,8 @@ struct fieldClient
 	pthread_t thr;			//Thread (spawned to send the data)
 	
 	int allSent;			//OS has all the data, we can send another field?
+	
+	int dataType;			//Type of data... (to Jitter)
 	
 	fieldClientDelegate d;	//Delegate to send info to
 	

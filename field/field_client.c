@@ -51,6 +51,7 @@ reconnect:
 		fc->d.onClientConnect(fc->d.obj, fc);
 	pthread_mutex_unlock(&fc->mtx);
 	
+	
 	x_try
 	{
 		netClient *c = fc->client;
@@ -79,10 +80,18 @@ reconnect:
 		struct fieldServerJitMatrix mtx = {htonl('JMTX'),
 											htonl(sizeof(mtx)),
 											htonl(fieldComponents(fc->fld_sending)),
-											htonl(FIELD_JIT_CHAR),
+											htonl(fc->dataType),
 											htonl(2)};
+		
+		int sizeOfData;
+		if (fc->dataType == FIELD_JIT_FLOAT32)
+			sizeOfData = 4;
+		else
+			sizeOfData = 1;
+		
 		int dataSize = fieldWidth(fc->fld_sending)*fieldHeight(fc->fld_sending)
-							*fieldComponents(fc->fld_sending);
+							*fieldComponents(fc->fld_sending)*sizeOfData;
+		
 		mtx.dataSize = htonl(dataSize);
 		mtx.time = x_time()*1000;
 		
@@ -96,6 +105,13 @@ reconnect:
 		mtx.dim[1] = htonl(fieldHeight(fc->fld_sending));
 		mtx.dimStride[0] = htonl(fieldStrideX(fc->fld_sending));
 		mtx.dimStride[1] = htonl(fieldStrideY(fc->fld_sending));
+		
+		if (fc->dataType == FIELD_JIT_FLOAT32)
+		{
+			int *iT = (int*)fieldData(fc->fld_sending);
+			for (x=0; x<dataSize/4; x++)
+				iT[x] = htonl(iT[x]);
+		}
 		
 		struct fieldServerJitHeader head =	{htonl('JMTX'),
 										htonl(sizeof(mtx))};
@@ -171,8 +187,42 @@ void fieldClientOnFree(void *o)
 }
 
 //Connect to a given host with port.
-fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
-							   const char *szHost, int in_port)
+fieldClient *fieldClientCreateFloat(int in_width, int in_height,
+								   int in_components,
+								   const char *szHost, int in_port)
+{
+	errorAssert(strlen(szHost) < 255, error_flags, "Host name too long!");
+	
+	fieldClient *fc = x_malloc(sizeof(fieldClient), fieldClientOnFree);
+	memset(fc, 0, sizeof(fieldClient));
+	
+	fc->port = in_port;
+	strcpy(fc->szHost, szHost);
+	
+	fc->fld_sending = fieldCreate(in_width, in_height, in_components);
+	
+	fc->allSent = 10;
+	fc->dataType = FIELD_JIT_FLOAT32;
+	
+	pthread_mutex_init(&fc->mtx, NULL);
+	x_pthread_cond_init(&fc->cnd, NULL);
+	
+	x_try
+	{
+		x_pthread_create(&fc->thr, NULL, fieldClientThread, fc);
+	}
+	x_catch(e)
+	{
+		errorListAdd(e);
+	}
+	x_finally
+	
+	return fc;
+}
+
+fieldClient *fieldClientCreateChar(int in_width, int in_height,
+								   int in_components,
+								   const char *szHost, int in_port)
 {
 	errorAssert(strlen(szHost) < 255, error_flags, "Host name too long!");
 	
@@ -185,6 +235,7 @@ fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
 	fc->fld_sending = fieldCreateChar(in_width, in_height, in_components);
 	
 	fc->allSent = 10;
+	fc->dataType = FIELD_JIT_CHAR;
 	
 	pthread_mutex_init(&fc->mtx, NULL);
 	x_pthread_cond_init(&fc->cnd, NULL);

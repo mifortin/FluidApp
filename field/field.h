@@ -44,8 +44,10 @@ unsigned char *fieldCharData(field *in_f);
 typedef struct fieldServer fieldServer;
 
 //A field backed with a server (one buffer for recv)
-fieldServer *fieldServerCreate(int in_width, int in_height, int in_components,
-							   int in_port);
+fieldServer *fieldServerCreateFloat(int in_width, int in_height, int in_components,
+									int in_port);
+fieldServer *fieldServerCreateChar(int in_width, int in_height, int in_components,
+									int in_port);
 
 //Tell when we use/unuse a field-server
 field *fieldServerLock(fieldServer *fs);
@@ -66,8 +68,10 @@ struct fieldClientDelegate
 };
 
 //Connect to a given host with port.
-fieldClient *fieldClientCreate(int in_width, int in_height, int in_components,
-							   const char *szHost, int in_port);
+fieldClient *fieldClientCreateFloat(int in_width, int in_height, int in_components,
+									const char *szHost, int in_port);
+fieldClient *fieldClientCreateChar(int in_width, int in_height, int in_components,
+									const char *szHost, int in_port);
 
 //Send a field
 void fieldClientSend(fieldClient *fc, field *f);

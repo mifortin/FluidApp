@@ -129,7 +129,7 @@ void mpCReset(mpCoherence *o);
 void mpInit(int in_workers);		//# of worker threads
 void mpTerminate();
 
-int mpSupportsGPU();				//Returns # of supported GPUs (if any)
+int mpSupportsGPU();				//Returns # of supported GPU cores (if any)
 
 //Function for a task... (obj points to something passed in on launch that
 //can be retained)

@@ -17,8 +17,10 @@
 	IBOutlet FluidAppServerController *ib_serverController;
 	IBOutlet FluidAppClientController *ib_clientController;
 	
-	fieldServer *r_background;
-	fieldClient *r_client;
+	fieldServer *r_densityServer;
+	fieldServer *r_velocityServer;
+	fieldClient *r_densityClient;
+	fieldClient *r_velocityClient;
 	fluid *r_fluid;
 	GLuint r_texture;
 	
