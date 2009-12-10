@@ -8,8 +8,7 @@
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="205"/>
-			<integer value="249"/>
+			<integer value="112"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -50,7 +49,7 @@
 				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
 				<string key="NSWindowContentMinSize">{480, 360}</string>
 				<object class="NSView" key="NSWindowView" id="986607486">
-					<reference key="NSNextResponder"/>
+					<nil key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
@@ -69,7 +68,6 @@
 											<int key="NSvFlags">4370</int>
 											<string key="NSFrameSize">{471, 360}</string>
 											<reference key="NSSuperview" ref="863188079"/>
-											<reference key="NSWindow"/>
 											<object class="NSOpenGLPixelFormat" key="NSPixelFormat">
 												<object class="NSData" key="NSPixelAttributes">
 													<bytes key="NS.bytes">AAAABQAAAAA</bytes>
@@ -79,7 +77,6 @@
 									</object>
 									<string key="NSFrameSize">{471, 360}</string>
 									<reference key="NSSuperview" ref="79884895"/>
-									<reference key="NSWindow"/>
 									<string key="NSClassName">NSView</string>
 								</object>
 								<object class="NSCustomView" id="242359979">
@@ -87,20 +84,16 @@
 									<int key="NSvFlags">274</int>
 									<string key="NSFrame">{{480, 0}, {0, 360}}</string>
 									<reference key="NSSuperview" ref="79884895"/>
-									<reference key="NSWindow"/>
 									<string key="NSClassName">FluidFPSView</string>
 								</object>
 							</object>
 							<string key="NSFrameSize">{480, 360}</string>
 							<reference key="NSSuperview" ref="986607486"/>
-							<reference key="NSWindow"/>
 							<bool key="NSIsVertical">YES</bool>
 							<int key="NSDividerStyle">3</int>
 						</object>
 					</object>
 					<string key="NSFrameSize">{480, 360}</string>
-					<reference key="NSSuperview"/>
-					<reference key="NSWindow"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1680, 1028}}</string>
 				<string key="NSMinSize">{480, 382}</string>
@@ -536,14 +529,14 @@
 				<string key="NSClassName">FluidTabView</string>
 			</object>
 			<object class="NSCustomView" id="58567546">
-				<nil key="NSNextResponder"/>
+				<reference key="NSNextResponder"/>
 				<int key="NSvFlags">4364</int>
 				<object class="NSMutableArray" key="NSSubviews">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<object class="NSButton" id="1070490766">
 						<reference key="NSNextResponder" ref="58567546"/>
 						<int key="NSvFlags">268</int>
-						<string key="NSFrame">{{16, 26}, {105, 18}}</string>
+						<string key="NSFrame">{{16, 34}, {105, 18}}</string>
 						<reference key="NSSuperview" ref="58567546"/>
 						<bool key="NSEnabled">YES</bool>
 						<object class="NSButtonCell" key="NSCell" id="723235703">
@@ -554,11 +547,11 @@
 							<reference key="NSControlView" ref="1070490766"/>
 							<int key="NSButtonFlags">1211912703</int>
 							<int key="NSButtonFlags2">2</int>
-							<object class="NSCustomResource" key="NSNormalImage">
+							<object class="NSCustomResource" key="NSNormalImage" id="586977220">
 								<string key="NSClassName">NSImage</string>
 								<string key="NSResourceName">NSSwitch</string>
 							</object>
-							<object class="NSButtonImageSource" key="NSAlternateImage">
+							<object class="NSButtonImageSource" key="NSAlternateImage" id="152715581">
 								<string key="NSImageName">NSSwitch</string>
 							</object>
 							<string key="NSAlternateContents"/>
@@ -567,12 +560,35 @@
 							<int key="NSPeriodicInterval">25</int>
 						</object>
 					</object>
+					<object class="NSButton" id="573998027">
+						<reference key="NSNextResponder" ref="58567546"/>
+						<int key="NSvFlags">268</int>
+						<string key="NSFrame">{{16, 12}, {107, 18}}</string>
+						<reference key="NSSuperview" ref="58567546"/>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSButtonCell" key="NSCell" id="989014701">
+							<int key="NSCellFlags">67239424</int>
+							<int key="NSCellFlags2">262144</int>
+							<string key="NSContents">Use Faster Vorticity</string>
+							<reference key="NSSupport" ref="22"/>
+							<reference key="NSControlView" ref="573998027"/>
+							<int key="NSButtonFlags">1211912703</int>
+							<int key="NSButtonFlags2">2</int>
+							<reference key="NSNormalImage" ref="586977220"/>
+							<reference key="NSAlternateImage" ref="152715581"/>
+							<string key="NSAlternateContents"/>
+							<string key="NSKeyEquivalent"/>
+							<int key="NSPeriodicDelay">200</int>
+							<int key="NSPeriodicInterval">25</int>
+						</object>
+					</object>
 				</object>
 				<string key="NSFrameSize">{372, 59}</string>
+				<reference key="NSSuperview"/>
 				<string key="NSClassName">FluidTabView</string>
 			</object>
 			<object class="NSCustomView" id="230962775">
-				<reference key="NSNextResponder"/>
+				<nil key="NSNextResponder"/>
 				<int key="NSvFlags">4362</int>
 				<object class="NSMutableArray" key="NSSubviews">
 					<bool key="EncodedWithXMLCoder">YES</bool>
@@ -985,11 +1001,10 @@
 					</object>
 				</object>
 				<string key="NSFrameSize">{372, 59}</string>
-				<reference key="NSSuperview"/>
 				<string key="NSClassName">FluidTabView</string>
 			</object>
 			<object class="NSCustomView" id="241730220">
-				<reference key="NSNextResponder"/>
+				<nil key="NSNextResponder"/>
 				<int key="NSvFlags">4364</int>
 				<object class="NSMutableArray" key="NSSubviews">
 					<bool key="EncodedWithXMLCoder">YES</bool>
@@ -1158,7 +1173,6 @@
 								</object>
 								<string key="NSFrame">{{1, 17}, {330, 30}}</string>
 								<reference key="NSSuperview" ref="972731955"/>
-								<reference key="NSNextKeyView" ref="138155580"/>
 								<reference key="NSDocView" ref="138155580"/>
 								<reference key="NSBGColor" ref="647090123"/>
 								<int key="NScvFlags">4</int>
@@ -1191,7 +1205,6 @@
 								</object>
 								<string key="NSFrame">{{1, 0}, {330, 17}}</string>
 								<reference key="NSSuperview" ref="972731955"/>
-								<reference key="NSNextKeyView" ref="1036463800"/>
 								<reference key="NSDocView" ref="1036463800"/>
 								<reference key="NSBGColor" ref="647090123"/>
 								<int key="NScvFlags">4</int>
@@ -1200,7 +1213,6 @@
 						</object>
 						<string key="NSFrame">{{20, 6}, {332, 48}}</string>
 						<reference key="NSSuperview" ref="241730220"/>
-						<reference key="NSNextKeyView" ref="917405084"/>
 						<int key="NSsFlags">2</int>
 						<reference key="NSVScroller" ref="193646831"/>
 						<reference key="NSHScroller" ref="47201176"/>
@@ -1211,7 +1223,6 @@
 					</object>
 				</object>
 				<string key="NSFrameSize">{372, 59}</string>
-				<reference key="NSSuperview"/>
 				<string key="NSClassName">FluidTabView</string>
 			</object>
 			<object class="NSCustomObject" id="199385680">
@@ -1672,6 +1683,14 @@
 					</object>
 					<int key="connectionID">315</int>
 				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">onChangeVorticityQuality:</string>
+						<reference key="source" ref="452189513"/>
+						<reference key="destination" ref="573998027"/>
+					</object>
+					<int key="connectionID">318</int>
+				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
 				<object class="NSArray" key="orderedObjects">
@@ -2041,6 +2060,7 @@
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="1070490766"/>
+							<reference ref="573998027"/>
 						</object>
 						<reference key="parent" ref="209429477"/>
 						<string key="objectName">Quality</string>
@@ -2410,6 +2430,20 @@
 						<reference key="object" ref="99490336"/>
 						<reference key="parent" ref="861175545"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">316</int>
+						<reference key="object" ref="573998027"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="989014701"/>
+						</object>
+						<reference key="parent" ref="58567546"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">317</int>
+						<reference key="object" ref="989014701"/>
+						<reference key="parent" ref="573998027"/>
+					</object>
 				</object>
 			</object>
 			<object class="NSMutableDictionary" key="flattenedProperties">
@@ -2484,9 +2518,14 @@
 					<string>297.IBPluginDependency</string>
 					<string>298.IBPluginDependency</string>
 					<string>299.IBPluginDependency</string>
+					<string>300.IBPluginDependency</string>
+					<string>301.IBPluginDependency</string>
+					<string>302.IBPluginDependency</string>
 					<string>304.IBPluginDependency</string>
 					<string>305.IBPluginDependency</string>
 					<string>314.IBPluginDependency</string>
+					<string>316.IBPluginDependency</string>
+					<string>317.IBPluginDependency</string>
 					<string>35.IBPluginDependency</string>
 					<string>36.IBPluginDependency</string>
 					<string>37.IBPluginDependency</string>
@@ -2547,7 +2586,7 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>{{499, 628}, {372, 59}}</string>
+					<string>{{470, 687}, {372, 59}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="5"/>
 					<string>FluidAppGL</string>
@@ -2571,9 +2610,14 @@
 					<string>{{400, 736}, {372, 59}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="5"/>
-					<string>{{614, 557}, {372, 59}}</string>
+					<string>{{632, 619}, {372, 59}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="5"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -2677,7 +2721,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">315</int>
+			<int key="maxID">318</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -2730,9 +2774,11 @@
 							<string>onChangeTimestep:</string>
 							<string>onChangeViscosity:</string>
 							<string>onChangeVorticity:</string>
+							<string>onChangeVorticityQuality:</string>
 						</object>
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
 							<string>id</string>
 							<string>id</string>
 							<string>id</string>

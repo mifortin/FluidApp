@@ -106,13 +106,6 @@ reconnect:
 		mtx.dimStride[0] = htonl(fieldStrideX(fc->fld_sending));
 		mtx.dimStride[1] = htonl(fieldStrideY(fc->fld_sending));
 		
-		if (fc->dataType == FIELD_JIT_FLOAT32)
-		{
-			int *iT = (int*)fieldData(fc->fld_sending);
-			for (x=0; x<dataSize/4; x++)
-				iT[x] = htonl(iT[x]);
-		}
-		
 		struct fieldServerJitHeader head =	{htonl('JMTX'),
 										htonl(sizeof(mtx))};
 		
@@ -296,5 +289,46 @@ void fieldClientSetDelegate(fieldClient *fc, fieldClientDelegate *d)
 {
 	pthread_mutex_lock(&fc->mtx);
 	fc->d = *d;
+	pthread_mutex_unlock(&fc->mtx);
+}
+
+
+field *fieldClientLock(fieldClient *fc)
+{
+	pthread_mutex_lock(&fc->mtx);
+	if (fc->allSent >= 10)
+	{
+		fc->allSent = fc->allSent + 1;
+		
+		if (fc->allSent == 100)
+		{
+			fc->allSent = 10;
+			x_pthread_cond_signal(&fc->cnd);
+		}
+		
+		pthread_mutex_unlock(&fc->mtx);
+		return NULL;
+	}
+	
+	if (fc->allSent != 0)
+	{
+		pthread_mutex_unlock(&fc->mtx);
+		return NULL;
+	}
+	
+	pthread_mutex_unlock(&fc->mtx);
+	
+	return fc->fld_sending;
+}
+
+
+void fieldClientUnlock(fieldClient *fc)
+{
+	pthread_mutex_lock(&fc->mtx);
+	if (fc->allSent == 0)			//To be safe, if I don't read my own comments
+	{
+		fc->allSent = 1;
+		x_pthread_cond_signal(&fc->cnd);
+	}
 	pthread_mutex_unlock(&fc->mtx);
 }

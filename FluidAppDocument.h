@@ -45,4 +45,6 @@
 
 - (IBAction)onChangeFreeSurface:(id)value;
 
+- (IBAction)onChangeVorticityQuality:(id)value;
+
 @end

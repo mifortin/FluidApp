@@ -76,6 +76,10 @@ fieldClient *fieldClientCreateChar(int in_width, int in_height, int in_component
 //Send a field
 void fieldClientSend(fieldClient *fc, field *f);
 
+//Lock the field buffer so we can send it... (returns NULL if can't send)
+field *fieldClientLock(fieldClient *fc);
+void fieldClientUnlock(fieldClient *fc);	//ONLY call if returned a real buffer.
+
 //Other utilities
 void fieldClientSetDelegate(fieldClient *fc, fieldClientDelegate *d);
 

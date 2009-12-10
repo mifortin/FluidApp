@@ -31,6 +31,7 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_dampen(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode);
+void fluid_input_vel2float(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_input_char2dens(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_input_float2vel(fluid *in_f, int y, pvt_fluidMode *mode);

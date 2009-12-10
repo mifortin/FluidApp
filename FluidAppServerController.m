@@ -106,4 +106,13 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 	return blend[in_server];
 }
 
+
+- (BOOL)serverConnected:(int)in_server
+{
+	if (in_server <0 || in_server > 1)
+		return NO;
+	
+	return iStat[in_server] == FluidServerStatusGood;
+}
+
 @end

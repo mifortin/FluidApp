@@ -140,6 +140,42 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	fieldClientSetDelegate(r_densityClient, &d);
 }
 
+- (void)onVelClientConnect:(fieldClient*)fc
+{
+	[ib_clientController setStatus:FluidClientStatusGood forClient:0];
+}
+
+- (void)onVelClientDisconnect:(fieldClient*)fc
+{
+	[ib_clientController setStatus:FluidClientStatusFail forClient:0];
+}
+
+
+void FluidAppGLOnVelClientConnect(void *obj, fieldClient *fc)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelClientConnect:)
+									 withObject:nil waitUntilDone:NO]; 
+}
+
+
+void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
+{
+	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelClientDisconnect:)
+									 withObject:nil waitUntilDone:NO]; 
+}
+
+- (void)createVelocityClientToHost:(NSString*)in_host port:(int)in_port
+{
+	const char *c = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
+	
+	[ib_clientController setStatus:FluidClientStatusFail forClient:0];
+	r_velocityClient = fieldClientCreateFloat(512,512,2,c,in_port);
+	
+	fieldClientDelegate d = {self, FluidAppGLOnVelClientConnect,
+								FluidAppGLOnVelClientDisconnect};
+	fieldClientSetDelegate(r_velocityClient, &d);
+}
+
 
 - (void)awakeFromNib
 {
@@ -147,6 +183,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(512,512);
 	[self createDensityClientToHost:@"127.0.0.1" port:3636];
+	[self createVelocityClientToHost:@"127.0.0.1" port:3535];
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0,
@@ -164,6 +201,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	x_free(r_densityServer);
 	x_free(r_velocityServer);
 	x_free(r_densityClient);
+	x_free(r_velocityClient);
 	x_free(r_fluid);
 	
 	if (work_buff)	free(work_buff);
@@ -405,9 +443,20 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	
 		field *tmp = fieldServerLock(r_densityServer);
 		field *velTmp = fieldServerLock(r_velocityServer);
-		fluidVideoBlendIn(r_fluid, tmp, [ib_serverController blendForServer:1]);
-		fluidVelocityBlendIn(r_fluid, velTmp, [ib_serverController blendForServer:0]);
+		field *outVel = fieldClientLock(r_velocityClient);
+		
+		if (outVel)
+			fluidVideoVelocityOut(r_fluid, outVel);
+		
+		if ([ib_serverController serverConnected:1])
+			fluidVideoBlendIn(r_fluid, tmp, [ib_serverController blendForServer:1]);
+		
+		if ([ib_serverController serverConnected:0])
+			fluidVelocityBlendIn(r_fluid, velTmp, [ib_serverController blendForServer:0]);
 		fluidAdvance(r_fluid);
+		
+		if (outVel)
+			fieldClientUnlock(r_velocityClient);
 		fieldServerUnlock(r_velocityServer);
 		fieldServerUnlock(r_densityServer);
 	}
@@ -494,6 +543,16 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 }
 
 
+- (void)quickVorticity
+{
+	
+}
+
+- (void)accurateVorticity
+{
+}
+
+
 - (void)enableTimers
 {
 	fluidEnableTimers(r_fluid);
@@ -529,6 +588,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	return fluidThreadSchedulerTime(r_fluid);
 }
 
+
 - (void)onServerController:(FluidAppServerController*)in_fasc
 				 forServer:(int)in_serv
 				changePort:(int)in_port
@@ -547,10 +607,16 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 
 - (void)onAlterClient:(int)in_client host:(NSString*)in_host port:(int)in_port
 {
-	if (in_client != 1)	return;
-	
-	x_free(r_densityClient);
-	[self createDensityClientToHost:in_host port:in_port];
+	if (in_client == 1)
+	{
+		x_free(r_densityClient);
+		[self createDensityClientToHost:in_host port:in_port];
+	}
+	else if (in_client == 0)
+	{
+		x_free(r_velocityClient);
+		[self createVelocityClientToHost:in_host port:in_port];
+	}
 }
 
 @end

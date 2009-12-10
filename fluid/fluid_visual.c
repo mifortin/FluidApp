@@ -12,6 +12,7 @@
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
+#include <stdlib.h>
 
 void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 {
@@ -79,4 +80,30 @@ void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 		o[x] = (unsigned char)i;
 	}
 #endif
+}
+
+void fluid_input_vel2float(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct velocityIO *v = &mode->velocityIO;
+	
+	int w = fieldWidth(v->velX);
+	
+	float *fVelX = fluidFloatPointer(fieldData(v->velX),y*fieldStrideY(v->velX));
+	float *fVelY = fluidFloatPointer(fieldData(v->velY),y*fieldStrideY(v->velY));
+	float *fVelIn = fluidFloatPointer(fieldData(v->velIn),y*fieldStrideY(v->velIn));
+	
+	union {
+		float f;
+		int i;
+	} t;
+	
+	int x;
+	for (x=0; x<w; x++)
+	{
+		t.i = htonl(((int*)fVelX)[x]);
+		fVelIn[2*x] = t.f;
+		
+		t.i = htonl(((int*)fVelY)[x]);
+		fVelIn[2*x+1] = t.f;
+	}
 }

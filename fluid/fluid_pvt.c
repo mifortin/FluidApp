@@ -122,6 +122,17 @@ void fluidFreeSurfaceSimple(fluid *f)
 	f->flags = (f->flags | FLUID_SIMPLEFREE);
 }
 
+
+void fluidVorticityQuick(fluid *f)
+{
+	f->flags = (f->flags | FLUID_QUICK_VORTICTY);
+}
+
+void fluidVorticityAccurate(fluid *f)
+{
+	f->flags = (f->flags & (~FLUID_QUICK_VORTICTY));
+}
+
 void fluidEnableTimers(fluid *f)
 {
 	f->flags = (f->flags | FLUID_TIMERS);

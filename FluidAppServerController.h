@@ -36,6 +36,8 @@
 
 - (float)blendForServer:(int)in_server;
 
+- (BOOL)serverConnected:(int)in_server;
+
 @end
 
 

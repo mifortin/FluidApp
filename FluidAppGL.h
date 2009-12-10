@@ -57,6 +57,9 @@
 - (void)noFreeSurfaces;
 - (void)simpleFreeSurfaces;
 
+- (void)quickVorticity;
+- (void)accurateVorticity;
+
 - (void)enableTimers;
 - (void)disableTimers;
 

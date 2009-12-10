@@ -214,6 +214,13 @@
 		[ib_glView noFreeSurfaces];
 }
 
+- (IBAction)onChangeVorticityQuality:(id)value
+{
+	if ([value state] == NSOnState)
+		[ib_glView quickVorticity];
+	else
+		[ib_glView accurateVorticity];
+}
 ////////////////////////////////////////////////////////////////////////////////
 //
 //	Toolbar code follows!

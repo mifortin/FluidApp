@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include "fluid_cpu.h"
 
-//First part, compute the divergence:
+//First part, compute the divergence (w)   :
 //
 //	z-y, x-z, y-x
 //	y z  z x  x y

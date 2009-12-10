@@ -32,6 +32,10 @@ void fluidSetTimestep(fluid *f, float in_v);
 void fluidSetDensityFade(fluid *f, float in_v);
 void fluidSetVelocityFade(fluid *f, float in_v);
 
+//Set up vorticity (2 modes of computation)
+void fluidVorticityQuick(fluid *f);
+void fluidVorticityAccurate(fluid *f);
+
 //Set up free surfaces
 void fluidFreeSurfaceNone(fluid *f);
 void fluidFreeSurfaceSimple(fluid *f);
@@ -49,6 +53,7 @@ float fluidThreadSchedulerTime(fluid *f);
 
 //Video-output functions
 field *fluidVideoOut(fluid *in_f);
+void fluidVideoVelocityOut(fluid *in_f, field *in_dest);
 
 //Video-input functions
 void fluidVideoBlendIn(fluid *in_f, field *in_ch, float in_s);
