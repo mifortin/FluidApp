@@ -131,6 +131,8 @@
 		4CC757241063060F003C1369 /* fluid_pressure.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC757211063060F003C1369 /* fluid_pressure.c */; };
 		4CC8483A108F74AB00CCE02D /* FluidToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC84839108F74AB00CCE02D /* FluidToolbar.m */; };
 		4CC8483B108F74AB00CCE02D /* FluidToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC84839108F74AB00CCE02D /* FluidToolbar.m */; };
+		4CCB577F10D25E6200F686C2 /* FluidAppSliderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CCB577E10D25E6200F686C2 /* FluidAppSliderCell.m */; };
+		4CCB578010D25E6200F686C2 /* FluidAppSliderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CCB577E10D25E6200F686C2 /* FluidAppSliderCell.m */; };
 		4CD92D7F10A314D500714BD3 /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CD92D4D10A2FC6B00714BD3 /* OpenCL.framework */; };
 		4CD92DEF10A351FE00714BD3 /* fluid_cpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CD92DEE10A351FE00714BD3 /* fluid_cpu.c */; };
 		4CD92DF010A351FE00714BD3 /* fluid_cpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CD92DEE10A351FE00714BD3 /* fluid_cpu.c */; };
@@ -267,6 +269,8 @@
 		4CC757211063060F003C1369 /* fluid_pressure.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_pressure.c; sourceTree = "<group>"; };
 		4CC84838108F74AB00CCE02D /* FluidToolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidToolbar.h; sourceTree = "<group>"; };
 		4CC84839108F74AB00CCE02D /* FluidToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidToolbar.m; sourceTree = "<group>"; };
+		4CCB577D10D25E6200F686C2 /* FluidAppSliderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidAppSliderCell.h; sourceTree = "<group>"; };
+		4CCB577E10D25E6200F686C2 /* FluidAppSliderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidAppSliderCell.m; sourceTree = "<group>"; };
 		4CD34055104055D200C318A4 /* fluid_macros_2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_macros_2.h; sourceTree = "<group>"; };
 		4CD6461E0FA7AB7D00073448 /* mpx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpx.h; sourceTree = "<group>"; };
 		4CD92D4D10A2FC6B00714BD3 /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = /System/Library/Frameworks/OpenCL.framework; sourceTree = "<absolute>"; };
@@ -476,6 +480,8 @@
 				4C91C5A010CEF47B00FC4080 /* FluidAppServerController.m */,
 				4C04EAF810D0318500D95ED8 /* FluidAppClientController.h */,
 				4C04EAF910D0318500D95ED8 /* FluidAppClientController.m */,
+				4CCB577D10D25E6200F686C2 /* FluidAppSliderCell.h */,
+				4CCB577E10D25E6200F686C2 /* FluidAppSliderCell.m */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -855,6 +861,7 @@
 				4C91C5A210CEF47B00FC4080 /* FluidAppServerController.m in Sources */,
 				4C04EAFA10D0318500D95ED8 /* FluidAppClientController.m in Sources */,
 				4CA33EAF10D1729800C50A88 /* fluid_input.c in Sources */,
+				4CCB577F10D25E6200F686C2 /* FluidAppSliderCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -903,6 +910,7 @@
 				4C91C5A110CEF47B00FC4080 /* FluidAppServerController.m in Sources */,
 				4C04EAFB10D0318500D95ED8 /* FluidAppClientController.m in Sources */,
 				4CA33EB010D1729800C50A88 /* fluid_input.c in Sources */,
+				4CCB578010D25E6200F686C2 /* FluidAppSliderCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

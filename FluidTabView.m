@@ -16,6 +16,11 @@
     return self;
 }
 
+- (BOOL)mouseDownCanMoveWindow
+{
+	return NO;
+}
+
 - (void)drawRect:(NSRect)dirtyRect
 {
 	

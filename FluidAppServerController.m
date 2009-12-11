@@ -53,14 +53,6 @@ static NSString *g_ibData[] = {@"Velocity", @"Density"};
 	return nil;
 }
 
-- (BOOL)tableView:(NSTableView *)aTableView shouldSelectRow:(int)rowIndex
-{
-	NSCell *myCell = [ib_port dataCellForRow:rowIndex];
-	[[myCell controlView] setFocusRingType:NSFocusRingTypeNone];
-	
-	return YES;
-}
-
 - (void)tableView:(NSTableView *)v setObjectValue:(id)o forTableColumn:(NSTableColumn *)c row:(int)r
 {
 	if (c == ib_port)
