@@ -17,6 +17,10 @@
 #include <math.h>
 #include <stdio.h>
 
+#ifdef __APPLE_ALTIVEC__
+#include <ppc_intrinsics.h>
+#endif
+
 /** Most basic function used to handle pressure */
 void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 {
@@ -103,6 +107,7 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 	else
 	{
 #ifdef __APPLE_ALTIVEC__
+		//int myTempVariable = __mfspr( 1023 );
 		float *vPressureRow = fluidFloatPointer(pressure, y*sy);
 		
 		vector float *vPressure = (vector float*)vPressureRow;
@@ -145,10 +150,76 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vPressure[0] = vec_madd(tmp, div4, vZero);
 			vPressureRow[0] = vPressureRow[1];
 		}
-		for (x=1; x<w/4-1; x++)
+		x=1;
+		while (x<w/4-9)
 		{
-			vector float tmp;
+			//Pressure shifts here (to remove data dependencies)
+			vector float sl_p = vec_sld(vPressure[x], vPressure[x+1],4);
+			vector float sr_p = vec_sld(vPressure[x-1], vPressure[x], 12);
 			
+			vector float sl_p_2 = vec_sld(vPressure[x+1], vPressure[x+2],4);
+			vector float sr_p_2 = vec_sld(vPressure[x], vPressure[x+1], 12);
+			
+			vector float sl_p_3 = vec_sld(vPressure[x+2], vPressure[x+3],4);
+			vector float sr_p_3 = vec_sld(vPressure[x+1], vPressure[x+2], 12);
+			
+			//Compute shifts
+			
+			vector float sl_vx = vec_sld(vVelX[x], vVelX[x+1],4);
+			vector float sr_vx = vec_sld(vVelX[x-1], vVelX[x], 12);
+			
+			//Sum everything!!!
+			vector float tmp1 = vec_add(sl_p, sr_p);
+			vector float tmp2 = vec_add(vPressureP[x], vPressureN[x]);
+			vector float tmp3 = vec_sub(sr_vx, sl_vx);
+			vector float tmp4 = vec_sub(vVelYP[x], vVelYN[x]);
+			
+			tmp1 = vec_add(tmp1,tmp2);
+			tmp3 = vec_add(tmp3,tmp4);
+			tmp1 = vec_add(tmp1,tmp3);
+			
+			vPressure[x] = vec_madd(tmp1, div4, vZero);
+			
+			
+			//Compute shifts
+			
+			vector float sl_vx_2 = vec_sld(vVelX[x+1], vVelX[x+2],4);
+			vector float sr_vx_2 = vec_sld(vVelX[x], vVelX[x+1], 12);
+			
+			//Sum everything!!!
+			vector float tmp1_2 = vec_add(sl_p_2, sr_p_2);
+			vector float tmp2_2 = vec_add(vPressureP[x+1], vPressureN[x+1]);
+			vector float tmp3_2 = vec_sub(sr_vx_2, sl_vx_2);
+			vector float tmp4_2 = vec_sub(vVelYP[x+1], vVelYN[x+1]);
+			
+			tmp1_2 = vec_add(tmp1_2,tmp2_2);
+			tmp3_2 = vec_add(tmp3_2,tmp4_2);
+			tmp1_2 = vec_add(tmp1_2,tmp3_2);
+			
+			vPressure[x+1] = vec_madd(tmp1_2, div4, vZero);
+			
+			
+			//Compute shifts
+			
+			vector float sl_vx_3 = vec_sld(vVelX[x+2], vVelX[x+3],4);
+			vector float sr_vx_3 = vec_sld(vVelX[x+1], vVelX[x+2], 12);
+			
+			//Sum everything!!!
+			vector float tmp1_3 = vec_add(sl_p_3, sr_p_3);
+			vector float tmp2_3 = vec_add(vPressureP[x+2], vPressureN[x+2]);
+			vector float tmp3_3 = vec_sub(sr_vx_3, sl_vx_3);
+			vector float tmp4_3 = vec_sub(vVelYP[x+2], vVelYN[x+2]);
+			
+			tmp1_3 = vec_add(tmp1_3,tmp2_3);
+			tmp3_3 = vec_add(tmp3_3,tmp4_3);
+			tmp1_3 = vec_add(tmp1_3,tmp3_3);
+			
+			vPressure[x+2] = vec_madd(tmp1_3, div4, vZero);
+			x+=3;
+		}
+
+		while (x<w/4-1)
+		{			
 			//Compute shifts
 			vector float sl_p = vec_sld(vPressure[x], vPressure[x+1],4);
 			vector float sr_p = vec_sld(vPressure[x-1], vPressure[x], 12);
@@ -157,15 +228,17 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vector float sr_vx = vec_sld(vVelX[x-1], vVelX[x], 12);
 			
 			//Sum everything!!!
-			tmp = vec_add(sl_p, sr_p);
-			tmp = vec_add(tmp, vPressureN[x]);
-			tmp = vec_add(tmp, vPressureP[x]);
-			tmp = vec_sub(tmp, sl_vx);
-			tmp = vec_add(tmp, sr_vx);
-			tmp = vec_sub(tmp, vVelYN[x]);
-			tmp = vec_add(tmp, vVelYP[x]);
+			vector float tmp1 = vec_add(sl_p, sr_p);
+			vector float tmp2 = vec_add(vPressureP[x], vPressureN[x]);
+			vector float tmp3 = vec_sub(sr_vx, sl_vx);
+			vector float tmp4 = vec_sub(vVelYP[x], vVelYN[x]);
 			
-			vPressure[x] = vec_madd(tmp, div4, vZero);
+			tmp1 = vec_add(tmp1,tmp2);
+			tmp3 = vec_add(tmp3,tmp4);
+			tmp1 = vec_add(tmp1,tmp3);
+			
+			vPressure[x] = vec_madd(tmp1, div4, vZero);
+			x++;
 		}
 		{
 			vector float tmp;
