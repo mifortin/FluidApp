@@ -3,15 +3,18 @@
 //  FluidApp
 //
 
-#ifdef MAC_10_4
-#define CGFloat float
-#define NSInteger int
-#endif
-
 #import "FluidAppDocument.h"
 #include <OpenGL/gl.h>
 #include <sys/time.h>
 #include "memory.h"
+
+#ifdef MAC_10_4
+#ifndef CGFloat
+#define CGFloat float
+#define NSInteger int
+#endif
+#endif
+
 
 @implementation FluidAppDocument
 

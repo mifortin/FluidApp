@@ -19,6 +19,11 @@
     return self;
 }
 
+- (BOOL)mouseDownCanMoveWindow
+{
+	return YES;
+}
+
 - (void)drawRect:(NSRect)dirtyRect
 {
     NSRect rect = [self bounds];

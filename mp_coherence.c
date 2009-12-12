@@ -10,6 +10,34 @@
 #include <stdio.h>
 #include <string.h>
 
+//#define COHERENCE_MUTEX
+
+#ifdef COHERENCE_MUTEX
+
+#define CoAtomicExtract(x)					(x)
+#define CoAtomicCompareAndSwapInt(d,o,n)	((d = n) || 1)
+#define CoAtomicAdd32Barrier(d,v)			(d = d + v)
+
+#define co_pthread_mutex_unlock(m)
+#define co_pthread_mutex_lock(m)
+
+#define co_pthread_mutex_unlock_all(m)		/*printf("UNLOCK %i\n",__LINE__);*/x_pthread_mutex_unlock(m)
+#define co_pthread_mutex_lock_all(m)		x_pthread_mutex_lock(m)/*;printf("LOCK %i\n",__LINE__);*/
+
+#else
+
+#define CoAtomicAdd32Barrier(d,v)			AtomicAdd32Barrier(d,v)
+#define CoAtomicExtract(x)					AtomicExtract(x)
+#define CoAtomicCompareAndSwapInt(d,o,n)	AtomicCompareAndSwapInt(d,o,n)
+
+#define co_pthread_mutex_unlock(m)			x_pthread_mutex_unlock(m)
+#define co_pthread_mutex_lock(m)			x_pthread_mutex_lock(m)
+
+#define co_pthread_mutex_unlock_all(m)
+#define co_pthread_mutex_lock_all(m)
+
+#endif
+
 //Union defining how much progress has been made
 typedef union mpCoProgress mpCoProgress;
 union mpCoProgress
@@ -147,12 +175,14 @@ void mpCReset(mpCoherence *o)
 void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 				int in_depLeft)
 {
+	co_pthread_mutex_lock_all(&o->m_mutex);
+								
 	errorAssert(in_depStart <= in_depEnd, error_flags,
 						"Start must be less than or equal to end");
 	errorAssert(in_depLeft >= 0, error_flags,
 						"DepLeft must be greater or equal to zero");
 	
-	int rowToAddAt = AtomicExtract(o->m_nTasks);
+	int rowToAddAt = CoAtomicExtract(o->m_nTasks);
 	errorAssert(rowToAddAt < o->m_nMaxTasks, error_memory, "Too many tasks!!");
 	
 	if (in_depLeft)
@@ -168,8 +198,10 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 	if (in_depEnd < 0)	in_depEnd = 0;
 	o->r_tasks[rowToAddAt].description.data.bottom = in_depEnd;
 	
-	errorAssert(AtomicCompareAndSwapInt(o->m_nTasks, rowToAddAt, rowToAddAt+1),
-					error_thread, "Failed to atomically increment/modify row");
+	errorAssert(CoAtomicCompareAndSwapInt(o->m_nTasks, rowToAddAt, rowToAddAt+1),
+				error_thread, "Failed to atomically increment/modify row");
+	
+	co_pthread_mutex_unlock_all(&o->m_mutex);
 }
 
 
@@ -177,20 +209,22 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 									int x)
 {
 	mpCoProgress tmp;
-	tmp.atom = AtomicExtract(o->r_tasks[x].progress.atom);
+	tmp.atom = CoAtomicExtract(o->r_tasks[x].progress.atom);
 
 	if ((tmp.data.completed == tmp.data.working
 		&& tmp.data.completed != o->m_nData) ||
 		(o->r_tasks[x].description.data.depend == DEPEND_ANY_0
 		 && tmp.data.working != o->m_nData))
 	{
-		int cacheStart = AtomicExtract(o->m_nCacheStart);
-		if (tmp.data.working+1 < AtomicExtract(o->m_nCacheStart))
+		int cacheStart = CoAtomicExtract(o->m_nCacheStart);
+		if (tmp.data.working+1 < cacheStart)
 		{
 			int cs2 = cacheStart - o->m_nData + o->m_cacheSize;
 			
 			if (tmp.data.working+1 >= cs2)
+			{
 				return 0;
+			}
 		}
 
 		if (x != 0)
@@ -198,7 +232,7 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 			//Make sure that we are obeying any dependencies before
 			//continuing!
 			mpCoProgress tM1;
-			tM1.atom = AtomicExtract(o->r_tasks[x-1].progress.atom);
+			tM1.atom = CoAtomicExtract(o->r_tasks[x-1].progress.atom);
 			
 			int prevLimit = tmp.data.working + o->r_tasks[x].description.data.bottom;
 			if (prevLimit >= o->m_nData)
@@ -206,7 +240,9 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 			
 			if (tM1.data.completed
 				<= prevLimit)
+			{
 				return 0;
+			}
 		}
 
 		mpCoProgress t2;
@@ -214,12 +250,12 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 		int work = t2.data.working;
 		t2.data.working++;
 		//printf("OBTAINING: %i %i %i\n", x, o->r_tasks[x].description.data.function, work);
-		if (AtomicCompareAndSwapInt(o->r_tasks[x].progress.atom,
+		if (CoAtomicCompareAndSwapInt(o->r_tasks[x].progress.atom,
 									tmp.atom, t2.atom))
 		{
 			//printf("GIVEN: %i %i %i\n", x, o->r_tasks[x].description.data.function, work);
 			if (t2.data.working > cacheStart + o->m_cacheSize)
-				AtomicCompareAndSwapInt(o->m_nCacheStart, cacheStart, cacheStart+1);
+				CoAtomicCompareAndSwapInt(o->m_nCacheStart, cacheStart, cacheStart+1);
 			*out_tid = x;
 			*out_fn = o->r_tasks[x].description.data.function;
 			*out_tsk = work;
@@ -228,7 +264,9 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 			return 1;
 		}
 		else
+		{
 			return 0;
+		}
 	}
 	
 	return 0;
@@ -237,11 +275,13 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 
 void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 {
+	co_pthread_mutex_lock_all(&o->m_mutex);
+	
 	//Scan from min->max for a task to obtain...  (loop a bit before blocking)
-	int last = AtomicExtract(o->m_nTasks);
+	int last = CoAtomicExtract(o->m_nTasks);
 
-	int min = AtomicExtract(o->m_min);
-	int max = AtomicExtract(o->m_max)+1;
+	int min = CoAtomicExtract(o->m_min);
+	int max = CoAtomicExtract(o->m_max)+1;
 	if (max >= last)
 		max = last-1;
 	int x;
@@ -250,20 +290,22 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		if (mpCTaskObtainPvt(o, out_tid, out_fn, out_tsk, x))
 		{
 			//printf("OBTAINED: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+			co_pthread_mutex_unlock_all(&o->m_mutex);
 			return;
 		}
 	}
 	
 	//Done?
 	mpCoProgress tmp;
-	tmp.atom = AtomicExtract(o->r_tasks[last-1].progress.atom);
+	tmp.atom = CoAtomicExtract(o->r_tasks[last-1].progress.atom);
 	if (tmp.data.completed == o->m_nData)
 	{
 		*out_tid = -1;
 		int v;
 		do {
-			v = AtomicExtract(o->m_nBlocking);
-		} while (!AtomicCompareAndSwapInt(o->m_nBlocking, v, -100));
+			v = CoAtomicExtract(o->m_nBlocking);
+		} while (!CoAtomicCompareAndSwapInt(o->m_nBlocking, v, -100));
+		co_pthread_mutex_unlock_all(&o->m_mutex);
 		if (v >= 0)
 		{
 			mpQueuePushInt(o->r_q, 0xFFFFFFFF);
@@ -272,16 +314,16 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 	}
 	
 	//BLOCK HERE (use pthread conditions to not waste CPU)!
-	x_pthread_mutex_lock(&o->m_mutex);
-		AtomicAdd32Barrier(o->m_nBlocking, 1);
-	x_pthread_mutex_unlock(&o->m_mutex);
+	co_pthread_mutex_lock(&o->m_mutex);
+		CoAtomicAdd32Barrier(o->m_nBlocking, 1);
+	co_pthread_mutex_unlock(&o->m_mutex);
+	co_pthread_mutex_unlock_all(&o->m_mutex);
 	*out_tid = mpQueuePopInt(o->r_q);
 	if (*out_tid != 0xFFFFFFFF)
 	{
 		mpCoMessage msg;
 		msg.msg = *out_tid;
 		
-		tmp.atom = AtomicExtract(o->r_tasks[msg.data.tid].progress.atom);
 		*out_tid = msg.data.tid;
 		*out_fn = o->r_tasks[msg.data.tid].description.data.function;
 		*out_tsk = msg.data.task;
@@ -299,10 +341,12 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 {
 	//printf("COMPLETED: %i %i %i\n", in_tid, in_fn, in_tsk);
 	//Mark the task as completed
+	co_pthread_mutex_lock_all(&o->m_mutex);
+	
 	mpCoProgress tmp;
-	tmp.atom = AtomicExtract(o->r_tasks[in_tid].progress.atom);
-	int min = AtomicExtract(o->m_min);
-	int max = AtomicExtract(o->m_max);
+	tmp.atom = CoAtomicExtract(o->r_tasks[in_tid].progress.atom);
+	int min = CoAtomicExtract(o->m_min);
+	int max = CoAtomicExtract(o->m_max);
 	
 	mpCoDescription desc;
 	desc.atom = o->r_tasks[in_tid].description.atom;
@@ -310,7 +354,11 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	if (desc.data.depend == DEPEND_ANY_0)
 	{
 		while (tmp.data.completed != in_tsk)		//Spin until task completes
-			tmp.atom = AtomicExtract(o->r_tasks[in_tid].progress.atom);
+		{
+			co_pthread_mutex_unlock_all(&o->m_mutex);
+			co_pthread_mutex_lock_all(&o->m_mutex);
+			tmp.atom = CoAtomicExtract(o->r_tasks[in_tid].progress.atom);
+		}
 	}
 	
 	mpCoProgress newVal;
@@ -323,18 +371,18 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 		{
 			if (desc.data.depend == DEPEND_ANY_0)
 			{
-				if (AtomicCompareAndSwapInt(o->m_min, min, min+1))
+				if (CoAtomicCompareAndSwapInt(o->m_min, min, min+1))
 				{
-					while (!AtomicCompareAndSwapInt(o->m_nCacheStart,
-										AtomicExtract(o->m_nCacheStart), 0));
+					while (!CoAtomicCompareAndSwapInt(o->m_nCacheStart,
+										CoAtomicExtract(o->m_nCacheStart), 0));
 				}
 			}
 			else
 			{
-				errorAssert(AtomicCompareAndSwapInt(o->m_min, min, min+1),
+				errorAssert(CoAtomicCompareAndSwapInt(o->m_min, min, min+1),
 							error_thread, "Failed incrementing min!");
-				while (!AtomicCompareAndSwapInt(o->m_nCacheStart,
-							AtomicExtract(o->m_nCacheStart), 0));
+				while (!CoAtomicCompareAndSwapInt(o->m_nCacheStart,
+							CoAtomicExtract(o->m_nCacheStart), 0));
 			}
 		}
 		min++;
@@ -344,11 +392,11 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	{
 		if (desc.data.depend == DEPEND_ANY_0)
 		{
-			AtomicCompareAndSwapInt(o->m_max, max, max+1);
+			CoAtomicCompareAndSwapInt(o->m_max, max, max+1);
 		}
 		else
 		{
-			errorAssert(AtomicCompareAndSwapInt(o->m_max, max, max+1),
+			errorAssert(CoAtomicCompareAndSwapInt(o->m_max, max, max+1),
 						error_thread, "Failed incrementing max!");
 		}
 	}
@@ -360,10 +408,10 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 
 	if (desc.data.depend == DEPEND_ANY_0)
 	{
-		while (!AtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+		while (!CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
 										tmp.atom, newVal.atom))
 		{
-			tmp.atom = AtomicExtract(o->r_tasks[in_tid].progress.atom);
+			tmp.atom = CoAtomicExtract(o->r_tasks[in_tid].progress.atom);
 			newVal.atom = tmp.atom;
 			
 			newVal.data.completed = newVal.data.completed + 1;
@@ -371,12 +419,12 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	}
 	else
 	{
-		errorAssert(AtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+		errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
 										tmp.atom, newVal.atom),
 						error_thread, "Only 1 thread per task!!!");
 	}
 	
-	int totalTasks = AtomicExtract(o->m_nTasks);
+	int totalTasks = CoAtomicExtract(o->m_nTasks);
 	max++;
 	if (max >= totalTasks)
 		max = totalTasks-1;
@@ -396,22 +444,25 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	}
 	if (x < s)
 	{
+		co_pthread_mutex_unlock_all(&o->m_mutex);
 		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
+		co_pthread_mutex_lock_all(&o->m_mutex);
 		//printf("BEST GUESS FAILED %i - %i ==> %i - %i\n", in_tid, in_tsk,
 		//									*out_tid, *out_tsk);
 	}
 
 	//Signal another thread to awake
-	int v = AtomicExtract(o->m_nBlocking);
+	int v = CoAtomicExtract(o->m_nBlocking);
 	if (v > 0)
 	{
 		//printf("Recuperating from cache misses!\n");
-		x_pthread_mutex_lock(&o->m_mutex);
+		co_pthread_mutex_lock(&o->m_mutex);
 		
-		v = AtomicExtract(o->m_nBlocking);
+		v = CoAtomicExtract(o->m_nBlocking);
 		if (v == 0)
 		{
-			x_pthread_mutex_unlock(&o->m_mutex);
+			co_pthread_mutex_unlock(&o->m_mutex);
+			co_pthread_mutex_unlock_all(&o->m_mutex);
 			return;
 		}
 		mpCoMessage data;
@@ -419,12 +470,12 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 		data.data.task = *out_tsk;
 		mpQueuePushInt(o->r_q,data.msg);
 		//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
-		AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
+		CoAtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
 		
 		
 		for (x=max;x>=min;x--)
 		{
-			v = AtomicExtract(o->m_nBlocking);
+			v = CoAtomicExtract(o->m_nBlocking);
 			if (v == 0)
 				break;
 		
@@ -432,7 +483,7 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 			if (mpCTaskObtainPvt(o, &tmp_tid, &tmp_fn, &tmp_tsk, x))
 			{
 				//printf("FORWARDING: %i %i %i\n", tmp_tid, tmp_fn, tmp_tsk);
-				AtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
+				CoAtomicCompareAndSwapInt(o->m_nBlocking, v, v-1);
 				data.data.tid = tmp_tid;
 				data.data.task = tmp_tsk;
 				mpQueuePushInt(o->r_q,data.msg);
@@ -440,10 +491,15 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 		}
 		
 		
-		x_pthread_mutex_unlock(&o->m_mutex);
+		co_pthread_mutex_unlock(&o->m_mutex);
+		co_pthread_mutex_unlock_all(&o->m_mutex);
 		
 		//Finally worry about this thread...
 		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
+	}
+	else
+	{
+		co_pthread_mutex_unlock_all(&o->m_mutex);
 	}
 	//printf("RETURNING: (%i %i %i) %i %i %i\n",
 	//	   in_tid, in_fn, in_tsk,

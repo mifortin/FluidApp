@@ -229,11 +229,17 @@ fieldServer *fieldServerCreateChar(int in_width, int in_height,
 
 field *fieldServerLock(fieldServer *fs)
 {
+	if (fs == NULL)
+		return NULL;
+	
 	return fs->fld_local;
 }
 
 void fieldServerUnlock(fieldServer *fs)
 {
+	if (fs == NULL)
+		return;
+	
 	pthread_mutex_lock(&fs->mtx);
 	if (fs->needSwap == 1)
 	{
