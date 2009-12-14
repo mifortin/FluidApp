@@ -133,6 +133,21 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 		vec_dst(vVelXN, 0x01000001, 1);
 		vec_dst(vVelXP, 0x01000001, 2);
 		
+		
+#define ALTIVEC_X_PRE(n)													\
+		vector float tmp1 ## n = vec_madd(vVelX[x+n], vAlpha, vVelXN[x+n]);	\
+		vector float tmp2 ## n = vec_add(vVelXP[x+n], tmp1 ## n);
+		
+#define ALTIVEC_X_MID(n)													\
+		vector float sl ## n = vec_sld(vVelX[x+n], vVelX[x+1+n], 4);		\
+		vector float sr ## n = vec_sld(vVelX[x-1+n], vVelX[x+n], 12);
+		
+#define ALTIVEC_X_END(n)											\
+		vector float tmp3 ## n = vec_add(sl ## n,sr ## n);			\
+		tmp1 ## n = vec_add(tmp3 ## n, tmp2 ## n);					\
+		vVelX[x+n] = vec_madd(tmp1 ## n, vBeta, vZero);
+		
+		
 		int x;
 		{
 			vector float tmp;
@@ -148,78 +163,42 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			velXRow[0] = -velXRow[1];
 		}
 		x=1;
-		while (x<w/4-13)
+		while (x<w/4-1 && x%4 != 0)				//Align
+		{
+			ALTIVEC_X_PRE(0)
+			ALTIVEC_X_MID(0)
+			ALTIVEC_X_END(0)
+			x++;
+		}
+		while (x<w/4-5)
 		{
 			//Out of order dispatch groups
-			vector float tmp1 = vec_madd(vVelX[x], vAlpha, vVelXN[x]);
-			vector float tmp2 = vec_add(vVelXP[x], tmp1);
-			
-			vector float tmp1_2 = vec_madd(vVelX[x+1], vAlpha, vVelXN[x+1]);
-			vector float tmp2_2 = vec_add(vVelXP[x+1], tmp1_2);
-			
-			vector float tmp1_3 = vec_madd(vVelX[x+2], vAlpha, vVelXN[x+2]);
-			vector float tmp2_3 = vec_add(vVelXP[x+2], tmp1_3);
-			
-			vector float tmp1_4 = vec_madd(vVelX[x+3], vAlpha, vVelXN[x+3]);
-			vector float tmp2_4 = vec_add(vVelXP[x+3], tmp1_4);
+			ALTIVEC_X_PRE(0)
+			ALTIVEC_X_PRE(1)
+			ALTIVEC_X_PRE(2)
+			ALTIVEC_X_PRE(3)
 			
 			//In order dispatch groups
+			ALTIVEC_X_MID(0)
+			ALTIVEC_X_MID(1)
+			ALTIVEC_X_MID(2)
+			ALTIVEC_X_MID(3)
 			
-			vector float sl = vec_sld(vVelX[x], vVelX[x+1], 4);
-			vector float sr = vec_sld(vVelX[x-1], vVelX[x], 12);
-			
-			vector float sl_2 = vec_sld(vVelX[x+1], vVelX[x+2], 4);
-			vector float sr_2 = vec_sld(vVelX[x], vVelX[x+1], 12);
-			
-			vector float sl_3 = vec_sld(vVelX[x+2], vVelX[x+3], 4);
-			vector float sr_3 = vec_sld(vVelX[x+1], vVelX[x+2], 12);
-			
-			vector float sl_4 = vec_sld(vVelX[x+3], vVelX[x+4], 4);
-			vector float sr_4 = vec_sld(vVelX[x+2], vVelX[x+3], 12);
-			
-			
-			vector float tmp3 = vec_add(sl,sr);
-			tmp1 = vec_add(tmp3, tmp2);
-			vVelX[x] = vec_madd(tmp1, vBeta, vZero);
-			
-			
-			
-			vector float tmp3_2 = vec_add(sl_2,sr_2);
-			tmp1_2 = vec_add(tmp3_2, tmp2_2);
-			vVelX[x+1] = vec_madd(tmp1_2, vBeta, vZero);
-			
-			
-			
-			
-			vector float tmp3_3 = vec_add(sl_3,sr_3);
-			tmp1_3 = vec_add(tmp3_3, tmp2_3);
-			vVelX[x+2] = vec_madd(tmp1_3, vBeta, vZero);
-			
-			
-			
-			vector float tmp3_4 = vec_add(sl_4,sr_4);
-			tmp1_4 = vec_add(tmp3_4, tmp2_4);
-			vVelX[x+3] = vec_madd(tmp1_4, vBeta, vZero);
+			ALTIVEC_X_END(0)
+			ALTIVEC_X_END(1)
+			ALTIVEC_X_END(2)
+			ALTIVEC_X_END(3)
 			
 			x+=4;
 		}
 		while (x<w/4-1)
-		{			
-			vector float sl = vec_sld(vVelX[x], vVelX[x+1], 4);
-			vector float sr = vec_sld(vVelX[x-1], vVelX[x], 12);
-			
-			vector float tmp1 = vec_madd(vVelX[x], vAlpha, vVelXN[x]);
-			vector float tmp3 = vec_add(sl,sr);
-			vector float tmp2 = vec_add(vVelXP[x], tmp1);
-			tmp1 = vec_add(tmp3, tmp2);
-			vVelX[x] = vec_madd(tmp1, vBeta, vZero);
+		{
+			ALTIVEC_X_PRE(0)
+			ALTIVEC_X_MID(0)
+			ALTIVEC_X_END(0)
 			x++;
 		}
 		{
-			vec_dstst(vVelY, 0x01000001, 0);
-			vec_dst(vVelYN, 0x01000001, 1);
-			vec_dst(vVelYP, 0x01000001, 2);
-			
 			vector float tmp;
 			tmp = vec_madd(vVelX[0], vAlpha, vVelXN[0]);
 			tmp = vec_add(tmp, vVelXP[0]);
@@ -233,6 +212,19 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			velXRow[w-1] = -velXRow[w-2];
 		}
 		
+		
+#define ALTIVEC_Y_PRE(n)													\
+		vector float tmp1 ## n = vec_madd(vVelY[x+n], vAlpha, vVelYN[x+n]);	\
+		vector float tmp2 ## n = vec_add(vVelYP[x+n], tmp1 ## n);
+		
+#define ALTIVEC_Y_MID(n)													\
+		vector float sl ## n = vec_sld(vVelY[x+n], vVelY[x+1+n], 4);		\
+		vector float sr ## n = vec_sld(vVelY[x-1+n], vVelY[x+n], 12);
+		
+#define ALTIVEC_Y_END(n)											\
+		vector float tmp3 ## n = vec_add(sl ## n,sr ## n);			\
+		tmp1 ## n = vec_add(tmp3 ## n, tmp2 ## n);					\
+		vVelY[x+n] = vec_madd(tmp1 ## n, vBeta, vZero);
 		
 		{
 			vector float tmp;
@@ -248,66 +240,39 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			velYRow[0] = -velYRow[1];
 		}
 		x=1;
-		while (x<w/4-13)
+		while (x<w/4-1 && x%4 != 0)				//Align
 		{
-			//Move shifts here for parallel execution on proc
-			vector float sl = vec_sld(vVelY[x], vVelY[x+1], 4);
-			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
+			ALTIVEC_Y_PRE(0)
+			ALTIVEC_Y_MID(0)
+			ALTIVEC_Y_END(0)
+			x++;
+		}
+		while (x<w/4-5)
+		{
+			//Out of order dispatch groups
+			ALTIVEC_Y_PRE(0)
+			ALTIVEC_Y_PRE(1)
+			ALTIVEC_Y_PRE(2)
+			ALTIVEC_Y_PRE(3)
 			
-			vector float sl_2 = vec_sld(vVelY[x+1], vVelY[x+2], 4);
-			vector float sr_2 = vec_sld(vVelY[x], vVelY[x+1], 12);
+			//In order dispatch groups
+			ALTIVEC_Y_MID(0)
+			ALTIVEC_Y_MID(1)
+			ALTIVEC_Y_MID(2)
+			ALTIVEC_Y_MID(3)
 			
-			vector float sl_3 = vec_sld(vVelY[x+2], vVelY[x+3], 4);
-			vector float sr_3 = vec_sld(vVelY[x+1], vVelY[x+2], 12);
-			
-			vector float sl_4 = vec_sld(vVelY[x+3], vVelY[x+4], 4);
-			vector float sr_4 = vec_sld(vVelY[x+2], vVelY[x+3], 12);
-			
-			//Rest of code...
-			
-			
-			vector float tmp1 = vec_madd(vVelY[x], vAlpha, vVelYN[x]);
-			vector float tmp3 = vec_add(sl,sr);
-			vector float tmp2 = vec_add(tmp1, vVelYP[x]);
-			tmp1 = vec_add(tmp3, tmp2);
-			vVelY[x] = vec_madd(tmp1, vBeta, vZero);
-			
-			
-			
-			vector float tmp1_2 = vec_madd(vVelY[x+1], vAlpha, vVelYN[x+1]);
-			vector float tmp3_2 = vec_add(sl_2,sr_2);
-			vector float tmp2_2 = vec_add(tmp1_2, vVelYP[x+1]);
-			tmp1_2 = vec_add(tmp3_2, tmp2_2);
-			vVelY[x+1] = vec_madd(tmp1_2, vBeta, vZero);
-			
-			
-			
-			vector float tmp1_3 = vec_madd(vVelY[x+2], vAlpha, vVelYN[x+2]);
-			vector float tmp3_3 = vec_add(sl_3,sr_3);
-			vector float tmp2_3 = vec_add(tmp1_3, vVelYP[x+2]);
-			tmp1_3 = vec_add(tmp3_3, tmp2_3);
-			vVelY[x+2] = vec_madd(tmp1_3, vBeta, vZero);
-			
-			
-			
-			vector float tmp1_4 = vec_madd(vVelY[x+3], vAlpha, vVelYN[x+3]);
-			vector float tmp3_4 = vec_add(sl_4,sr_4);
-			vector float tmp2_4 = vec_add(tmp1_4, vVelYP[x+3]);
-			tmp1_4 = vec_add(tmp3_4, tmp2_4);
-			vVelY[x+3] = vec_madd(tmp1_4, vBeta, vZero);
+			ALTIVEC_Y_END(0)
+			ALTIVEC_Y_END(1)
+			ALTIVEC_Y_END(2)
+			ALTIVEC_Y_END(3)
 			
 			x+=4;
 		}
 		while (x<w/4-1)
 		{
-			vector float sl = vec_sld(vVelY[x], vVelY[x+1], 4);
-			vector float sr = vec_sld(vVelY[x-1], vVelY[x], 12);
-			
-			vector float tmp1 = vec_madd(vVelY[x], vAlpha, vVelYN[x]);
-			vector float tmp3 = vec_add(sl,sr);
-			vector float tmp2 = vec_add(tmp1, vVelYP[x]);
-			tmp1 = vec_add(tmp3, tmp2);
-			vVelY[x] = vec_madd(tmp1, vBeta, vZero);
+			ALTIVEC_Y_PRE(0)
+			ALTIVEC_Y_MID(0)
+			ALTIVEC_Y_END(0)
 			x++;
 		}
 		{
