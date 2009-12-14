@@ -57,7 +57,7 @@
 		
 		p1.x+=2.0f;
 		p1.y+=2.1;
-		[[NSString stringWithFormat:@"%2.2fms", x/30.0f]
+		[[NSString stringWithFormat:@"%0.1f ms", (1000.0f*x/30.0f)]
 		 drawAtPoint:p1 withAttributes:fontAttributes];
 		
 		p2.x-=56;
@@ -129,7 +129,7 @@
 			
 			rc.origin.x += 1;
 			rc.origin.y -= 1;
-			[[NSString stringWithFormat:@"%@ %2.3f ms",m_titles[v],  avg]
+			[[NSString stringWithFormat:@"%@ %0.1f ms",m_titles[v],  (1000.0f*avg)]
 			 drawAtPoint:rc.origin withAttributes:fontWhite];
 			
 			if (rect.size.width <= 200)

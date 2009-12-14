@@ -278,6 +278,32 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		__m128 div4 = {1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f};
 		
+#define PRESSURE_SSE_PRE(n)														\
+		__m128 sl_p ## n = _mm_srli_sf128(vPressure[x+n],4);					\
+		sl_p ## n = _mm_add_ps(sl_p ## n,_mm_slli_sf128(vPressure[x+1+n],12));	\
+																				\
+		__m128 sr_p ## n = _mm_slli_sf128(vPressure[x+n],4);					\
+		sr_p ## n = _mm_add_ps(sr_p ## n,_mm_srli_sf128(vPressure[x-1+n],12));	\
+																				\
+		__m128 sl_vx ## n = _mm_srli_sf128(vVelX[x+n],4);						\
+		sl_vx ## n = _mm_add_ps(sl_vx ## n,_mm_slli_sf128(vVelX[x+1+n],12));	\
+																				\
+		__m128 sr_vx ## n = _mm_slli_sf128(vVelX[x+n],4);						\
+		sr_vx ## n = _mm_add_ps(sr_vx ## n,_mm_srli_sf128(vVelX[x-1+n],12));
+
+#define PRESSURE_SSE_POST(n)													\
+		__m128 tmp1 ## n = _mm_add_ps(sl_p ## n, sr_p ## n);					\
+		__m128 tmp2 ## n = _mm_add_ps(vPressureP[x+n], vPressureN[x+n]);		\
+		__m128 tmp3 ## n = _mm_sub_ps(sr_vx ## n, sl_vx ## n);					\
+		__m128 tmp4 ## n = _mm_sub_ps(vVelYP[x+n], vVelYN[x+n]);				\
+																				\
+		tmp1 ## n = _mm_add_ps(tmp1 ## n,tmp2 ## n);							\
+		tmp3 ## n = _mm_add_ps(tmp3 ## n,tmp4 ## n);							\
+																				\
+		tmp1 ## n = _mm_add_ps(tmp1 ## n,tmp3 ## n);							\
+																				\
+		vPressure[x+n] = _mm_mul_ps(tmp1 ## n, div4);
+		
 		int x;
 		{
 			__m128 tmp;
@@ -305,33 +331,30 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vPressure[0] = _mm_mul_ps(tmp, div4);
 			vPressureRow[0] = vPressureRow[1];
 		}
-		for (x=1; x<w/4-1; x++)
+		x=1;
+		while (x<w/4-9)
 		{
-			__m128 tmp;
+			//Compute shifts (1)
+			PRESSURE_SSE_PRE(0);
+			PRESSURE_SSE_PRE(1);
+			PRESSURE_SSE_PRE(2);
 			
+			//Sum everything!!! (1)
+			PRESSURE_SSE_POST(0);
+			PRESSURE_SSE_POST(1);
+			PRESSURE_SSE_POST(2);
+			
+			x+=3;
+		}
+		while (x<w/4-1)
+		{
 			//Compute shifts
-			__m128 sl_p = _mm_srli_sf128(vPressure[x],4);
-			sl_p = _mm_add_ps(sl_p,_mm_slli_sf128(vPressure[x+1],12));
-			
-			__m128 sr_p = _mm_slli_sf128(vPressure[x],4);
-			sr_p = _mm_add_ps(sr_p,_mm_srli_sf128(vPressure[x-1],12));
-			
-			__m128 sl_vx = _mm_srli_sf128(vVelX[x],4);
-			sl_vx = _mm_add_ps(sl_vx,_mm_slli_sf128(vVelX[x+1],12));
-			
-			__m128 sr_vx = _mm_slli_sf128(vVelX[x],4);
-			sr_vx = _mm_add_ps(sr_vx,_mm_srli_sf128(vVelX[x-1],12));
+			PRESSURE_SSE_PRE(0);
 			
 			//Sum everything!!!
-			tmp = _mm_add_ps(sl_p, sr_p);
-			tmp = _mm_add_ps(tmp, vPressureN[x]);
-			tmp = _mm_add_ps(tmp, vPressureP[x]);
-			tmp = _mm_sub_ps(tmp, sl_vx);
-			tmp = _mm_add_ps(tmp, sr_vx);
-			tmp = _mm_sub_ps(tmp, vVelYN[x]);
-			tmp = _mm_add_ps(tmp, vVelYP[x]);
+			PRESSURE_SSE_POST(0);
 			
-			vPressure[x] = _mm_mul_ps(tmp, div4);
+			x++;
 		}
 		{
 			__m128 tmp;
