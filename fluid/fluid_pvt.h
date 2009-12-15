@@ -53,6 +53,8 @@ struct repos
 	field *reposY;
 	field *src;			//Source field
 	field *dst;			//Destination field
+	
+	float timestep;
 };
 
 //Simple pressure of data...

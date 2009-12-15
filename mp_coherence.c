@@ -10,7 +10,18 @@
 #include <stdio.h>
 #include <string.h>
 
+//Use mutexes and isolate the scheduler
 //#define COHERENCE_MUTEX
+
+//Use a standard task queue for all operations (should be simpler)
+//#define COHERENCE_TQ
+
+
+#ifdef COHERENCE_TQ
+#ifndef COHERENCE_MUTEX
+#define COHERENCE_MUTEX
+#endif
+#endif
 
 #ifdef COHERENCE_MUTEX
 
@@ -154,7 +165,12 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	o->m_nMaxTasks = in_tasks;
 	o->m_nData = in_data;
 	o->m_cacheSize = in_cache;
+	
+#ifdef COHERENCE_TQ
+	o->r_q = mpQueueCreate(2048);
+#else
 	o->r_q = mpQueueCreate(2);		//Nice temp value
+#endif
 	
 	return o;
 }
@@ -202,6 +218,29 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 				error_thread, "Failed to atomically increment/modify row");
 	
 	co_pthread_mutex_unlock_all(&o->m_mutex);
+	
+#ifdef COHERENCE_TQ
+	if (rowToAddAt == 0)
+	{
+		mpCoMessage data;
+		data.data.tid = 0;
+		data.data.task = 0;
+		mpQueuePushInt(o->r_q,data.msg);
+		
+		o->r_tasks[0].progress.data.working = 1;
+		
+		if (in_depLeft == 0)
+		{
+			o->r_tasks[0].progress.data.working = o->m_nData;
+			int x;
+			for (x=1; x<o->m_nData; x++)
+			{
+				data.data.task = x;
+				mpQueuePushInt(o->r_q,data.msg);
+			}
+		}
+	}
+#endif
 }
 
 
@@ -273,8 +312,52 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 }
 
 
+#ifdef COHERENCE_TQ
+void mpCTasksPushPvt(mpCoherence *o, int in_tid)
+{
+	mpCoDescription cd = o->r_tasks[in_tid].description;
+	mpCoProgress cp = o->r_tasks[in_tid].progress;
+	
+	mpCoProgress pp = o->r_tasks[in_tid-1].progress;
+	
+	if (pp.data.completed == o->m_nData)
+		pp.data.completed = o->m_nData*2;
+	
+	if (cd.data.depend == DEPEND_ANY_0)
+	{
+		while (cp.data.working + cd.data.bottom < pp.data.completed
+			&& cp.data.working < o->m_nData)
+		{
+			mpCoMessage data;
+			data.data.tid = in_tid;
+			data.data.task = cp.data.working;
+			mpQueuePushInt(o->r_q,data.msg);
+			o->r_tasks[in_tid].progress.data.working++;
+			cp = o->r_tasks[in_tid].progress;
+		}
+	}
+	else
+	{
+		if (cp.data.working == cp.data.completed)
+		{
+			if (cp.data.working + cd.data.bottom < pp.data.completed
+				&& cp.data.working < o->m_nData)
+			{
+				mpCoMessage data;
+				data.data.tid = in_tid;
+				data.data.task = cp.data.working;
+				mpQueuePushInt(o->r_q,data.msg);
+				o->r_tasks[in_tid].progress.data.working++;
+			}
+		}
+	}
+}
+#endif
+
+
 void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 {
+#ifndef COHERENCE_TQ
 	co_pthread_mutex_lock_all(&o->m_mutex);
 	
 	//Scan from min->max for a task to obtain...  (loop a bit before blocking)
@@ -318,6 +401,7 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		CoAtomicAdd32Barrier(o->m_nBlocking, 1);
 	co_pthread_mutex_unlock(&o->m_mutex);
 	co_pthread_mutex_unlock_all(&o->m_mutex);
+#endif
 	*out_tid = mpQueuePopInt(o->r_q);
 	if (*out_tid != 0xFFFFFFFF)
 	{
@@ -424,6 +508,44 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 						error_thread, "Only 1 thread per task!!!");
 	}
 	
+#ifdef COHERENCE_TQ
+	//Write out all the tasks we can execute...
+	if (in_tid == o->m_nTasks-1 && in_tsk == o->m_nData - 1)
+	{
+		mpQueuePushInt(o->r_q, 0xFFFFFFFF);
+	}
+	else
+	{		
+		//Unblock to the left?
+		if (in_tsk != o->m_nData - 1)
+		{
+			if (in_tid == 0)
+			{
+				if (o->r_tasks[0].progress.data.working < o->m_nData)
+				{
+					mpCoMessage data;
+					data.data.tid = 0;
+					data.data.task = o->r_tasks[0].progress.data.working;
+					mpQueuePushInt(o->r_q,data.msg);
+					o->r_tasks[0].progress.data.working++;
+				}
+			}
+			else
+			{
+				mpCTasksPushPvt(o, in_tid);
+			}
+		}
+		
+		if (in_tid+1 < o->m_nTasks)
+			mpCTasksPushPvt(o, in_tid+1);
+	}
+		
+	co_pthread_mutex_unlock_all(&o->m_mutex);
+	
+	
+	mpCTaskObtain(o, out_tid, out_fn, out_tsk); 
+#else
+	
 	int totalTasks = CoAtomicExtract(o->m_nTasks);
 	max++;
 	if (max >= totalTasks)
@@ -501,6 +623,7 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	{
 		co_pthread_mutex_unlock_all(&o->m_mutex);
 	}
+#endif
 	//printf("RETURNING: (%i %i %i) %i %i %i\n",
 	//	   in_tid, in_fn, in_tsk,
 	//	   *out_tid, *out_fn, *out_tsk);
