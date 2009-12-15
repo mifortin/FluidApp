@@ -233,8 +233,24 @@ void fluid_advection_fwd_dens(fluid *in_f, int y, pvt_fluidMode *mode)
 				dest[c] =
 					a00 + timestep * (velX * (aP0 - aM0) + velY * (a0P - a0M));
 				
-				//if (dest[c] < 0)	dest[c] = 0;
-				//else if (dest[c] > 1)	dest[c] = 1;
+				if (dest[c] < 0)	dest[c] = 0;
+				else if (dest[c] > 1)	dest[c] = 1;
+			}
+		}
+		
+		if (data->clamp == 1)
+		{
+			for (x=1; x<w-1; x++)
+			{
+				int c;
+				
+				for (c=0; c<dC; c++)
+				{					
+					float *dest = fluidFloatPointer(dst, dX*x + dY*y);
+					
+					if (dest[c] < 0)	dest[c] = 0;
+					else if (dest[c] > 1)	dest[c] = 1;
+				}
 			}
 		}
 	}

@@ -26,6 +26,8 @@ struct advection_stam_velocity
 	
 	//Use this to flip the timestep (from forward to backward, & vice-versa...
 	float timestep;
+	
+	int clamp;
 };
 
 //When doing predictor-corrector (correcting velocity + build repos)
@@ -55,6 +57,7 @@ struct repos
 	field *dst;			//Destination field
 	
 	float timestep;
+	int clamp;			//Set to 1 to clamp
 };
 
 //Simple pressure of data...
