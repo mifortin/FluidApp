@@ -58,6 +58,7 @@ field *fieldCreate(int in_width, int in_height, int in_components)
 	
 	toRet->m_flags = 0;
 	
+	memset(toRet->r_data.i, 1, numData);
 	memset(toRet->r_data.i, 0, numData);
 	
 	return toRet;
@@ -100,6 +101,7 @@ field *fieldCreateChar(int in_width, int in_height, int in_components)
 	
 	toRet->m_flags = Field_TypeChar;
 	
+	memset(toRet->r_data.i, 1, numData);
 	memset(toRet->r_data.i, 0, numData);
 	
 	return toRet;

@@ -406,7 +406,7 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 		}
 		
 		glBindTexture(GL_TEXTURE_2D, r_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0,
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 					 GL_RGB, GL_FLOAT, work_buff);
 	}
 }

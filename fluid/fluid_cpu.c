@@ -117,7 +117,6 @@ void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 	
 	if (in_density != NULL)
 	{
-		f->m_fns[curFn].fn = fluid_genPressure;
 		f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
 		f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
 		f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
@@ -131,7 +130,6 @@ void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 		curFn = f->m_usedFunctions;
 		errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
 		
-		f->m_fns[curFn].fn = fluid_genPressure;
 		f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
 		f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
 		f->m_fns[curFn].mode.pressure.pressure = f->r_pressure;
@@ -324,96 +322,39 @@ void fluidVideoVelocityOut(fluid *f, field *in_dest)
 void fluidAdvectionForward(fluid *f)
 {
 	int curFn = f->m_usedFunctions;
-	errorAssert(curFn+5 < MAX_FNS, error_memory, "Too many different tasks!");
+	errorAssert(curFn+1 < MAX_FNS, error_memory, "Too many different tasks!");
 	
 	f->m_fns[curFn].fn = fluid_advection_fwd_velocity;
 	f->m_fns[curFn].mode.advection_stam_velocity.srcVelX = f->r_velocityX;
 	f->m_fns[curFn].mode.advection_stam_velocity.srcVelY = f->r_velocityY;
-	f->m_fns[curFn].mode.advection_stam_velocity.dstVelX = f->r_tmpVelX;
-	f->m_fns[curFn].mode.advection_stam_velocity.dstVelY = f->r_tmpVelY;
+	f->m_fns[curFn].mode.advection_stam_velocity.dstVelX = f->r_velocityX;
+	f->m_fns[curFn].mode.advection_stam_velocity.dstVelY = f->r_velocityY;
 	f->m_fns[curFn].mode.advection_stam_velocity.timestep = f->m_timestep;
 	f->m_fns[curFn].mode.advection_stam_velocity.clamp = 0;
 	f->m_fns[curFn].times = f->m_times + TIME_ADVECTION;
 	
-	f->m_fns[curFn+1].fn = fluid_advection_fwd_velocity;
-	f->m_fns[curFn+1].mode.advection_stam_velocity.dstVelX = f->r_velocityX;
-	f->m_fns[curFn+1].mode.advection_stam_velocity.dstVelY = f->r_velocityY;
-	f->m_fns[curFn+1].mode.advection_stam_velocity.srcVelX = f->r_tmpVelX;
-	f->m_fns[curFn+1].mode.advection_stam_velocity.srcVelY = f->r_tmpVelY;
-	f->m_fns[curFn+1].mode.advection_stam_velocity.timestep = f->m_timestep;
-	f->m_fns[curFn+1].mode.advection_stam_velocity.clamp = 0;
+	f->m_fns[curFn+1].fn = fluid_advection_fwd_dens;
+	f->m_fns[curFn+1].mode.repos.reposX = f->r_velocityX;
+	f->m_fns[curFn+1].mode.repos.reposY = f->r_velocityY;
+	f->m_fns[curFn+1].mode.repos.src = f->r_density;
+	f->m_fns[curFn+1].mode.repos.dst = f->r_density;
+	f->m_fns[curFn+1].mode.repos.timestep = f->m_timestep;
+	f->m_fns[curFn+1].mode.repos.clamp = 0;
 	f->m_fns[curFn+1].times = f->m_times + TIME_ADVECTION;
 	
-	f->m_fns[curFn+2].fn = fluid_advection_fwd_dens;
-	f->m_fns[curFn+2].mode.repos.reposX = f->r_velocityX;
-	f->m_fns[curFn+2].mode.repos.reposY = f->r_velocityY;
-	f->m_fns[curFn+2].mode.repos.src = f->r_density;
-	f->m_fns[curFn+2].mode.repos.dst = f->r_density_swap;
-	f->m_fns[curFn+2].mode.repos.timestep = f->m_timestep;
-	f->m_fns[curFn+2].mode.repos.clamp = 0;
-	f->m_fns[curFn+2].times = f->m_times + TIME_ADVECTION;
 	
-	f->m_fns[curFn+3].fn = fluid_advection_fwd_dens;
-	f->m_fns[curFn+3].mode.repos.reposX = f->r_tmpVelX;
-	f->m_fns[curFn+3].mode.repos.reposY = f->r_tmpVelY;
-	f->m_fns[curFn+3].mode.repos.src = f->r_density_swap;
-	f->m_fns[curFn+3].mode.repos.dst = f->r_density;
-	f->m_fns[curFn+3].mode.repos.timestep = f->m_timestep;
-	f->m_fns[curFn+3].mode.repos.clamp = 0;
-	f->m_fns[curFn+3].times = f->m_times + TIME_ADVECTION;
+	int x;
+	for (x=0; x<9; x++)
+	{
+		mpCTaskAdd(f->r_coherence, curFn+1, -1,1,1);
+	}
+
+	for (x=0; x<9; x++)
+	{
+		mpCTaskAdd(f->r_coherence, curFn, -1,1,1);
+	}
 	
-	f->m_fns[curFn+4].fn = fluid_advection_fwd_dens;
-	f->m_fns[curFn+4].mode.repos.reposX = f->r_velocityX;
-	f->m_fns[curFn+4].mode.repos.reposY = f->r_velocityY;
-	f->m_fns[curFn+4].mode.repos.src = f->r_density;
-	f->m_fns[curFn+4].mode.repos.dst = f->r_density_swap;
-	f->m_fns[curFn+4].mode.repos.timestep = f->m_timestep;
-	f->m_fns[curFn+4].mode.repos.clamp = 1;
-	f->m_fns[curFn+4].times = f->m_times + TIME_ADVECTION;
-	
-	f->m_fns[curFn+5].fn = fluid_advection_fwd_velocity;
-	f->m_fns[curFn+5].mode.advection_stam_velocity.srcVelX = f->r_velocityX;
-	f->m_fns[curFn+5].mode.advection_stam_velocity.srcVelY = f->r_velocityY;
-	f->m_fns[curFn+5].mode.advection_stam_velocity.dstVelX = f->r_tmpVelX;
-	f->m_fns[curFn+5].mode.advection_stam_velocity.dstVelY = f->r_tmpVelY;
-	f->m_fns[curFn+5].mode.advection_stam_velocity.timestep = f->m_timestep;
-	f->m_fns[curFn+5].mode.advection_stam_velocity.clamp = 1;
-	f->m_fns[curFn+5].times = f->m_times + TIME_ADVECTION;
-	
-	
-	mpCTaskAdd(f->r_coherence, curFn+2, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+3, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn+1, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+2, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+3, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn+1, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+2, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+3, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn+1, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+2, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+3, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn+1, -1,1,0);
-	
-	mpCTaskAdd(f->r_coherence, curFn+4, -1,1,0);
-	mpCTaskAdd(f->r_coherence, curFn+5, -1,1,0);
-	
-	
-	fluidSwap(field*, f->r_velocityX, f->r_tmpVelX);
-	fluidSwap(field*, f->r_velocityY, f->r_tmpVelY);
-	fluidSwap(field*, f->r_density, f->r_density_swap);
-	
-	f->m_usedFunctions = curFn+5;
+	f->m_usedFunctions = curFn+2;
 }
 
 
@@ -514,8 +455,8 @@ void fluidAdvance(fluid *in_f)
 	/*fluidTaskAddForwardAdvection(in_f);
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);
-	fluidTaskAdvectDensity(in_f);*/
-	fluidAdvectionForward(in_f);
+	fluidTaskAdvectDensity(in_f);/**/
+	fluidAdvectionForward(in_f);/**/
 	fluidTaskVideoDensity2Char(in_f);
 	
 	//We just need to run the tasks that have already been setup...

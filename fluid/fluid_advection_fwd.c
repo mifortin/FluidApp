@@ -7,6 +7,15 @@
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 #include <math.h>
+#include <stdio.h>
+
+#ifdef __SSE3__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+#include <tmmintrin.h>
+//#undef __SSE3__
+#endif
 
 void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 {
@@ -18,8 +27,6 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	float *velX		= fieldData(d->srcVelX);
 	float *velY		= fieldData(d->srcVelY);
 	
-	float *velDestX	= fieldData(d->dstVelX);
-	float *velDestY	= fieldData(d->dstVelY);
 	
 	
 	int sY = fieldStrideY(d->srcVelY);
@@ -36,6 +43,9 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	else
 	{
 #ifdef __APPLE_ALTIVEC__
+		
+		float *velDestX	= fieldData(d->dstVelX);
+		float *velDestY	= fieldData(d->dstVelY);
 		
 		vector float *vVelX = (vector float*)fluidFloatPointer(velX, y*sY);
 		vector float *vVelY = (vector float*)fluidFloatPointer(velY, y*sY);
@@ -137,7 +147,97 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 			ADVECT_Y_POST(0)
 			x++;
 		}
+#elif defined __SSE3__
+		__m128 *vVelX = (__m128*)fluidFloatPointer(velX, y*sY);
+		__m128 *vVelY = (__m128*)fluidFloatPointer(velY, y*sY);
+		
+		__m128 *vVelYP = (__m128*)fluidFloatPointer(velY, (y-1)*sY);
+		__m128 *vVelYN = (__m128*)fluidFloatPointer(velY, (y+1)*sY);
+		
+		__m128 *vVelXP = (__m128*)fluidFloatPointer(velX, (y-1)*sY);
+		__m128 *vVelXN = (__m128*)fluidFloatPointer(velX, (y+1)*sY);
+		
+		__m128 vT = {timestep, timestep, timestep, timestep};
+		
+		__m128 vPN = {9,9,9,9};
+		__m128 vNN = {-9,-9,-9,-9};
+		
+		for (x=1; x<w/4-2; x+=2)
+		{
+			__m128 sl_vx = _mm_srli_sf128(vVelX[x],4);
+			sl_vx = _mm_add_ps(sl_vx,_mm_slli_sf128(vVelX[x+1],12));
+			
+			__m128 sr_vx = _mm_slli_sf128(vVelX[x],4);
+			sr_vx = _mm_add_ps(sr_vx,_mm_srli_sf128(vVelX[x-1],12));
+			
+			
+			__m128 sl_vx_2 = _mm_srli_sf128(vVelX[x+1],4);
+			sl_vx_2 = _mm_add_ps(sl_vx_2,_mm_slli_sf128(vVelX[x+2],12));
+			
+			__m128 sr_vx_2 = _mm_slli_sf128(vVelX[x+1],4);
+			sr_vx_2 = _mm_add_ps(sr_vx_2,_mm_srli_sf128(vVelX[x],12));
+			
+			
+			
+			__m128 out1 = _mm_add_ps(vVelX[x],
+							_mm_mul_ps(vT,
+								_mm_add_ps(
+									_mm_mul_ps(vVelY[x],
+											   _mm_sub_ps(vVelXN[x], vVelXP[x])),
+									_mm_mul_ps(vVelX[x],
+											   _mm_sub_ps(sl_vx, sr_vx)))));
+			
+	
+			__m128 out2 = _mm_add_ps(vVelX[x+1],
+							  _mm_mul_ps(vT,
+								 _mm_add_ps(
+									_mm_mul_ps(vVelY[x+1],
+											   _mm_sub_ps(vVelXN[x+1], vVelXP[x+1])),
+									_mm_mul_ps(vVelX[x+1],
+											   _mm_sub_ps(sl_vx_2, sr_vx_2)))));
+			
+			vVelX[x] = _mm_min_ps(_mm_max_ps(out1, vNN), vPN);
+			vVelX[x+1] = _mm_min_ps(_mm_max_ps(out2, vNN), vPN);
+		}
+			
+		for (x=1; x<w/4-2; x+=2)
+		{
+			__m128 sl_vy = _mm_srli_sf128(vVelY[x],4);
+			sl_vy = _mm_add_ps(sl_vy,_mm_slli_sf128(vVelY[x+1],12));
+			
+			__m128 sr_vy = _mm_slli_sf128(vVelY[x],4);
+			sr_vy = _mm_add_ps(sr_vy,_mm_srli_sf128(vVelY[x-1],12));
+			
+			
+			__m128 sl_vy_2 = _mm_srli_sf128(vVelY[x+1],4);
+			sl_vy_2 = _mm_add_ps(sl_vy_2,_mm_slli_sf128(vVelY[x+2],12));
+			
+			__m128 sr_vy_2 = _mm_slli_sf128(vVelY[x+1],4);
+			sr_vy_2 = _mm_add_ps(sr_vy_2,_mm_srli_sf128(vVelY[x],12));
+			
+			
+			__m128 out1 = _mm_add_ps(vVelY[x],
+							   _mm_mul_ps(vT,
+								  _mm_add_ps(
+									 _mm_mul_ps(vVelY[x],
+												_mm_sub_ps(vVelYN[x], vVelYP[x])),
+									 _mm_mul_ps(vVelX[x],
+												_mm_sub_ps(sl_vy, sr_vy)))));
+			
+			__m128 out2 = _mm_add_ps(vVelY[x+1],
+							  _mm_mul_ps(vT,
+									 _mm_add_ps(
+										_mm_mul_ps(vVelY[x+1],
+											   _mm_sub_ps(vVelYN[x+1], vVelYP[x+1])),
+										_mm_mul_ps(vVelX[x+1],
+											   _mm_sub_ps(sl_vy_2, sr_vy_2)))));
+			
+			vVelY[x] = _mm_min_ps(_mm_max_ps(out1, vNN), vPN);
+			vVelY[x+1] = _mm_min_ps(_mm_max_ps(out2, vNN), vPN);
+		}
 #else
+		float *velDestX	= fieldData(d->dstVelX);
+		float *velDestY	= fieldData(d->dstVelY);
 		int sX = fieldStrideX(d->srcVelX);
 		for (x=1; x<w-1; x++)
 		{
@@ -150,13 +250,13 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 			float fDataXP2 = fluidFloatPointer(velX, (x)*sX + (y+1)*sY)[0];
 			
 			float fDataY = fluidFloatPointer(velY, x*sX + y*sY)[0];
-			
+
 			fVelDestX[0] = fDataX * timestep * (fDataXP - fDataXM)
 							+ fDataY * timestep * (fDataXP2 - fDataXM2)
 							+ fDataX;
 			
-			if (fVelDestX[0] < -9)	fVelDestX[0] = -9;
-			if (fVelDestX[0] > 9)	fVelDestX[0] = 9;
+//				if (fVelDestX[0] < -9)	fVelDestX[0] = -9;
+//				if (fVelDestX[0] > 9)	fVelDestX[0] = 9;
 		}
 		
 		for (x=1; x<w-1; x++)
@@ -176,8 +276,9 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 							+ fDataX * timestep * (fDataYPX - fDataYMX)
 							+ fDataY;
 			
-			if (fVelDestY[0] < -9)	fVelDestY[0] = -9;
-			if (fVelDestY[0] > 9)	fVelDestY[0] = 9;
+//				if (fVelDestY[0] < -9)	fVelDestY[0] = -9;
+//				if (fVelDestY[0] > 9)	fVelDestY[0] = 9;
+
 		}
 #endif
 	}
@@ -190,19 +291,16 @@ void fluid_advection_fwd_dens(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	int w = fieldWidth(data->reposX);
 	int h = fieldHeight(data->reposX);
-	int sX = fieldStrideX(data->reposX);
 	int sY = fieldStrideY(data->reposX);
 	
-	int dX = fieldStrideX(data->src);
 	int dY = fieldStrideY(data->src);
 	int dC = fieldComponents(data->src);
 	
 	float *reposX = fieldData(data->reposX);
 	float *reposY = fieldData(data->reposY);
 	float *src = fieldData(data->src);
-	float *dst = fieldData(data->dst);
 	
-	float timestep = -data->timestep / 18.0f;
+	float timestep = -data->timestep / 36.0f;
 	
 	int x;
 	if (y==0)
@@ -213,45 +311,153 @@ void fluid_advection_fwd_dens(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	else
 	{
+#ifdef __SSE3__
+		
+		__m128 *vSrc = (__m128*)fluidFloatPointer(src, dY*y);
+		__m128 *vSrcP = (__m128*)fluidFloatPointer(src, dY*(y-1));
+		__m128 *vSrcN = (__m128*)fluidFloatPointer(src, dY*(y+1));
+		
+		float *velX = fluidFloatPointer(reposX, y*sY);
+		float *velY = fluidFloatPointer(reposY, y*sY);
+		
+		__m128 vT = {timestep, timestep, timestep, timestep};
+		__m128 dvs = {1.0f/8.0f,1.0f/8.0f,1.0f/8.0f,1.0f/8.0f};
+		__m128 four = {4.0f,4.0f,4.0f,4.0f};
+#else
+		int dX = fieldStrideX(data->src);
+		float *dst = fieldData(data->dst);
+		int sX = fieldStrideX(data->reposX);
+#endif
+
+			
+#ifdef __SSE3__
+		for (x=1; x<w-2; x+=2)
+		{
+			int c;
+			
+			__m128 vX = {velX[x], velX[x], velX[x], velX[x]};
+			__m128 vY = {velY[x], velY[x], velY[x], velY[x]};
+			
+			__m128 vX_2 = {velX[x+1], velX[x+1], velX[x+1], velX[x+1]};
+			__m128 vY_2 = {velY[x+1], velY[x+1], velY[x+1], velY[x+1]};
+			
+			/*__m128 vX_3 = {velX[x+2], velX[x+2], velX[x+2], velX[x+2]};
+			__m128 vY_3 = {velY[x+2], velY[x+2], velY[x+2], velY[x+2]};
+			
+			__m128 vX_4 = {velX[x+3], velX[x+3], velX[x+3], velX[x+3]};
+			__m128 vY_4 = {velY[x+3], velY[x+3], velY[x+3], velY[x+3]};*/
+#else
 		for (x=1; x<w-1; x++)
 		{
 			int c;
 			
 			float velX = fluidFloatPointer(reposX, x*sX + y*sY)[0];
 			float velY = fluidFloatPointer(reposY, x*sX + y*sY)[0];
+#endif
 			
-			for (c=0; c<dC; c++)
+			//if (fabs(velX) > 0.0001f || fabs(velY) > 0.0001f)
 			{
-				//Compute change of C...
-				float a00 = fluidFloatPointer(src, dX*x + dY*y)[c];
-				float aM0 = fluidFloatPointer(src, dX*(x-1) + dY*y)[c];
-				float aP0 = fluidFloatPointer(src, dX*(x+1) + dY*y)[c];
-				float a0M = fluidFloatPointer(src, dX*x + dY*(y-1))[c];
-				float a0P = fluidFloatPointer(src, dX*x + dY*(y+1))[c];
-				
+#ifdef __SSE3__
+				for (c=0; c<dC/4; c++)
+				{
+					//Work
+					__m128 top = _mm_add_ps(
+											_mm_add_ps(vSrc[x-1],vSrc[x+1]),
+											_mm_add_ps(vSrcN[x], vSrcP[x]));
+					top = _mm_add_ps(_mm_mul_ps(four, vSrc[x]), top);
+					top = _mm_mul_ps(top, dvs);
+					
+					__m128 cx = _mm_mul_ps(vX, _mm_sub_ps(vSrc[x+1], vSrc[x-1]));
+					__m128 cy = _mm_mul_ps(vY, _mm_sub_ps(vSrcN[x], vSrcP[x]));
+					
+					
+					__m128 top_2 = _mm_add_ps(
+											_mm_add_ps(vSrc[x],vSrc[x+2]),
+											_mm_add_ps(vSrcN[x+1], vSrcP[x+1]));
+					top_2 = _mm_add_ps(_mm_mul_ps(four, vSrc[x+1]), top_2);
+					top_2 = _mm_mul_ps(top_2, dvs);
+					
+					__m128 cx_2 = _mm_mul_ps(vX_2, _mm_sub_ps(vSrc[x+2], vSrc[x]));
+					__m128 cy_2 = _mm_mul_ps(vY_2, _mm_sub_ps(vSrcN[x+1], vSrcP[x+1]));
+					
+					
+					/*__m128 top_3 = _mm_add_ps(
+											  _mm_add_ps(vSrc[x+1],vSrc[x+3]),
+											  _mm_add_ps(vSrcN[x+2], vSrcP[x+2]));
+					top_3 = _mm_add_ps(_mm_mul_ps(four, vSrc[x+2]), top_3);
+					top_3 = _mm_mul_ps(top_3, dvs);
+					
+					__m128 cx_3 = _mm_mul_ps(vX_3, _mm_sub_ps(vSrc[x+3], vSrc[x+1]));
+					__m128 cy_3 = _mm_mul_ps(vY_3, _mm_sub_ps(vSrcN[x+2], vSrcP[x+2]));
+					
+					
+					__m128 top_4 = _mm_add_ps(
+											  _mm_add_ps(vSrc[x+2],vSrc[x+4]),
+											  _mm_add_ps(vSrcN[x+3], vSrcP[x+3]));
+					top_4 = _mm_add_ps(_mm_mul_ps(four, vSrc[x+3]), top_4);
+					top_4 = _mm_mul_ps(top_4, dvs);
+					
+					__m128 cx_4 = _mm_mul_ps(vX_4, _mm_sub_ps(vSrc[x+4], vSrc[x+2]));
+					__m128 cy_4 = _mm_mul_ps(vY_4, _mm_sub_ps(vSrcN[x+3], vSrcP[x+3]));*/
+					
+					
+					//Assign
+					vSrc[x] = _mm_add_ps(top, _mm_mul_ps(vT, _mm_add_ps(cx, cy)));
+					
+					vSrc[x+1] = _mm_add_ps(top_2, _mm_mul_ps(vT, _mm_add_ps(cx_2, cy_2)));
+					
+					/*vSrc[x+2] = _mm_add_ps(top_3, _mm_mul_ps(vT, _mm_add_ps(cx_3, cy_3)));
+					
+					vSrc[x+3] = _mm_add_ps(top_4, _mm_mul_ps(vT, _mm_add_ps(cx_4, cy_4)));*/
+				}
+#else
 				float *dest = fluidFloatPointer(dst, dX*x + dY*y);
-				dest[c] =
-					a00 + timestep * (velX * (aP0 - aM0) + velY * (a0P - a0M));
-				
-				if (dest[c] < 0)	dest[c] = 0;
-				else if (dest[c] > 1)	dest[c] = 1;
+				for (c=0; c<dC; c++)
+				{
+					//Compute change of C...
+					float a00 = fluidFloatPointer(src, dX*x + dY*y)[c];
+					float aM0 = fluidFloatPointer(src, dX*(x-1) + dY*y)[c];
+					float aP0 = fluidFloatPointer(src, dX*(x+1) + dY*y)[c];
+					float a0M = fluidFloatPointer(src, dX*x + dY*(y-1))[c];
+					float a0P = fluidFloatPointer(src, dX*x + dY*(y+1))[c];
+					
+					dest[c] = (aM0 + aP0 + a0M + a0P + 4.0f*a00) * (1.0f/8.0f)
+						  + timestep * (velX * (aP0 - aM0) + velY * (a0P - a0M));
+					
+					//if (dest[c] < 0.0f)	dest[c] = 0;
+					//else if (dest[c] > 1.0f)	dest[c] = 1;
+				}
+#endif
 			}
+			/*else
+			{
+				for (c=0; c<dC; c++)
+				{
+					//Compute change of C...
+					float a00 = fluidFloatPointer(src, dX*x + dY*y)[c];
+					dest[c] = a00;
+				}
+			}*/
 		}
 		
-		if (data->clamp == 1)
-		{
-			for (x=1; x<w-1; x++)
-			{
-				int c;
-				
-				for (c=0; c<dC; c++)
-				{					
-					float *dest = fluidFloatPointer(dst, dX*x + dY*y);
-					
-					if (dest[c] < 0)	dest[c] = 0;
-					else if (dest[c] > 1)	dest[c] = 1;
-				}
-			}
-		}
+//		if (data->clamp == 1)
+//		{
+//			for (x=1; x<w-1; x++)
+//			{
+//				int c;
+//				
+//				for (c=0; c<dC; c++)
+//				{
+//					//float a00 = fluidFloatPointer(src, dX*x + dY*y)[c];
+//					float aM0 = fluidFloatPointer(src, dX*(x-1) + dY*y)[c];
+//					float aP0 = fluidFloatPointer(src, dX*(x+1) + dY*y)[c];
+//					float a0M = fluidFloatPointer(src, dX*x + dY*(y-1))[c];
+//					float a0P = fluidFloatPointer(src, dX*x + dY*(y+1))[c];			
+//					float *dest = fluidFloatPointer(dst, dX*x + dY*y);
+//					
+//					dest[c] = (aM0 + aP0 + a0M + a0P) * 0.25f;
+//				}
+//			}
+//		}
 	}
 }
