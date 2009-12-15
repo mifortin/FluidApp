@@ -391,7 +391,7 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			velXRow[0] = -velXRow[1];
 		}
 		x=1;
-		while(x<w/4-9)
+		while(x<w/4-4)
 		{
 			SSE_VISC_X_PRE(0);
 			SSE_VISC_X_PRE(1);
@@ -445,7 +445,7 @@ void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 			velYRow[0] = -velYRow[1];
 		}
 		x=1;
-		while(x<w/4-9)
+		while(x<w/4-4)
 		{
 			SSE_VISC_Y_PRE(0);
 			SSE_VISC_Y_PRE(1);

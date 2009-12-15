@@ -25,53 +25,83 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	float timestep = mode->advection_stam_velocity.timestep;
 	
-	//Extract the data from the object
-	float bZZ_x, bOZ_x, bZO_x, bOO_x, bZZ_y, bOZ_y, bZO_y, bOO_y;
-	
 	//Loop over the data and do the desired computation
 	float fx;
 	float fy = (float)y;
-	for (x=0, fx=0; x<w; x++, fx++)
-	{		
-		float fDataX = fluidFloatPointer(velX, x*sX + y*sY)[0];
-		float fDataY = fluidFloatPointer(velY, x*sX + y*sY)[0];
+	
+#define ADVECT_PRE(n)																\
+	float fDataX ## n = fluidFloatPointer(velX, x*sX + y*sY)[n];					\
+	float fDataY ## n = fluidFloatPointer(velY, x*sX + y*sY)[n];					\
+																					\
+	/*Find the cell back in time	(keep a -10,10 radius)*/						\
+	float backX ## n = -timestep * fDataX ## n + fx+n;								\
+	float backY ## n = -timestep * fDataY ## n + fy;								\
+																					\
+	int nBackX ## n = (int)backX ## n;												\
+	int nBackY ## n = (int)backY ## n;												\
+																					\
+	float scaleX ## n = backX ## n - (float)(nBackX ## n);							\
+	float scaleY ## n = backY ## n - (float)(nBackY ## n);							\
+																					\
+	/*Clamp as it's easier to parallelize given the scheduler*/						\
+	nBackX ## n = fluidClamp(nBackX ## n, 0,w-2);									\
+	nBackY ## n = fluidClamp(nBackY ## n, 0,h-2);									\
+																					\
+	/*That was easy... now advect the velocity...*/									\
+	float *fVelDestX ## n = fluidFloatPointer(velDestX, x*sX + y*sY);			\
+	float *fVelDestY ## n = fluidFloatPointer(velDestY, x*sX + y*sY);			\
+																					\
+	int offBackX ## n = nBackX ## n * sX;											\
+	int offBackY ## n = nBackY ## n * sY;											\
+	int offX2 ## n = offBackX ## n + sX;											\
+	int offY2 ## n = offBackY ## n + sY;											\
+																					\
+	float bZZ_x ## n = fluidFloatPointer(velX, offBackX ## n + offBackY ## n)[0];	\
+	float bOZ_x ## n = fluidFloatPointer(velX, offX2 ## n + offBackY ## n)[0];		\
+	float bZO_x ## n = fluidFloatPointer(velX, offBackX ## n + offY2 ## n)[0];		\
+	float bOO_x ## n = fluidFloatPointer(velX, offX2 ## n + offY2 ## n)[0];			\
+																					\
+	float bZZ_y ## n = fluidFloatPointer(velY, offBackX ## n + offBackY ## n)[0];	\
+	float bOZ_y ## n = fluidFloatPointer(velY, offX2 ## n + offBackY ## n)[0];		\
+	float bZO_y ## n = fluidFloatPointer(velY, offBackX ## n + offY2 ## n)[0];		\
+	float bOO_y ## n = fluidFloatPointer(velY, offX2 ## n + offY2 ## n)[0];
+	
+#define ADVECT_X(n)																	\
+	fVelDestX ## n[n] = fluidLinearInterpolation(scaleX ## n, scaleY ## n,			\
+								bZZ_x ## n, bOZ_x ## n, bZO_x ## n, bOO_x ## n);
+	
+#define ADVECT_Y(n)																	\
+	fVelDestY ## n[n] = fluidLinearInterpolation(scaleX ## n, scaleY ## n,			\
+								bZZ_y ## n, bOZ_y ## n, bZO_y ## n, bOO_y ## n);
+	
+	x=0;
+	fx=0;
+	while(x<w-3)
+	{
+		ADVECT_PRE(0)
+		ADVECT_PRE(1)
+		ADVECT_PRE(2)
 		
-		//Find the cell back in time	(keep a -10,10 radius)
-		float backX = -timestep * fDataX + fx;
-		float backY = -timestep * fDataY + fy;
+		ADVECT_X(0)
+		ADVECT_X(1)
+		ADVECT_X(2)
 		
-		int nBackX = (int)backX;
-		int nBackY = (int)backY;
+		ADVECT_Y(0)
+		ADVECT_Y(1)
+		ADVECT_Y(2)
 		
-		float scaleX = backX - (float)(nBackX);
-		float scaleY = backY - (float)(nBackY);
+		x+=3;
+		fx+=3;
+	}
+	
+	while(x<w)
+	{
+		ADVECT_PRE(0)
 		
-		//Clamp as it's easier to parallelize given the scheduler
-		nBackX = fluidClamp(nBackX, 0,w-2);
-		nBackY = fluidClamp(nBackY, 0,h-2);
+		ADVECT_X(0)
+		ADVECT_Y(0)
 		
-		//That was easy... now advect the velocity...
-		float *fVelDestX = fluidFloatPointer(velDestX, x*sX + y*sY);
-		float *fVelDestY = fluidFloatPointer(velDestY, x*sX + y*sY);
-		
-		int offBackX = nBackX * sX;
-		int offBackY = nBackY * sY;
-		int offX2 = offBackX + sX;
-		int offY2 = offBackY + sY;
-		
-		bZZ_x = fluidFloatPointer(velX, offBackX + offBackY)[0];
-		bOZ_x = fluidFloatPointer(velX, offX2 + offBackY)[0];
-		bZO_x = fluidFloatPointer(velX, offBackX + offY2)[0];
-		bOO_x = fluidFloatPointer(velX, offX2 + offY2)[0];
-		
-		bZZ_y = fluidFloatPointer(velY, offBackX + offBackY)[0];
-		bOZ_y = fluidFloatPointer(velY, offX2 + offBackY)[0];
-		bZO_y = fluidFloatPointer(velY, offBackX + offY2)[0];
-		bOO_y = fluidFloatPointer(velY, offX2 + offY2)[0];
-		
-		fVelDestX[0] = fluidLinearInterpolation(scaleX, scaleY,
-										  bZZ_x, bOZ_x, bZO_x, bOO_x);
-		fVelDestY[0] = fluidLinearInterpolation(scaleX, scaleY,
-										  bZZ_y, bOZ_y, bZO_y, bOO_y);
+		x++;
+		fx++;
 	}
 }

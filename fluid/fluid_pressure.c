@@ -645,6 +645,20 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		w/=4;
 		
+#define SSE_PRESSURE_X_PRE(n)													\
+		__m128 sl ## n = _mm_srli_sf128(vPressure[x+n], 4);						\
+		sl ## n = _mm_add_ps(sl ## n, _mm_slli_sf128(vPressure[x+1+n],12));		\
+																				\
+		__m128 sr ## n = _mm_slli_sf128(vPressure[x+n], 4);						\
+		sr ## n = _mm_add_ps(sr ## n, _mm_srli_sf128(vPressure[x-1+n], 12));
+
+#define SSE_PRESSURE_X_POST(n)								\
+		__m128 tmp ## n = _mm_sub_ps(sl ## n, sr ## n);		\
+		tmp ## n = _mm_sub_ps(vVelX[x+n], tmp ## n);		\
+															\
+		vVelX[x+n] = _mm_max_ps(tmp ## n, vNegNine);		\
+		vVelX[x+n] = _mm_min_ps(vVelX[x+n], vNine);
+		
 		{
 			__m128 sl = _mm_srli_sf128(vPressure[0], 4);
 			sl = _mm_add_ps(sl, _mm_slli_sf128(vPressure[1],12));
@@ -658,19 +672,24 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vVelX[0] = _mm_max_ps(tmp, vNegNine);
 			vVelX[0] = _mm_min_ps(vVelX[0], vNine);
 		}
-		for (x=1; x<w-1; x++)
+		x=1;
+		while(x<w-5)
 		{
-			__m128 sl = _mm_srli_sf128(vPressure[x], 4);
-			sl = _mm_add_ps(sl, _mm_slli_sf128(vPressure[x+1],12));
-			
-			__m128 sr = _mm_slli_sf128(vPressure[x], 4);
-			sr = _mm_add_ps(sr, _mm_srli_sf128(vPressure[x-1], 12));
-			
-			__m128 tmp = _mm_sub_ps(sl, sr);
-			tmp = _mm_sub_ps(vVelX[x], tmp);
-			
-			vVelX[x] = _mm_max_ps(tmp, vNegNine);
-			vVelX[x] = _mm_min_ps(vVelX[x], vNine);
+			SSE_PRESSURE_X_PRE(0);
+			SSE_PRESSURE_X_PRE(1);
+			SSE_PRESSURE_X_PRE(2);
+			SSE_PRESSURE_X_PRE(3);
+			SSE_PRESSURE_X_POST(0);
+			SSE_PRESSURE_X_POST(1);
+			SSE_PRESSURE_X_POST(2);
+			SSE_PRESSURE_X_POST(3);
+			x+=4;
+		}
+		while(x<w-1)
+		{
+			SSE_PRESSURE_X_PRE(0);
+			SSE_PRESSURE_X_POST(0);
+			x++;
 		}
 		{
 			__m128 sl = _mm_srli_sf128(vPressure[x], 4);
@@ -686,6 +705,15 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vVelX[x] = _mm_min_ps(vVelX[x], vNine);
 		}
 		
+#define SSE_PRESSURE_Y_PRE(n)												\
+		__m128 tmp ## n = _mm_sub_ps(vPressureN[x+n], vPressureP[x+n]);		\
+		tmp ## n = _mm_sub_ps(vVelY[x+n], tmp ## n);
+
+#define SSE_PRESSURE_Y_POST(n)												\
+		vVelY[x+n] = _mm_max_ps(tmp ## n, vNegNine);						\
+		vVelY[x+n] = _mm_min_ps(vVelY[x+n], vNine);
+		
+		
 		{			
 			__m128 tmp = _mm_sub_ps(vPressureN[0], vPressureP[0]);
 			__m128i mask = {0x00000000FFFFFFFF,0xFFFFFFFFFFFFFFFF};
@@ -694,13 +722,12 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vVelY[0] = _mm_max_ps(tmp, vNegNine);
 			vVelY[0] = _mm_min_ps(vVelY[0], vNine);
 		}
-		for (x=1; x<w-1; x++)
+		x=1;
+		while(x<w-1)
 		{			
-			__m128 tmp = _mm_sub_ps(vPressureN[x], vPressureP[x]);
-			tmp = _mm_sub_ps(vVelY[x], tmp);
-			
-			vVelY[x] = _mm_max_ps(tmp, vNegNine);
-			vVelY[x] = _mm_min_ps(vVelY[x], vNine);
+			SSE_PRESSURE_Y_PRE(0);
+			SSE_PRESSURE_Y_POST(0);
+			x++;
 		}
 		{			
 			__m128 tmp = _mm_sub_ps(vPressureN[x], vPressureP[x]);

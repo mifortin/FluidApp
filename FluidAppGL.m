@@ -12,6 +12,7 @@
 #endif
 
 #define SIMW	512
+#define SIMH	512
 
 @implementation FluidAppGL
 
@@ -72,7 +73,7 @@ void FluidAppGLOnVelDisconnect(void *obj, netServer*ns)
 	x_try
 	{
 		[ib_serverController setStatus:FluidServerStatusPending forServer:1];
-		r_densityServer = fieldServerCreateChar(SIMW, 512, 4, in_port);
+		r_densityServer = fieldServerCreateChar(SIMW, SIMH, 4, in_port);
 		netServerDelegate d = {self, FluidAppGLOnConnect, FluidAppGLOnDisconnect};
 		fieldServerSetDelegate(r_densityServer, &d);
 	}
@@ -91,7 +92,7 @@ void FluidAppGLOnVelDisconnect(void *obj, netServer*ns)
 	x_try
 	{
 		[ib_serverController setStatus:FluidServerStatusPending forServer:0];
-		r_velocityServer = fieldServerCreateFloat(SIMW, 512, 2, in_port);
+		r_velocityServer = fieldServerCreateFloat(SIMW, SIMH, 2, in_port);
 		netServerDelegate d = {self, FluidAppGLOnVelConnect, FluidAppGLOnVelDisconnect};
 		fieldServerSetDelegate(r_velocityServer, &d);
 	}
@@ -135,7 +136,7 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 	const char *c = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
 	
 	[ib_clientController setStatus:FluidClientStatusFail forClient:1];
-	r_densityClient = fieldClientCreateChar(SIMW,512,4,c,in_port);
+	r_densityClient = fieldClientCreateChar(SIMW,SIMH,4,c,in_port);
 	
 	fieldClientDelegate d = {self, FluidAppGLOnClientConnect,
 								FluidAppGLOnClientDisconnect};
@@ -171,7 +172,7 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 	const char *c = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
 	
 	[ib_clientController setStatus:FluidClientStatusFail forClient:0];
-	r_velocityClient = fieldClientCreateFloat(SIMW,512,2,c,in_port);
+	r_velocityClient = fieldClientCreateFloat(SIMW,SIMH,2,c,in_port);
 	
 	fieldClientDelegate d = {self, FluidAppGLOnVelClientConnect,
 								FluidAppGLOnVelClientDisconnect};
@@ -183,12 +184,12 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 {
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
-	r_fluid = fluidCreate(SIMW,512);
+	r_fluid = fluidCreate(SIMW,SIMH);
 	[self createDensityClientToHost:@"127.0.0.1" port:3636];
 	[self createVelocityClientToHost:@"127.0.0.1" port:3535];
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SIMW, 512, 0,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SIMW, SIMH, 0,
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
 	[self createVelocityServerOnPort:2525];
 	[self createDensityServerOnPort:2626];

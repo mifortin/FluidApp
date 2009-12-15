@@ -156,6 +156,20 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 		__m128 vHalfLeft = {0.0f, 0.5f, 0.5f, 0.5f};
 		__m128 vHalfRight = {0.5f, 0.5f, 0.5f, 0.0f};
 		
+		
+#define SSE_VORTICITY_PRE(n)											\
+		__m128 sl ## n = _mm_srli_sf128(vVelY[x+n], 4);					\
+		sl ## n = _mm_add_ps(sl ## n, _mm_slli_sf128(vVelY[x+1+n],12));	\
+																		\
+		__m128 sr ## n = _mm_slli_sf128(vVelY[x+n], 4);					\
+		sr ## n = _mm_add_ps(sr ## n, _mm_srli_sf128(vVelY[x-1+n], 12));
+		
+#define SSE_VORTICITY_POST(n)														\
+		__m128 dydx ## n = _mm_mul_ps(vHalf, _mm_sub_ps(sl ## n,sr ## n));			\
+		__m128 dxdy ## n = _mm_mul_ps(vHalf, _mm_sub_ps(vVelXN[x+n], vVelXP[x+n]));	\
+																					\
+		vZ[x+n] = _mm_sub_ps(dydx ## n,dxdy ## n);
+		
 		{
 			__m128 sl = _mm_srli_sf128(vVelY[0], 4);
 			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelY[1],12));
@@ -167,18 +181,24 @@ void fluid_vorticity_curl(fluid *in_f, int y, pvt_fluidMode *mode)
 			
 			vZ[0] = _mm_sub_ps(dydx,dxdy);
 		}
-		for (x=1; x<w-1; x++)
+		x=1;
+		while(x<w-13)
 		{
-			__m128 sl = _mm_srli_sf128(vVelY[x], 4);
-			sl = _mm_add_ps(sl, _mm_slli_sf128(vVelY[x+1],12));
-			
-			__m128 sr = _mm_slli_sf128(vVelY[x], 4);
-			sr = _mm_add_ps(sr, _mm_srli_sf128(vVelY[x-1], 12));
-			
-			__m128 dydx = _mm_mul_ps(vHalf, _mm_sub_ps(sl,sr));
-			__m128 dxdy = _mm_mul_ps(vHalf, _mm_sub_ps(vVelXN[x], vVelXP[x]));
-			
-			vZ[x] = _mm_sub_ps(dydx,dxdy);
+			SSE_VORTICITY_PRE(0);
+			SSE_VORTICITY_PRE(1);
+			SSE_VORTICITY_PRE(2);
+			SSE_VORTICITY_PRE(3);
+			SSE_VORTICITY_POST(0);
+			SSE_VORTICITY_POST(1);
+			SSE_VORTICITY_POST(2);
+			SSE_VORTICITY_POST(3);
+			x+=4;
+		}
+		while(x<w-1)
+		{
+			SSE_VORTICITY_PRE(0);
+			SSE_VORTICITY_POST(0);
+			x++;
 		}
 		{
 			__m128 sl = _mm_srli_sf128(vVelY[x], 4);
@@ -381,6 +401,44 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 		__m128 vNine = {9,9,9,9};
 		
 		__m128 vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
+
+#define SSE_VORT_PRE(n)																		\
+		__m128 sl ## n = _mm_srli_sf128(vZ[x+n], 4);										\
+		sl ## n = _mm_add_ps(sl ## n, _mm_slli_sf128(vZ[x+1+n],12));						\
+																							\
+		__m128 sr ## n = _mm_slli_sf128(vZ[x+n], 4);										\
+		sr ## n = _mm_add_ps(sr ## n, _mm_srli_sf128(vZ[x-1+n], 12));						\
+																							\
+		__m128 dzdx ## n = _mm_mul_ps(vHalf,_mm_sub_ps(										\
+												_mm_and_ps((__m128)absMask,sl ## n),		\
+												_mm_and_ps((__m128)absMask,sr ## n)));		\
+		__m128 dzdy ## n = _mm_mul_ps(vHalf,_mm_sub_ps(										\
+												_mm_and_ps((__m128)absMask,vZP[x+n]),		\
+												_mm_and_ps((__m128)absMask,vZN[x+n])));
+
+#define SSE_VORT_POST(n)													\
+		__m128 mag ## n = _mm_add_ps(_mm_mul_ps(dzdx ## n,dzdx ## n),		\
+									 _mm_mul_ps(dzdy ## n,dzdy ## n));		\
+																			\
+		__m128 magMask ## n = _mm_cmpgt_ps(mag ## n,smallValue);			\
+																			\
+		mag ## n = _mm_mul_ps(vE,_mm_rsqrt_ps(mag ## n));					\
+																			\
+		dzdx ## n = _mm_mul_ps(dzdx ## n,mag ## n);							\
+		dzdy ## n = _mm_mul_ps(dzdy ## n,mag ## n);							\
+																			\
+		dzdx ## n = _mm_and_ps(dzdx ## n, magMask ## n);					\
+		dzdy ## n = _mm_and_ps(dzdy ## n, magMask ## n);
+	
+#define SSE_VORT_X(n)														\
+		vVelX[x+n] = _mm_add_ps(vVelX[x+n],_mm_mul_ps(dzdy ## n,vZ[x+n]));	\
+		vVelX[x+n] = _mm_max_ps(vVelX[x+n], vNegNine);						\
+		vVelX[x+n] = _mm_min_ps(vVelX[x+n], vNine);
+		
+#define SSE_VORT_Y(n)														\
+		vVelY[x+n] = _mm_sub_ps(vVelY[x+n],_mm_mul_ps(dzdx ## n,vZ[x+n]));	\
+		vVelY[x+n] = _mm_max_ps(vVelY[x+n], vNegNine);						\
+		vVelY[x+n] = _mm_min_ps(vVelY[x+n], vNine);
 		
 		{
 			__m128 sl = _mm_srli_sf128(vZ[0], 4);
@@ -394,8 +452,7 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 mag = _mm_add_ps(_mm_mul_ps(dzdx,dzdx), _mm_mul_ps(dzdy,dzdy));
 			
 			__m128 magMask = _mm_cmpgt_ps(mag,smallLeftValue);
-			//int *mm = (int*)&magMask;
-			//if (mm[0] || mm[1] || mm[2] || mm[3])
+
 			{
 				mag = _mm_mul_ps(vE,_mm_rsqrt_ps(mag));
 				
@@ -414,39 +471,61 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				vVelY[0] = _mm_min_ps(vVelY[0], vNine);
 			}
 		}
-		for (x=1; x<vW-1; x++)
+		x=1;
+		while (x<vW-1 && x%4 != 0)
 		{
-			__m128 sl = _mm_srli_sf128(vZ[x], 4);
-			sl = _mm_add_ps(sl, _mm_slli_sf128(vZ[x+1],12));
+			SSE_VORT_PRE(0);
+			SSE_VORT_POST(0);
+			SSE_VORT_X(0);
+			SSE_VORT_Y(0);
+			x++;
+		}
+		while (x<vW-9)
+		{
+			SSE_VORT_PRE(0);
+			SSE_VORT_PRE(1);
+			SSE_VORT_PRE(2);
+			SSE_VORT_PRE(3);
+			SSE_VORT_PRE(4);
+			SSE_VORT_PRE(5);
+			SSE_VORT_PRE(6);
+			SSE_VORT_PRE(7);
 			
-			__m128 sr = _mm_slli_sf128(vZ[x], 4);
-			sr = _mm_add_ps(sr, _mm_srli_sf128(vZ[x-1], 12));
+			SSE_VORT_POST(0);
+			SSE_VORT_POST(1);
+			SSE_VORT_POST(2);
+			SSE_VORT_POST(3);
+			SSE_VORT_POST(4);
+			SSE_VORT_POST(5);
+			SSE_VORT_POST(6);
+			SSE_VORT_POST(7);
 			
-			__m128 dzdx = _mm_mul_ps(vHalf,_mm_sub_ps(_mm_and_ps((__m128)absMask,sl),_mm_and_ps((__m128)absMask,sr)));
-			__m128 dzdy = _mm_mul_ps(vHalf,_mm_sub_ps(_mm_and_ps((__m128)absMask,vZP[x]), _mm_and_ps((__m128)absMask,vZN[x])));
+			SSE_VORT_X(0);
+			SSE_VORT_X(1);
+			SSE_VORT_X(2);
+			SSE_VORT_X(3);
+			SSE_VORT_X(4);
+			SSE_VORT_X(5);
+			SSE_VORT_X(6);
+			SSE_VORT_X(7);
 			
-			__m128 mag = _mm_add_ps(_mm_mul_ps(dzdx,dzdx), _mm_mul_ps(dzdy,dzdy));
-			
-			__m128 magMask = _mm_cmpgt_ps(mag,smallValue);
-			//int *mm = (int*)&magMask;
-			//if (mm[0] || mm[1] || mm[2] || mm[3])
-			{
-				mag = _mm_mul_ps(vE,_mm_rsqrt_ps(mag));
-				
-				dzdx = _mm_mul_ps(dzdx,mag);
-				dzdy = _mm_mul_ps(dzdy,mag);
-				
-				dzdx = _mm_and_ps(dzdx, magMask);
-				dzdy = _mm_and_ps(dzdy, magMask);
-				
-				vVelX[x] = _mm_add_ps(vVelX[x],_mm_mul_ps(dzdy,vZ[x]));
-				vVelX[x] = _mm_max_ps(vVelX[x], vNegNine);
-				vVelX[x] = _mm_min_ps(vVelX[x], vNine);
-				
-				vVelY[x] = _mm_sub_ps(vVelY[x],_mm_mul_ps(dzdx,vZ[x]));
-				vVelY[x] = _mm_max_ps(vVelY[x], vNegNine);
-				vVelY[x] = _mm_min_ps(vVelY[x], vNine);
-			}
+			SSE_VORT_Y(0);
+			SSE_VORT_Y(1);
+			SSE_VORT_Y(2);
+			SSE_VORT_Y(3);
+			SSE_VORT_Y(4);
+			SSE_VORT_Y(5);
+			SSE_VORT_Y(6);
+			SSE_VORT_Y(7);
+			x+=8;
+		}
+		while (x<vW-1)
+		{
+			SSE_VORT_PRE(0);
+			SSE_VORT_POST(0);
+			SSE_VORT_X(0);
+			SSE_VORT_Y(0);
+			x++;
 		}
 		{
 			__m128 sl = _mm_srli_sf128(vZ[x], 4);
@@ -460,8 +539,7 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 mag = _mm_add_ps(_mm_mul_ps(dzdx,dzdx), _mm_mul_ps(dzdy,dzdy));
 			
 			__m128 magMask = _mm_cmpgt_ps(mag,smallRightValue);
-			//int *mm = (int*)&magMask;
-			//if (mm[0] || mm[1] || mm[2] || mm[3])
+
 			{
 				mag = _mm_mul_ps(vE,_mm_rsqrt_ps(mag));
 				
