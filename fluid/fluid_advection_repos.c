@@ -89,7 +89,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		dstVelY[x] = vec_madd(vHalf, errY, srcAdvY[x]);
 	}
 	
-  vector float vY = {y,y,y,y};
+	vector float vY = {y,y,y,y};
 	for (x=0; x<w; x++)
 	{
 		vector float tmp = vec_madd(

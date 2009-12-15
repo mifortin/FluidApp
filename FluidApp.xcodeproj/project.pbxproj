@@ -149,6 +149,9 @@
 		4CF1CC8710CB206A00B770B7 /* FluidTabTopView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */; };
 		4CF1CCA110CB21A900B770B7 /* FluidTabButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */; };
 		4CF1CCA210CB21A900B770B7 /* FluidTabButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */; };
+		4CF1F30610D8508800089E91 /* fluid_advection_stam2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1F30510D8508800089E91 /* fluid_advection_stam2.c */; };
+		4CF1F30710D8508800089E91 /* fluid_advection_stam2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1F30510D8508800089E91 /* fluid_advection_stam2.c */; };
+		4CF1F30810D8508800089E91 /* fluid_advection_stam2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1F30510D8508800089E91 /* fluid_advection_stam2.c */; };
 		4CF20D69109DC08300BB2332 /* FluidFPSView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D68109DC08300BB2332 /* FluidFPSView.m */; };
 		4CF20D6A109DC08300BB2332 /* FluidFPSView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D68109DC08300BB2332 /* FluidFPSView.m */; };
 		4CF20D94109DC6E800BB2332 /* FluidApp_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF20D93109DC6E800BB2332 /* FluidApp_Delegate.m */; };
@@ -287,6 +290,7 @@
 		4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabTopView.m; sourceTree = "<group>"; };
 		4CF1CC9F10CB21A900B770B7 /* FluidTabButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabButton.h; sourceTree = "<group>"; };
 		4CF1CCA010CB21A900B770B7 /* FluidTabButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabButton.m; sourceTree = "<group>"; };
+		4CF1F30510D8508800089E91 /* fluid_advection_stam2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_advection_stam2.c; sourceTree = "<group>"; };
 		4CF20D67109DC08300BB2332 /* FluidFPSView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidFPSView.h; sourceTree = "<group>"; };
 		4CF20D68109DC08300BB2332 /* FluidFPSView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidFPSView.m; sourceTree = "<group>"; };
 		4CF20D92109DC6E800BB2332 /* FluidApp_Delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidApp_Delegate.h; sourceTree = "<group>"; };
@@ -587,6 +591,7 @@
 				4CD92DEE10A351FE00714BD3 /* fluid_cpu.c */,
 				4C83E88710D6F44C00561E2A /* fluid_advection_fwd.c */,
 				27A2F24A0F6D827900667640 /* fluid_advection_stam.c */,
+				4CF1F30510D8508800089E91 /* fluid_advection_stam2.c */,
 				4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */,
 				4C8B54B21059C8CC00D7DC5E /* fluid_repos.c */,
 				4C9F2CA81065A87300651C4B /* fluid_viscosity.c */,
@@ -789,6 +794,7 @@
 				4C78C0D610C852AD0048858A /* fluid_visual.c in Sources */,
 				4CA33EB110D1729800C50A88 /* fluid_input.c in Sources */,
 				4C83E88A10D6F44C00561E2A /* fluid_advection_fwd.c in Sources */,
+				4CF1F30810D8508800089E91 /* fluid_advection_stam2.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -869,6 +875,7 @@
 				4CA33EAF10D1729800C50A88 /* fluid_input.c in Sources */,
 				4CCB577F10D25E6200F686C2 /* FluidAppSliderCell.m in Sources */,
 				4C83E88810D6F44C00561E2A /* fluid_advection_fwd.c in Sources */,
+				4CF1F30610D8508800089E91 /* fluid_advection_stam2.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -919,6 +926,7 @@
 				4CA33EB010D1729800C50A88 /* fluid_input.c in Sources */,
 				4CCB578010D25E6200F686C2 /* FluidAppSliderCell.m in Sources */,
 				4C83E88910D6F44C00561E2A /* fluid_advection_fwd.c in Sources */,
+				4CF1F30710D8508800089E91 /* fluid_advection_stam2.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
