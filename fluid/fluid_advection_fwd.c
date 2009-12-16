@@ -73,32 +73,37 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		vector float sr_vy ## n = vec_sld(vVelY[x-1 + n], vVelY[x + n], 12);
 		
 #define ADVECT_X_POST(n)												\
-		vDVelX[x+n] = vec_madd(vT, vec_madd(vVelX[x+n],					\
+		vector float postX ## n = vec_madd(vT, vec_madd(vVelX[x+n],					\
 							vec_sub(sl_vx ## n, sr_vx ## n),			\
 								vec_madd(vVelY[x+n],					\
 									vec_sub(vVelXN[x+n], vVelXP[x+n]),	\
 										 vZero)),						\
-							vVelX[x+n]);								\
-		vDVelX[x+n] = vec_min(vec_max(vDVelX[x+n], vNN), vPN);
+							vVelX[x+n]);
+		
+#define ADVECT_X_ASSIGN(n)											\
+		vDVelX[x+n] = vec_min(vec_max(postX ## n, vNN), vPN);
 		
 #define ADVECT_Y_POST(n)											\
-		vDVelY[x+n] = vec_madd(vT, vec_madd(vVelX[x+n],				\
+		vector float postY ## n = vec_madd(vT, vec_madd(vVelX[x+n],	\
 						vec_sub(sl_vy ## n, sr_vy ## n),			\
 							vec_madd(vVelY[x+n],					\
 								vec_sub(vVelYN[x+n], vVelYP[x+n]),	\
 									vZero)),						\
-						vVelY[x+n]);								\
-		vDVelY[x+n] = vec_min(vec_max(vDVelY[x+n], vNN), vPN);
+						vVelY[x+n]);
+		
+#define ADVECT_Y_ASSIGN(n)										\
+		vDVelY[x+n] = vec_min(vec_max(postY ## n, vNN), vPN);
 							
 		x = 1;
-		/*while (x<w/4-1 && x%4 != 0)
+		while (x<w/4-1 && x%4 != 0)
 		{
 			ADVECT_X_PRE(0)
 			ADVECT_X_POST(0)
+			ADVECT_X_ASSIGN(0)
 			
 			x++;
 		}
-		while (x<w/4-5)
+		while (x<w/4-4)
 		{
 			ADVECT_X_PRE(0)
 			ADVECT_X_PRE(1)
@@ -110,24 +115,32 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 			ADVECT_X_POST(2)
 			ADVECT_X_POST(3)
 			
+			ADVECT_X_ASSIGN(0)
+			ADVECT_X_ASSIGN(1)
+			ADVECT_X_ASSIGN(2)
+			ADVECT_X_ASSIGN(3)
+			
 			x+=4;
-		}*/
+		}
 		while (x<w/4-1)
 		{
 			ADVECT_X_PRE(0)
 			ADVECT_X_POST(0)
 			
+			ADVECT_X_ASSIGN(0)
+			
 			x++;
 		}
 		
 		x = 1;
-		/*while (x < w/2 - 1 && x%4 != 0)
+		while (x < w/4 - 1 && x%4 != 0)
 		{			
 			ADVECT_Y_PRE(0)
 			ADVECT_Y_POST(0)
+			ADVECT_Y_ASSIGN(0)
 			x++;
 		}
-		while (x<w/2-5)
+		while (x<w/4-4)
 		{
 			ADVECT_Y_PRE(0)
 			ADVECT_Y_PRE(1)
@@ -139,12 +152,18 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 			ADVECT_Y_POST(2)
 			ADVECT_Y_POST(3)
 			
+			ADVECT_Y_ASSIGN(0)
+			ADVECT_Y_ASSIGN(1)
+			ADVECT_Y_ASSIGN(2)
+			ADVECT_Y_ASSIGN(3)
+			
 			x+=4;
-		}*/
+		}
 		while (x < w/4 - 1)
 		{			
 			ADVECT_Y_PRE(0)
 			ADVECT_Y_POST(0)
+			ADVECT_Y_ASSIGN(0)
 			x++;
 		}
 #elif defined __SSE3__

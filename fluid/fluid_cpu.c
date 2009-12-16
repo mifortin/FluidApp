@@ -65,6 +65,28 @@ void fluidTaskAddBackwardAdvection(fluid *f)
 }
 
 
+void fluidTaskAddNptForwardAdvection(fluid *f)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_advection_stam_velocity_npt;
+	f->m_fns[curFn].mode = make_advection_stam_velocity(
+														f->r_velocityX, f->r_velocityY,
+														f->r_tmpVelX,   f->r_tmpVelY,
+														f->m_timestep);
+	f->m_fns[curFn].mode.advection_stam_velocity.dstReposX = f->r_reposX;
+	f->m_fns[curFn].mode.advection_stam_velocity.dstReposY = f->r_reposY;
+	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
+	
+	mpCTaskAdd(f->r_coherence, curFn, -10, 10, 0);
+	
+	fluidSwap(field*, f->r_velocityX, f->r_tmpVelX);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
 void fluidTaskCorrectorRepos(fluid *f)
 {
 	int curFn = f->m_usedFunctions;
@@ -452,6 +474,8 @@ void fluidAdvance(fluid *in_f)
 	fluidTaskDampen(in_f, in_f->r_velocityX, in_f->m_fadeVel);
 	fluidTaskDampen(in_f, in_f->r_velocityY, in_f->m_fadeVel);
 	
+	/*fluidTaskAddNptForwardAdvection(in_f);
+	fluidTaskAdvectDensity(in_f);/**/
 	/*fluidTaskAddForwardAdvection(in_f);
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);

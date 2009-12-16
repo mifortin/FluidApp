@@ -24,6 +24,9 @@ struct advection_stam_velocity
 	field *dstVelX;
 	field *dstVelY;
 	
+	field *dstReposX;	//For n-pt that can compute this while
+	field *dstReposY;	//doing advection.
+	
 	//Use this to flip the timestep (from forward to backward, & vice-versa...
 	float timestep;
 	

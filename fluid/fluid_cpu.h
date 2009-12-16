@@ -39,4 +39,5 @@ void fluid_input_float2vel(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_advection_fwd_dens(fluid *in_f, int y, pvt_fluidMode *mode);
 
+void fluid_advection_stam_velocity_npt(fluid *in_f, int y, pvt_fluidMode *mode);
 #endif
