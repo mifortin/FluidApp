@@ -331,6 +331,7 @@ void fluid_advection_fwd_dens(fluid *in_f, int y, pvt_fluidMode *mode)
 
 			
 #ifdef __SSE3__
+		dC /= 4;
 		for (x=1; x<w-2; x+=2)
 		{
 			int c;
@@ -358,7 +359,7 @@ void fluid_advection_fwd_dens(fluid *in_f, int y, pvt_fluidMode *mode)
 			//if (fabs(velX) > 0.0001f || fabs(velY) > 0.0001f)
 			{
 #ifdef __SSE3__
-				for (c=0; c<dC/4; c++)
+				for (c=0; c<dC; c++)
 				{
 					//Work
 					__m128 top = _mm_add_ps(
@@ -367,15 +368,15 @@ void fluid_advection_fwd_dens(fluid *in_f, int y, pvt_fluidMode *mode)
 					top = _mm_add_ps(_mm_mul_ps(four, vSrc[x]), top);
 					top = _mm_mul_ps(top, dvs);
 					
-					__m128 cx = _mm_mul_ps(vX, _mm_sub_ps(vSrc[x+1], vSrc[x-1]));
-					__m128 cy = _mm_mul_ps(vY, _mm_sub_ps(vSrcN[x], vSrcP[x]));
-					
 					
 					__m128 top_2 = _mm_add_ps(
-											_mm_add_ps(vSrc[x],vSrc[x+2]),
-											_mm_add_ps(vSrcN[x+1], vSrcP[x+1]));
+											  _mm_add_ps(vSrc[x],vSrc[x+2]),
+											  _mm_add_ps(vSrcN[x+1], vSrcP[x+1]));
 					top_2 = _mm_add_ps(_mm_mul_ps(four, vSrc[x+1]), top_2);
 					top_2 = _mm_mul_ps(top_2, dvs);
+					
+					__m128 cx = _mm_mul_ps(vX, _mm_sub_ps(vSrc[x+1], vSrc[x-1]));
+					__m128 cy = _mm_mul_ps(vY, _mm_sub_ps(vSrcN[x], vSrcP[x]));
 					
 					__m128 cx_2 = _mm_mul_ps(vX_2, _mm_sub_ps(vSrc[x+2], vSrc[x]));
 					__m128 cy_2 = _mm_mul_ps(vY_2, _mm_sub_ps(vSrcN[x+1], vSrcP[x+1]));
