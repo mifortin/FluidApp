@@ -27,8 +27,6 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	float *velX		= fieldData(d->srcVelX);
 	float *velY		= fieldData(d->srcVelY);
 	
-	
-	
 	int sY = fieldStrideY(d->srcVelY);
 	
 	float timestep = -d->timestep / 18.0f;	// (2.0f * 9.0f)
@@ -73,7 +71,7 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		vector float sr_vy ## n = vec_sld(vVelY[x-1 + n], vVelY[x + n], 12);
 		
 #define ADVECT_X_POST(n)												\
-		vector float postX ## n = vec_madd(vT, vec_madd(vVelX[x+n],					\
+		vector float postX ## n = vec_madd(vT, vec_madd(vVelX[x+n],		\
 							vec_sub(sl_vx ## n, sr_vx ## n),			\
 								vec_madd(vVelY[x+n],					\
 									vec_sub(vVelXN[x+n], vVelXP[x+n]),	\
