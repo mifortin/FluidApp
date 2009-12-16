@@ -95,13 +95,14 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		vDVelY[x+n] = vec_min(vec_max(postY ## n, vNN), vPN);
 							
 		x = 1;
-		/*while (x<w/4-1 && x%4 != 0)
+		while (x<w/4-1 && x%4 != 0)
 		{
 			ADVECT_X_PRE(0)
 			ADVECT_X_POST(0)
+			ADVECT_X_ASSIGN(0)
 			
 			x++;
-		}*/
+		}
 		while (x<w/4-4)
 		{
 			ADVECT_X_PRE(0)
@@ -132,13 +133,14 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		}
 		
 		x = 1;
-		/*while (x < w/2 - 1 && x%4 != 0)
+		while (x < w/4 - 1 && x%4 != 0)
 		{			
 			ADVECT_Y_PRE(0)
 			ADVECT_Y_POST(0)
+			ADVECT_Y_ASSIGN(0)
 			x++;
-		}*/
-		while (x<w/2-4)
+		}
+		while (x<w/4-4)
 		{
 			ADVECT_Y_PRE(0)
 			ADVECT_Y_PRE(1)
