@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include "net.h"
+#include "memory.h"
 
 #define Field_NoRelease		0x00000001		/* Do not release data
 												(someone else will) */

@@ -21,6 +21,10 @@
 //#undef __SSE3__
 #endif
 
+#ifdef CELL
+#include "altivec.h"
+#endif
+
 
 void fluid_advection_fwd_generate_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 {
