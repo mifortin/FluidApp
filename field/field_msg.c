@@ -27,7 +27,14 @@ int isFieldInt(fieldMsg *in_fm, int in_fld);
 const char *fieldCharPtr(fieldMsg *in_fm);
 int fieldInt(fieldMsg *in_fm);
 
-void fieldMsgClear(fieldMsg *in_fm);
-void fieldMsgAddInt(fieldMsg *in_fm, int in_data);
+void fieldMsgClear(fieldMsg *in_fm)
+{
+	memset(in_fm, 0, sizeof(fieldMsg));
+}
+
+void fieldMsgAddInt(fieldMsg *in_fm, int in_data)
+{
+}
+
 void fieldMsgAddChar(fieldMsg *in_fm, const char *in_ch);
 void fieldMsgSend(fieldMsg *in_fm, netClient *in_client);
