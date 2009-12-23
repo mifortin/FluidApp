@@ -15,6 +15,9 @@
 #include "fluid_cpu.h"
 #include <math.h>
 
+#ifdef CELL
+#include "altivec.h"
+#endif
 
 //Simple repositioning of the data
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)

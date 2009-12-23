@@ -10,6 +10,10 @@
 //#undef __SSE3__
 #endif
 
+#ifdef CELL
+#include "altivec.h"
+#endif
+
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 #include <stdlib.h>
@@ -29,7 +33,7 @@ void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 	w = w * c / (4*4);
 	
 	vector float *vf = (vector float*)f;
-	vector unsigned char *vo = (vector unsigned char*)o;
+	vector signed char *vo = (vector signed char*)o;
 	
 	vector short min = {0,0,0,0,0,0,0,0};
 	vector short max = {255,255,255,255,255,255,255,255};

@@ -10,6 +10,7 @@
 #include "netClient.h"
 #include "net.h"
 #include "mpx.h"
+#include "memory.h"
 
 struct netServer {
 	//The socket that the server listens to....

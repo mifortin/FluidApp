@@ -17,6 +17,10 @@
 //#undef __SSE3__
 #endif
 
+#ifdef CELL
+#include "altivec.h"
+#endif
+
 void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 {
 	struct advection_stam_velocity *d = &mode->advection_stam_velocity;

@@ -1,16 +1,26 @@
 # This is for the CELL target.  OS/X target uses the xcodeproj
 
-LUA=lua/lapi.ppu.o lua/lauxlib.ppu.o lua/lbaselib.ppu.o lua/lcode.ppu.o lua/ldblib.ppu.o lua/ldebug.ppu.o lua/ldo.ppu.o lua/ldump.ppu.o lua/lfunc.ppu.o lua/lgc.ppu.o lua/linit.ppu.o lua/liolib.ppu.o lua/llex.ppu.o lua/lmathlib.ppu.o lua/lmem.ppu.o lua/loadlib.ppu.o lua/lobject.ppu.o lua/lopcodes.ppu.o lua/loslib.ppu.o lua/lparser.ppu.o lua/lstate.ppu.o lua/lstring.ppu.o lua/lstrlib.ppu.o lua/ltable.ppu.o lua/ltablib.ppu.o lua/ltm.ppu.o lua/lundump.ppu.o lua/lvm.ppu.o lua/lzio.ppu.o lua/print.ppu.o
+LIB_HALF=half.ppu.o
 
-PROTOCOL=protocol/protocol_pvt.ppu.o protocol/protocol_tree.ppu.o protocol/protocol_lua.ppu.o protocol/protocol_float.ppu.o protocol/protocol_string.ppu.o
+LIB_ERROR=error/error_pvt.ppu.o error/error_lst.ppu.o
 
-NET=net/netClient.ppu.o net/netServer.ppu.o
+LIB_FIELD=field/field_pvt.ppu.o field/field_server.ppu.o field/field_client.ppu.o
 
-PPU=FluidServer.ppu.o memory.ppu.o mp_mutex.ppu.o error/error_pvt.ppu.o field/field_pvt.ppu.o fluid/fluid_pvt.ppu.o fluid/fluid_advection_stam.ppu.o lagrange/lagrange_pvt.ppu.o $(LUA) $(NET)  $(PROTOCOL)
+LIB_FLUID=fluid/fluid_cpu.ppu.o fluid/fluid_advection_fwd.ppu.o fluid/fluid_advection_fwd2.ppu.o fluid/fluid_advection_stam.ppu.o fluid/fluid_advection_stam2.ppu.o fluid/fluid_advection_repos.ppu.o fluid/fluid_repos.ppu.o fluid/fluid_viscosity.ppu.o fluid/fluid_pressure.ppu.o fluid/fluid_vorticity.ppu.o fluid/fluid_dampen.ppu.o fluid/fluid_visual.ppu.o fluid/fluid_input.ppu.o fluid/fluid_pvt.ppu.o
+
+LIB_SYS=memory.ppu.o
+
+LIB_MP=mp_mutex.ppu.o mp_queue.ppu.o mp_x.ppu.o mp_taskWorld.ppu.o mp_coherence.ppu.o
+
+LIB_NET=net/netInStream.ppu.o net/netOutStream.ppu.o net/netClient.ppu.o net/netServer.ppu.o
+
+APP_SERVER=FluidServer.ppu.o
+
+PPU= $(LIB_HALF) $(LIB_ERROR) $(LIB_FIELD) $(LIB_FLUID) $(LIB_SYS) $(LIB_MP) $(LIB_NET) $(APP_SERVER)
 
 SPU=
 
-INCLUDE= -I$(PWD) -I$(PWD)/field -I$(PWD)/fluid -I$(PWD)/lua -I$(PWD)/net -I$(PWD)/protocol -I$(PWD)/error
+INCLUDE= -I$(PWD) -I$(PWD)/field -I$(PWD)/fluid -I$(PWD)/net -I$(PWD)/error
 
 all:	ppu	spu
 	@ppu32-gcc -maltivec $(PPU) $(SPU) -std=c99 -lm -lspe2 -o FluidServer
@@ -22,10 +32,10 @@ run:	all pull
 	./FluidServer
 
 pull:
-	git pull --upload-pack /usr/local/bin/git-upload-pack
+	git pull
 
 push:
-	git push --receive-pack /usr/local/bin/git-receive-pack
+	git push
 
 ppu: $(PPU)
 

@@ -10,6 +10,11 @@
 //#undef __SSE3__
 #endif
 
+
+#ifdef CELL
+#include "altivec.h"
+#endif
+
 //#undef __APPLE_ALTIVEC__
 
 #include "fluid_macros_2.h"

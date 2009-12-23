@@ -17,8 +17,15 @@
 #include <math.h>
 #include <stdio.h>
 
+
+#ifdef CELL
+#include "altivec.h"
+#endif
+
 #ifdef __APPLE_ALTIVEC__
+#ifndef CELL
 #include <ppc_intrinsics.h>
+#endif
 #endif
 
 /** Most basic function used to handle pressure */

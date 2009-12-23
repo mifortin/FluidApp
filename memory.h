@@ -9,6 +9,14 @@
 #include <setjmp.h>
 #include "error.h"
 
+#ifdef CELL
+typedef unsigned int uint32_t;
+typedef int int32_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef unsigned char uint8_t;
+#endif
+
 //Provides a means to deal with the memory in the system.  That is, a simple
 //way to handle malloc/free where multiple objects may need this one to live
 //for a certain amount of time.

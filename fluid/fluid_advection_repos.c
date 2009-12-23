@@ -9,6 +9,10 @@
 //#undef __SSE3__
 #endif
 
+#ifdef CELL
+#include "altivec.h"
+#endif
+
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 
