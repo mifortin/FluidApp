@@ -36,6 +36,27 @@ struct field
 };
 
 
+#define FIELDMSG_DATA	256
+#define FIELDMSG_LINKS	6
+
+struct fieldMsgLink
+{
+	char type;									//Type of data that we have
+	union {
+		int iData;								//Integer data
+		float fData;							//Float data
+		const char szData[FIELDMSG_DATA];		//NULL-terminated string
+	} data;
+};
+
+struct fieldMsg								//WARNING: LOTS OF UNALIGNED DATA!
+{
+	int numLinks;								//Number of links
+	char data[FIELDMSG_DATA];					//Data within the message
+	struct fieldMsgLink *links[FIELDMSG_LINKS];	//Links to the data (in data)
+};
+
+
 struct fieldServer
 {
 	field *fld_net;			//Copy from the network

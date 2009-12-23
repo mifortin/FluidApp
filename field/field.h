@@ -10,6 +10,24 @@
 #include "error.h"
 #include "mpx.h"
 
+//Messages provide a means of moving information other than color data
+//to and from the client/server.  We implement a fixed-memory model for
+//messages. (256-byte messages TOTAL)
+typedef struct fieldMsg fieldMsg;
+
+fieldMsg *fieldMsgCreate();
+void fieldMsgReceive(fieldMsg *in_fm, netClient *in_client);
+int fieldMsgCount(fieldMsg *in_fm);
+int isFieldCharPtr(fieldMsg *in_fm, int in_fld);
+int isFieldInt(fieldMsg *in_fm, int in_fld);
+const char *fieldCharPtr(fieldMsg *in_fm);
+int fieldInt(fieldMsg *in_fm);
+
+void fieldMsgClear(fieldMsg *in_fm);
+void fieldMsgAddInt(fieldMsg *in_fm, int in_data);
+void fieldMsgAddChar(fieldMsg *in_fm, const char *in_ch);
+void fieldMsgSend(fieldMsg *in_fm, netClient *in_client);
+
 //Dealing with a single field...
 typedef struct field field;
 
