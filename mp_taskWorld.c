@@ -12,6 +12,10 @@
 #include <OpenCL/cl.h>
 #endif
 
+#ifdef CELL
+#include <libspe2.h>
+#endif
+
 #define MESSAGE_QUIT		100
 #define MESSAGE_ACTION		200
 
@@ -52,6 +56,14 @@ struct mpTaskWorld
 	
 	//Threads for OpenCL / GPU (we need MORE)
 	pthread_t *cl_threads;
+#endif
+
+#ifdef CELL
+	int ps3_workers;			//Number of spawned worker threads for Cell
+	pthread_t *ps3_threads;		//All the threads for PS3 - 1 per SPU
+	
+	mpQueue	*ps3_send;			//Send commands to an SPE
+	mpQueue *ps3_recv;			//Receive data from an SPE
 #endif
 
 };
@@ -152,6 +164,27 @@ void mpFree(void *in_o)
 	x_free(g_mpTaskWorld->r_sendQueue);
 	x_free(g_mpTaskWorld->r_receiveQueue);
 	free(g_mpTaskWorld->r_comms);
+
+#ifdef CELL
+	if (g_mpTaskWorld->ps3_workers > 0)
+	{
+		for (i=0; i<g_mpTaskWorld->ps3_workers; i++)
+		{
+			mpTaskWorldCommunication *cur = mpQueuePop(g_mpTaskWorld->ps3_recv);
+			cur->message = MESSAGE_QUIT;
+			mpQueuePush(g_mpTaskWorld->ps3_send, cur);
+		}
+		
+		for (i=0; i<g_mpTaskWorld->ps3_workers; i++)
+		{
+			x_pthread_join(g_mpTaskWorld->ps3_threads[i]);
+		}
+		
+		free (g_mpTaskWorld->ps3_threads);
+		x_free(g_mpTaskWorld->ps3_send);
+		x_free(g_mpTaskWorld->ps3_recv);
+	}
+#endif
 	
 #ifdef MP_OPENCL
 	if (g_mpTaskWorld->cl_workers > 0)
@@ -189,7 +222,7 @@ void mpInit(int in_workers)
 	g_mpTaskWorld->r_sendQueue = mpQueueCreate(in_workers * 4);
 	g_mpTaskWorld->r_receiveQueue = mpQueueCreate(in_workers * 4);
 	
-	g_mpTaskWorld->rr_threads = malloc(sizeof(pthread_t*)*in_workers);
+	g_mpTaskWorld->rr_threads = malloc(sizeof(pthread_t)*in_workers);
 	
 	g_mpTaskWorld->r_comms = malloc(sizeof(mpTaskWorldCommunication)*in_workers*4);
 	
@@ -205,6 +238,21 @@ void mpInit(int in_workers)
 		x_pthread_create(&g_mpTaskWorld->rr_threads[i], NULL, mpTaskEngine,
 							g_mpTaskWorld->r_sendQueue);
 	}
+
+#ifdef CELL
+	int numSPEs = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
+	printf("Number of SPEs: %i\n", numSPEs);
+		g_mpTaskWorld->ps3_workers = 0;
+	if (numSPEs > 0)
+	{
+		g_mpTaskWorld->ps3_send = mpQueueCreate(numSPEs*4);
+		g_mpTaskWorld->ps3_recv = mpQueueCreate(numSPEs*4);
+		
+		g_mpTaskWorld->ps3_threads = malloc(sizeof(pthread_t)*numSPEs);
+		
+		g_mpTaskWorld->ps3_workers = numSPEs;
+	}
+#endif
 	
 #ifdef MP_OPENCL
 	cl_uint numGPU = 0;
@@ -251,7 +299,7 @@ void mpInit(int in_workers)
 		//Create the objects needed to maintain OpenCL...
 		g_mpTaskWorld->cl_sendQueue = mpQueueCreate(cu*4);
 		g_mpTaskWorld->cl_recvQueue = mpQueueCreate(cu*4);
-		g_mpTaskWorld->cl_threads = malloc(sizeof(pthread_t*)*cu);
+		g_mpTaskWorld->cl_threads = malloc(sizeof(pthread_t)*cu);
 		g_mpTaskWorld->cl_comms = malloc(sizeof(mpTaskWorldCommunication)*cu*4);
 		
 		//Perpare the receive queue...
