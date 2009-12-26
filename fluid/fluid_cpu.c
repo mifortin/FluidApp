@@ -483,6 +483,7 @@ void fluidMP(void *in_o)
 //Version of fluidMP for debugging (eg. it captures timing information)
 void fluidTimedMP(void *in_o)
 {
+	//double t1 = x_time();
 	fluid *o = (fluid*)in_o;
 	mpCoherence *c = o->r_coherence;
 	
@@ -498,8 +499,9 @@ void fluidTimedMP(void *in_o)
 		double nextTime = x_time();
 		if (o->m_fns[fn].times != NULL)
 		{
-			AtomicAdd32Barrier(*o->m_fns[fn].times, (int)((nextTime-curTime)*1000000));
+			AtomicAdd32Barrier(*o->m_fns[fn].times, (int)((nextTime-curTime + 0.00000005)*1000000));
 		}
+
 		curTime = nextTime;
 		
 		//Fetch another function!
@@ -507,10 +509,11 @@ void fluidTimedMP(void *in_o)
 						&tid, &fn, &tsk);
 		
 		nextTime = x_time();
-		AtomicAdd32Barrier(o->m_times[TIME_TASKSCHED], (int)((nextTime-curTime)*1000000));
+		AtomicAdd32Barrier(o->m_times[TIME_TASKSCHED], (int)((nextTime-curTime + 0.00000005)*1000000));
 		curTime = nextTime;
 	}
 	
+	//printf("Overhead: %f\n", x_time() - t1);
 	
 	mpQueuePush(o->r_blocker, NULL);
 }

@@ -291,6 +291,7 @@
 		4CD92DED10A351FE00714BD3 /* fluid_cpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_cpu.h; sourceTree = "<group>"; };
 		4CD92DEE10A351FE00714BD3 /* fluid_cpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_cpu.c; sourceTree = "<group>"; };
 		4CE8F07A108E43430014AD01 /* fluid_dampen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_dampen.c; sourceTree = "<group>"; };
+		4CF0309310E64A0F009FF567 /* x_simd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_simd.h; sourceTree = "<group>"; };
 		4CF1CC3410CAC3B000B770B7 /* FluidTabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabView.h; sourceTree = "<group>"; };
 		4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabView.m; sourceTree = "<group>"; };
 		4CF1CC8410CB206A00B770B7 /* FluidTabTopView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabTopView.h; sourceTree = "<group>"; };
@@ -446,6 +447,7 @@
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				4CF0309210E649E3009FF567 /* SIMD */,
 				4C91C57E10CEEF0400FC4080 /* Resources */,
 				27BD78E30FB10B080077C0B0 /* half */,
 				27A18BA10F66F6070023F24B /* error */,
@@ -614,6 +616,14 @@
 				4CD34055104055D200C318A4 /* fluid_macros_2.h */,
 			);
 			name = CPU;
+			sourceTree = "<group>";
+		};
+		4CF0309210E649E3009FF567 /* SIMD */ = {
+			isa = PBXGroup;
+			children = (
+				4CF0309310E64A0F009FF567 /* x_simd.h */,
+			);
+			name = SIMD;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

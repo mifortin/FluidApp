@@ -13,17 +13,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#ifdef __SSE3__
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#include <pmmintrin.h>
-#include <tmmintrin.h>
-//#undef __SSE3__
-#endif
-
-#ifdef CELL
-#include "altivec.h"
-#endif
+#include "x_simd.h"
 
 
 void fluid_advection_fwd_generate_repos(fluid *in_f, int y, pvt_fluidMode *mode)
@@ -45,38 +35,38 @@ void fluid_advection_fwd_generate_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	float fy = (float)y;
 	int x;
 	
-#ifdef __APPLE_ALTIVEC__
+#ifdef X_SIMD
 	
-	vector float *vVelX = (vector float*)fluidFloatPointer(velX, y*sY);
-	vector float *vVelY = (vector float*)fluidFloatPointer(velY, y*sY);
+	x128f *vVelX = (x128f*)fluidFloatPointer(velX, y*sY);
+	x128f *vVelY = (x128f*)fluidFloatPointer(velY, y*sY);
 	
-	vector float *vDX = (vector float*)fluidFloatPointer(destX, y*sY);
-	vector float *vDY = (vector float*)fluidFloatPointer(destY, y*sY);
+	x128f *vDX = (x128f*)fluidFloatPointer(destX, y*sY);
+	x128f *vDY = (x128f*)fluidFloatPointer(destY, y*sY);
 	
-	vector float fvx = {0,1,2,3};
-	vector float fvx2 = {4,5,6,7};
-	vector float fvx3 = {8,9,10,11};
-	vector float fvx4 = {12,13,14,15};
-	vector float fvy = {fy,fy,fy,fy};
-	vector float v4 = {4,4,4,4};
-	vector float v16 = {16,16,16,16};
+	x128f fvx = {0,1,2,3};
+	x128f fvx2 = {4,5,6,7};
+	x128f fvx3 = {8,9,10,11};
+	x128f fvx4 = {12,13,14,15};
+	x128f fvy = {fy,fy,fy,fy};
+	x128f v4 = {4,4,4,4};
+	x128f v16 = {16,16,16,16};
 	
-	vector float vT = {timestep, timestep, timestep, timestep};
+	x128f vT = {timestep, timestep, timestep, timestep};
 	
 	w/=4;
 	
 	x=0;
 	while (x<w-3)
 	{
-		vector float r1 = vec_madd(vT, vVelX[x], fvx);
-		vector float r2 = vec_madd(vT, vVelX[x+1], fvx2);
-		vector float r3 = vec_madd(vT, vVelX[x+2], fvx3);
-		vector float r4 = vec_madd(vT, vVelX[x+3], fvx4);
+		x128f r1 = x_madd(vT, vVelX[x], fvx);
+		x128f r2 = x_madd(vT, vVelX[x+1], fvx2);
+		x128f r3 = x_madd(vT, vVelX[x+2], fvx3);
+		x128f r4 = x_madd(vT, vVelX[x+3], fvx4);
 		
-		fvx = vec_add(fvx, v16);
-		fvx2 = vec_add(fvx2, v16);
-		fvx3 = vec_add(fvx3, v16);
-		fvx4 = vec_add(fvx4, v16);
+		fvx = x_add(fvx, v16);
+		fvx2 = x_add(fvx2, v16);
+		fvx3 = x_add(fvx3, v16);
+		fvx4 = x_add(fvx4, v16);
 		
 		vDX[x] = r1;
 		vDX[x+1] = r2;
@@ -87,9 +77,9 @@ void fluid_advection_fwd_generate_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	while (x<w)
 	{
-		vector float r1 = vec_madd(vT, vVelX[x], fvx);
+		x128f r1 = x_madd(vT, vVelX[x], fvx);
 		
-		fvx = vec_add(fvx, v4);
+		fvx = x_add(fvx, v4);
 		
 		vDX[x] = r1;
 		
@@ -99,16 +89,16 @@ void fluid_advection_fwd_generate_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	x=0;
 	while (x<w-3)
 	{
-		vDY[x] = vec_madd(vT, vVelY[x], fvy);
-		vDY[x+1] = vec_madd(vT, vVelY[x+1], fvy);
-		vDY[x+2] = vec_madd(vT, vVelY[x+2], fvy);
-		vDY[x+3] = vec_madd(vT, vVelY[x+3], fvy);
+		vDY[x] = x_madd(vT, vVelY[x], fvy);
+		vDY[x+1] = x_madd(vT, vVelY[x+1], fvy);
+		vDY[x+2] = x_madd(vT, vVelY[x+2], fvy);
+		vDY[x+3] = x_madd(vT, vVelY[x+3], fvy);
 		
 		x+=4;
 	}
 	while (x<w)
 	{
-		vDY[x] = vec_madd(vT, vVelY[x], fvy);
+		vDY[x] = x_madd(vT, vVelY[x], fvy);
 		
 		x++;
 	}
@@ -241,81 +231,79 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 	else
 	{
-#ifdef __APPLE_ALTIVEC__
-		vector float *vVelX = (vector float*)fluidFloatPointer(velX, y*sY);
-		vector float *vVelY = (vector float*)fluidFloatPointer(velY, y*sY);
+#ifdef X_SIMD
+		x128f *vVelX = (x128f*)fluidFloatPointer(velX, y*sY);
+		x128f *vVelY = (x128f*)fluidFloatPointer(velY, y*sY);
 		
-		vector float *vDX = (vector float*)fluidFloatPointer(destX, y*sY);
-		vector float *vDY = (vector float*)fluidFloatPointer(destY, y*sY);
+		x128f *vDX = (x128f*)fluidFloatPointer(destX, y*sY);
+		x128f *vDY = (x128f*)fluidFloatPointer(destY, y*sY);
 		
-		vector float *vDXN = (vector float*)fluidFloatPointer(destX, (y+1)*sY);
-		vector float *vDYN = (vector float*)fluidFloatPointer(destY, (y+1)*sY);
+		x128f *vDXN = (x128f*)fluidFloatPointer(destX, (y+1)*sY);
+		x128f *vDYN = (x128f*)fluidFloatPointer(destY, (y+1)*sY);
 		
-		vector float *vDXP = (vector float*)fluidFloatPointer(destX, (y-1)*sY);
-		vector float *vDYP = (vector float*)fluidFloatPointer(destY, (y-1)*sY);
+		x128f *vDXP = (x128f*)fluidFloatPointer(destX, (y-1)*sY);
+		x128f *vDYP = (x128f*)fluidFloatPointer(destY, (y-1)*sY);
 		
-		vector float vZero = {0,0,0,0};
-		vector float vPN = {0,0,0,0};
+		x128f vZero = {0,0,0,0};
+		x128f vPN = {0,0,0,0};
 		
-		vector float v9 = {9,9,9,9};
+		x128f v9 = {9,9,9,9};
 		
 		float fw = (float)w-2.0f;
 		float fh = (float)h-2.0f;
 		
-		vector float vNNX = {fw,fw,fw,fw};
-		vector float vNNY = {fh,fh,fh,fh};
+		x128f vNNX = {fw,fw,fw,fw};
+		x128f vNNY = {fh,fh,fh,fh};
 		
-		vector float vT = {timestep, timestep, timestep, timestep};
+		x128f vT = {timestep, timestep, timestep, timestep};
 		
 #define ADVECT_X_PRE(n)	\
-		vector float sl_vx ## n = vec_sld(vDX[x + n], vDX[x+1 + n],4);\
-		vector float sr_vx ## n = vec_sld(vDX[x-1 + n], vDX[x + n], 12);
+		x128f sl_vx ## n = x_sld(vDX[x + n], vDX[x+1 + n],4);\
+		x128f sr_vx ## n = x_sld(vDX[x-1 + n], vDX[x + n], 12);
 		
 #define ADVECT_X_PRE_0(n)	\
-		vector float sl_vx ## n = vec_sld(vDX[x + n], vDX[x+1 + n],4);\
-		vector float sr_vx ## n = vec_sld(vZero, vDX[x + n], 12);
+		x128f sl_vx ## n = x_sld(vDX[x + n], vDX[x+1 + n],4);\
+		x128f sr_vx ## n = x_sld(vZero, vDX[x + n], 12);
 		
 #define ADVECT_X_PRE_N(n)	\
-		vector float sl_vx ## n = vec_sld(vDX[x + n], vZero,4);\
-		vector float sr_vx ## n = vec_sld(vDX[x-1 + n], vDX[x + n], 12);
+		x128f sl_vx ## n = x_sld(vDX[x + n], vZero,4);\
+		x128f sr_vx ## n = x_sld(vDX[x-1 + n], vDX[x + n], 12);
 		
 #define ADVECT_Y_PRE(n)	\
-		vector float sl_vy ## n = vec_sld(vDY[x + n], vDY[x+1 + n],4);	\
-		vector float sr_vy ## n = vec_sld(vDY[x-1 + n], vDY[x + n], 12);
+		x128f sl_vy ## n = x_sld(vDY[x + n], vDY[x+1 + n],4);	\
+		x128f sr_vy ## n = x_sld(vDY[x-1 + n], vDY[x + n], 12);
 		
 #define ADVECT_Y_PRE_0(n)	\
-		vector float sl_vy ## n = vec_sld(vDY[x + n], vDY[x+1 + n],4);	\
-		vector float sr_vy ## n = vec_sld(vZero, vDY[x + n], 12);
+		x128f sl_vy ## n = x_sld(vDY[x + n], vDY[x+1 + n],4);	\
+		x128f sr_vy ## n = x_sld(vZero, vDY[x + n], 12);
 		
 #define ADVECT_Y_PRE_N(n)	\
-		vector float sl_vy ## n = vec_sld(vDY[x + n], vZero,4);	\
-		vector float sr_vy ## n = vec_sld(vDY[x-1 + n], vDY[x + n], 12);
+		x128f sl_vy ## n = x_sld(vDY[x + n], vZero,4);	\
+		x128f sr_vy ## n = x_sld(vDY[x-1 + n], vDY[x + n], 12);
 		
 #define ADVECT_X_POST(n)												\
-		vector float postX ## n = vec_madd(vT, vec_madd(vVelX[x+n],		\
-							vec_sub(sl_vx ## n, sr_vx ## n),			\
-								vec_madd(vVelY[x+n],					\
-									vec_sub(vDXN[x+n], vDXP[x+n]),	\
-										 vZero)),						\
+		x128f postX ## n = x_madd(vT, x_madd(vVelX[x+n],		\
+							x_sub(sl_vx ## n, sr_vx ## n),			\
+								x_mul(vVelY[x+n],					\
+									x_sub(vDXN[x+n], vDXP[x+n]))),	\
 							vDX[x+n]);
 		
 #define ADVECT_X_ASSIGN(n)											\
-		postX ## n = vec_min(vec_max(postX ## n, vPN), vNNX); \
-		vDX[x+n] = vec_min(vec_max(postX ## n, vec_sub(vX ## n, v9)), vec_add(vX##n,v9));
+		postX ## n = x_min(x_max(postX ## n, vPN), vNNX); \
+		vDX[x+n] = x_min(x_max(postX ## n, x_sub(vX ## n, v9)), x_add(vX##n,v9));
 		
 #define ADVECT_X_ASSIGN_SIMPLE(n)											\
 		vDX[x+n] = (postX ## n);
 		
 #define ADVECT_Y_POST(n)											\
-		vector float postY ## n = vec_madd(vT, vec_madd(vVelX[x+n],	\
-						vec_sub(sl_vy ## n, sr_vy ## n),			\
-							vec_madd(vVelY[x+n],					\
-								vec_sub(vDYN[x+n], vDYP[x+n]),	\
-									vZero)),						\
+		x128f postY ## n = x_madd(vT, x_madd(vVelX[x+n],	\
+						x_sub(sl_vy ## n, sr_vy ## n),			\
+							x_mul(vVelY[x+n],					\
+								x_sub(vDYN[x+n], vDYP[x+n]))),	\
 						vDY[x+n]);
 		
 #define ADVECT_Y_ASSIGN(n)										\
-		vDY[x+n] = vec_min(vec_max(postY ## n, vPN), vNNY);
+		vDY[x+n] = x_min(x_max(postY ## n, vPN), vNNY);
 		
 #define ADVECT_Y_ASSIGN_SIMPLE(n)										\
 		vDY[x+n] = (postY ## n);
@@ -324,21 +312,21 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		int x;
 		if (d->clamp)
 		{
-			vector float vX0 = {0,1,2,3};
-			vector float vX1 = {4,5,6,7};
-			vector float vX2 = {8,9,10,11};
-			vector float vX3 = {12,13,14,15};
-			vector float v4 = {4,4,4,4};
-			vector float v16 = {16,16,16,16};
+			x128f vX0 = {0,1,2,3};
+			x128f vX1 = {4,5,6,7};
+			x128f vX2 = {8,9,10,11};
+			x128f vX3 = {12,13,14,15};
+			x128f v4 = {4,4,4,4};
+			x128f v16 = {16,16,16,16};
 			x = 0;
 			{
 				ADVECT_X_PRE_0(0);
 				ADVECT_X_POST(0);
 				ADVECT_X_ASSIGN(0);
-				vX0 = vec_add(vX0, v4);
-				vX1 = vec_add(vX1, v4);
-				vX2 = vec_add(vX2, v4);
-				vX3 = vec_add(vX3, v4);
+				vX0 = x_add(vX0, v4);
+				vX1 = x_add(vX1, v4);
+				vX2 = x_add(vX2, v4);
+				vX3 = x_add(vX3, v4);
 			}
 			x=1;
 			while (x < w-4)
@@ -358,10 +346,10 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 				ADVECT_X_ASSIGN(2);
 				ADVECT_X_ASSIGN(3);
 				
-				vX0 = vec_add(vX0, v16);
-				vX1 = vec_add(vX1, v16);
-				vX2 = vec_add(vX2, v16);
-				vX3 = vec_add(vX3, v16);
+				vX0 = x_add(vX0, v16);
+				vX1 = x_add(vX1, v16);
+				vX2 = x_add(vX2, v16);
+				vX3 = x_add(vX3, v16);
 				
 				x+=4;
 			}
@@ -370,7 +358,7 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 				ADVECT_X_PRE(0);
 				ADVECT_X_POST(0);
 				ADVECT_X_ASSIGN(0);
-				vX0 = vec_add(vX0, v4);
+				vX0 = x_add(vX0, v4);
 				x++;
 			}
 			{
@@ -380,9 +368,9 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 			}
 			
 			
-			vector float vY = {(float)y,(float)y,(float)y,(float)y};
-			vNNY = vec_min(vNNY, vec_add(vY, v9));
-			vPN = vec_max(vPN, vec_sub(vY, v9));
+			x128f vY = {(float)y,(float)y,(float)y,(float)y};
+			vNNY = x_min(vNNY, x_add(vY, v9));
+			vPN = x_max(vPN, x_sub(vY, v9));
 			x=0;
 			{
 				ADVECT_Y_PRE_0(0);
