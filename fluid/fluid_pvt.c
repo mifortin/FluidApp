@@ -22,9 +22,9 @@ void fluidFree(void *in_o)
 {
 	fluid *o = (fluid*)in_o;
 	
-	if (o->r_coherence)		x_free(o->r_coherence);
-	
 	if (o->r_blocker)		x_free(o->r_blocker);
+	
+	if (o->r_coherence)		x_free(o->r_coherence);
 	
 	if (o->r_pressure)		x_free(o->r_pressure);
 	
@@ -41,6 +41,22 @@ void fluidFree(void *in_o)
 	if (o->r_reposY)		x_free(o->r_reposY);
 	
 	if (o->r_vidOutput)		x_free(o->r_vidOutput);
+	
+	if (o->gpu_velX_in)		x_free(o->gpu_velX_in);
+	if (o->gpu_velY_in)		x_free(o->gpu_velY_in);
+	
+	if (o->gpu_velocityX)	x_free(o->gpu_velocityX);
+	if (o->gpu_velocityY)	x_free(o->gpu_velocityY);
+	
+	if (o->gpu_dens_in)		x_free(o->gpu_dens_in);
+	if (o->gpu_density)		x_free(o->gpu_density);
+	if (o->gpu_dens_tmp)	x_free(o->gpu_dens_tmp);
+	
+	int i;
+	for (i=0; i<GPU_BUFFERS; i++)
+	{
+		if (o->gpu_tmp1[i])		x_free(o->gpu_tmp1[i]);
+	}
 }
 
 
@@ -49,6 +65,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	fluid *toRet = x_malloc(sizeof(fluid), fluidFree);
 	memset(toRet, 0, sizeof(fluid));
 	
+	//CPU Buffers
 	toRet->r_velocityX = fieldCreate(in_width, in_height, 1);
 	toRet->r_velocityY = fieldCreate(in_width, in_height, 1);
 	toRet->r_tmpVelX = fieldCreate(in_width, in_height, 1);
@@ -59,6 +76,21 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_density = fieldCreate(in_width, in_height, 4);
 	toRet->r_density_swap = fieldCreate(in_width, in_height, 4);
 	toRet->r_vidOutput = fieldCreateChar(in_width, in_height, 4);
+	
+	//GPU Buffers
+	toRet->gpu_velX_in = GPUFieldCreate(in_width, in_height, 1);
+	toRet->gpu_velY_in = GPUFieldCreate(in_width, in_height, 1);
+	toRet->gpu_velocityX = GPUFieldCreate(in_width, in_height, 1);
+	toRet->gpu_velocityY = GPUFieldCreate(in_width, in_height, 1);
+	toRet->gpu_dens_in = GPUFieldCreate(in_width, in_height, 4);
+	toRet->gpu_density = GPUFieldCreate(in_width, in_height, 4);
+	toRet->gpu_dens_tmp = GPUFieldCreate(in_width, in_height, 4);
+	int k;
+	toRet->gpu_curBuffer = 0;
+	for (k=0; k<GPU_BUFFERS; k++)
+	{
+		toRet->gpu_tmp1[k] = GPUFieldCreate(in_width, in_height, 1);
+	}
 	
 	toRet->r_blocker = mpQueueCreate(2);
 	

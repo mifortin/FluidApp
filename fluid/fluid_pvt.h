@@ -9,6 +9,7 @@
 #include "fluid.h"
 #include "field.h"
 #include "memory.h"
+#include "gpgpu.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -180,6 +181,8 @@ typedef struct
 #define TIME_TASKSCHED		4
 #define TIME_TOTAL			5
 
+#define GPU_BUFFERS			8
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //		Structure defining how we use the fluid
@@ -236,6 +239,20 @@ struct fluid
 	
 	//If we want timing, we take some sort of performance penalty...
 	int32_t m_times[TIME_TOTAL];
+	
+	//GPGPU data...				//	(I/O)
+	GPUField *gpu_velX_in;
+	GPUField *gpu_velY_in;
+	
+	int gpu_curBuffer;					//	Current buffer (next to use)
+	GPUField *gpu_tmp1[GPU_BUFFERS];	//	Temp buffers (rotation - 1)
+	
+	GPUField *gpu_velocityX;	//	Current holder of velocity data
+	GPUField *gpu_velocityY;
+	
+	GPUField *gpu_dens_in;		//	Density in
+	GPUField *gpu_density;		//	Current density
+	GPUField *gpu_dens_tmp;		//	Temporary density
 };
 
 

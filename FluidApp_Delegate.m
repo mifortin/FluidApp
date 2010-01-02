@@ -9,6 +9,7 @@
 #import "OpenGL/gl.h"
 #include "memory.h"
 #include "mpx.h"
+#include "GPGPU.h"
 
 #include <sys/types.h>
 #include <sys/sysctl.h>
@@ -32,10 +33,12 @@
 		
 		x_init();
 		mpInit(i);
+		GPGPU_Init();
 	}
 	
 	- (void)dealloc
 	{
+		GPGPU_Stop();
 		mpTerminate();
 		[super dealloc];
 	}

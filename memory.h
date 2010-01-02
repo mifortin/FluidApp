@@ -7,6 +7,7 @@
 #define MEMORY_H
 
 #include <setjmp.h>
+#include <stdio.h>
 #include "error.h"
 
 #ifdef CELL
@@ -63,5 +64,8 @@ error *x_raisedError();
 
 //Since I use this function so often; it shall be dumped here
 double x_time();
+
+//Opens a standard file...
+FILE *x_fopen(const char *in_szFile, const char *in_mode);
 
 #endif

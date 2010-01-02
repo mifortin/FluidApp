@@ -546,13 +546,13 @@ void fluidAdvance(fluid *in_f)
 	
 	/*fluidTaskAddNptForwardAdvection(in_f);
 	fluidTaskAdvectDensity(in_f);/**/
-	/*fluidTaskAddForwardAdvection(in_f);
+	fluidTaskAddForwardAdvection(in_f);
 	fluidTaskAddBackwardAdvection(in_f);
 	fluidTaskCorrectorRepos(in_f);
 	fluidTaskAdvectDensity(in_f);/**/
 	/*fluidAdvectionForwardVel(in_f);
 	fluidAdvectionForwardDens(in_f);/**/
-	fluidAdvectionForwardGenRepos(in_f);
+	/*fluidAdvectionForwardGenRepos(in_f);
 	fluidAdvectionForwardVel(in_f);
 	fluidTaskAdvectDensity(in_f);/**/
 	fluidTaskVideoDensity2Char(in_f);

@@ -117,3 +117,10 @@ double x_time()
 	
 	return (double)t.tv_sec + ((double)t.tv_usec) / 1000000.0;
 }
+
+#ifdef CELL
+FILE *x_fopen(const char *in_szFile, const char *in_mode)
+{
+	return fopen(in_szFile, in_mode);
+}
+#endif

@@ -121,6 +121,18 @@
 		4C91C58A10CEEF0400FC4080 /* StatusPending.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C91C58110CEEF0400FC4080 /* StatusPending.png */; };
 		4C91C5A110CEF47B00FC4080 /* FluidAppServerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C91C5A010CEF47B00FC4080 /* FluidAppServerController.m */; };
 		4C91C5A210CEF47B00FC4080 /* FluidAppServerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C91C5A010CEF47B00FC4080 /* FluidAppServerController.m */; };
+		4C94575410EE3DEB00D482E6 /* gpgpu_field.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C94575310EE3DEB00D482E6 /* gpgpu_field.c */; };
+		4C94575510EE3DEB00D482E6 /* gpgpu_field.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C94575310EE3DEB00D482E6 /* gpgpu_field.c */; };
+		4C94575610EE3DEB00D482E6 /* gpgpu_field.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C94575310EE3DEB00D482E6 /* gpgpu_field.c */; };
+		4C9457E610EE779F00D482E6 /* gpgpu_program.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9457E510EE779F00D482E6 /* gpgpu_program.c */; };
+		4C9457E710EE779F00D482E6 /* gpgpu_program.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9457E510EE779F00D482E6 /* gpgpu_program.c */; };
+		4C9457E810EE779F00D482E6 /* gpgpu_program.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9457E510EE779F00D482E6 /* gpgpu_program.c */; };
+		4C94580B10EE7B4300D482E6 /* memory.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C94580A10EE7B4300D482E6 /* memory.m */; };
+		4C94580C10EE7B4300D482E6 /* memory.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C94580A10EE7B4300D482E6 /* memory.m */; };
+		4C94580D10EE7B4300D482E6 /* memory.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C94580A10EE7B4300D482E6 /* memory.m */; };
+		4C94581610EE7CB300D482E6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C94581510EE7CB300D482E6 /* Cocoa.framework */; };
+		4C94583D10EE871400D482E6 /* viscosity.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4C94583C10EE871400D482E6 /* viscosity.cl */; };
+		4C94583E10EE871400D482E6 /* viscosity.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4C94583C10EE871400D482E6 /* viscosity.cl */; };
 		4C9955C8102219A900C1AD6F /* FluidAppGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C9955C7102219A900C1AD6F /* FluidAppGL.m */; };
 		4C9F2CA91065A87300651C4B /* fluid_viscosity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F2CA81065A87300651C4B /* fluid_viscosity.c */; };
 		4C9F2CAA1065A87300651C4B /* fluid_viscosity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F2CA81065A87300651C4B /* fluid_viscosity.c */; };
@@ -165,6 +177,9 @@
 		4CF825080FEB30E3003AEE44 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825040FEB30E3003AEE44 /* netOutStream.c */; };
 		4CF825090FEB30E3003AEE44 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825030FEB30E3003AEE44 /* netInStream.c */; };
 		4CF8250A0FEB30E3003AEE44 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825040FEB30E3003AEE44 /* netOutStream.c */; };
+		4CFD34F810ED20D100B8FF8A /* gpgpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFD34F710ED20D100B8FF8A /* gpgpu.c */; };
+		4CFD34F910ED20D100B8FF8A /* gpgpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFD34F710ED20D100B8FF8A /* gpgpu.c */; };
+		4CFD34FA10ED20D100B8FF8A /* gpgpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFD34F710ED20D100B8FF8A /* gpgpu.c */; };
 		4CFEB5FC10E2934E00C684CA /* field_msg.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFEB5FB10E2934E00C684CA /* field_msg.c */; };
 		4CFEB5FD10E2934E00C684CA /* field_msg.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFEB5FB10E2934E00C684CA /* field_msg.c */; };
 		4CFEB5FE10E2934E00C684CA /* field_msg.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFEB5FB10E2934E00C684CA /* field_msg.c */; };
@@ -272,6 +287,11 @@
 		4C91C58110CEEF0400FC4080 /* StatusPending.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StatusPending.png; sourceTree = "<group>"; };
 		4C91C59F10CEF47B00FC4080 /* FluidAppServerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidAppServerController.h; sourceTree = "<group>"; };
 		4C91C5A010CEF47B00FC4080 /* FluidAppServerController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidAppServerController.m; sourceTree = "<group>"; };
+		4C94575310EE3DEB00D482E6 /* gpgpu_field.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gpgpu_field.c; sourceTree = "<group>"; };
+		4C9457E510EE779F00D482E6 /* gpgpu_program.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gpgpu_program.c; sourceTree = "<group>"; };
+		4C94580A10EE7B4300D482E6 /* memory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = memory.m; sourceTree = "<group>"; };
+		4C94581510EE7CB300D482E6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		4C94583C10EE871400D482E6 /* viscosity.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = viscosity.cl; sourceTree = "<group>"; };
 		4C9955C6102219A900C1AD6F /* FluidAppGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidAppGL.h; sourceTree = "<group>"; };
 		4C9955C7102219A900C1AD6F /* FluidAppGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidAppGL.m; sourceTree = "<group>"; };
 		4C9F2CA81065A87300651C4B /* fluid_viscosity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_viscosity.c; sourceTree = "<group>"; };
@@ -306,6 +326,9 @@
 		4CF825030FEB30E3003AEE44 /* netInStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netInStream.c; sourceTree = "<group>"; };
 		4CF825040FEB30E3003AEE44 /* netOutStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netOutStream.c; sourceTree = "<group>"; };
 		4CFA69690FAA952000E6847C /* fluid_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fluid_macros.h; sourceTree = "<group>"; };
+		4CFD34F610ED20D100B8FF8A /* gpgpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gpgpu.h; sourceTree = "<group>"; };
+		4CFD34F710ED20D100B8FF8A /* gpgpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gpgpu.c; sourceTree = "<group>"; };
+		4CFD34FB10ED212C00B8FF8A /* gpgpu_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gpgpu_pvt.h; sourceTree = "<group>"; };
 		4CFEB5FB10E2934E00C684CA /* field_msg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = field_msg.c; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* FluidApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -316,6 +339,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C94581610EE7CB300D482E6 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -390,6 +414,7 @@
 		27A18C510F67287E0023F24B /* fluid */ = {
 			isa = PBXGroup;
 			children = (
+				4C94576F10EE476200D482E6 /* GPU */,
 				4CD92DF210A3521400714BD3 /* CPU */,
 				27A18C520F6728C00023F24B /* fluid.h */,
 				27A18C570F672BBE0023F24B /* fluid_pvt.h */,
@@ -447,6 +472,7 @@
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				4CFD34F510ED20A400B8FF8A /* gpgpu */,
 				4CF0309210E649E3009FF567 /* SIMD */,
 				4C91C57E10CEEF0400FC4080 /* Resources */,
 				27BD78E30FB10B080077C0B0 /* half */,
@@ -463,6 +489,7 @@
 				27BD79140FB1113A0077C0B0 /* FluidTest */,
 				4C1BA66A0FBC6D0E00A74684 /* FluidZip */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
+				4C94581510EE7CB300D482E6 /* Cocoa.framework */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -571,6 +598,7 @@
 			children = (
 				4C8DE10D0F9D59840013795C /* memory.h */,
 				4C8DE10E0F9D5B540013795C /* memory.c */,
+				4C94580A10EE7B4300D482E6 /* memory.m */,
 			);
 			name = memory;
 			sourceTree = "<group>";
@@ -583,6 +611,14 @@
 				4C91C58110CEEF0400FC4080 /* StatusPending.png */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		4C94576F10EE476200D482E6 /* GPU */ = {
+			isa = PBXGroup;
+			children = (
+				4C94583C10EE871400D482E6 /* viscosity.cl */,
+			);
+			name = GPU;
 			sourceTree = "<group>";
 		};
 		4CC5E7260F697C1300CE7928 /* lagrange */ = {
@@ -624,6 +660,18 @@
 				4CF0309310E64A0F009FF567 /* x_simd.h */,
 			);
 			name = SIMD;
+			sourceTree = "<group>";
+		};
+		4CFD34F510ED20A400B8FF8A /* gpgpu */ = {
+			isa = PBXGroup;
+			children = (
+				4CFD34F610ED20D100B8FF8A /* gpgpu.h */,
+				4CFD34F710ED20D100B8FF8A /* gpgpu.c */,
+				4CFD34FB10ED212C00B8FF8A /* gpgpu_pvt.h */,
+				4C94575310EE3DEB00D482E6 /* gpgpu_field.c */,
+				4C9457E510EE779F00D482E6 /* gpgpu_program.c */,
+			);
+			path = gpgpu;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -817,6 +865,10 @@
 				4CF1F30810D8508800089E91 /* fluid_advection_stam2.c in Sources */,
 				4C003CD710D8FCC800CC4467 /* fluid_advection_fwd2.c in Sources */,
 				4CFEB5FD10E2934E00C684CA /* field_msg.c in Sources */,
+				4CFD34F810ED20D100B8FF8A /* gpgpu.c in Sources */,
+				4C94575610EE3DEB00D482E6 /* gpgpu_field.c in Sources */,
+				4C9457E710EE779F00D482E6 /* gpgpu_program.c in Sources */,
+				4C94580B10EE7B4300D482E6 /* memory.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -900,6 +952,11 @@
 				4CF1F30610D8508800089E91 /* fluid_advection_stam2.c in Sources */,
 				4C003CD610D8FCC800CC4467 /* fluid_advection_fwd2.c in Sources */,
 				4CFEB5FE10E2934E00C684CA /* field_msg.c in Sources */,
+				4CFD34FA10ED20D100B8FF8A /* gpgpu.c in Sources */,
+				4C94575510EE3DEB00D482E6 /* gpgpu_field.c in Sources */,
+				4C9457E610EE779F00D482E6 /* gpgpu_program.c in Sources */,
+				4C94580D10EE7B4300D482E6 /* memory.m in Sources */,
+				4C94583D10EE871400D482E6 /* viscosity.cl in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -953,6 +1010,11 @@
 				4CF1F30710D8508800089E91 /* fluid_advection_stam2.c in Sources */,
 				4C003CD810D8FCC800CC4467 /* fluid_advection_fwd2.c in Sources */,
 				4CFEB5FC10E2934E00C684CA /* field_msg.c in Sources */,
+				4CFD34F910ED20D100B8FF8A /* gpgpu.c in Sources */,
+				4C94575410EE3DEB00D482E6 /* gpgpu_field.c in Sources */,
+				4C9457E810EE779F00D482E6 /* gpgpu_program.c in Sources */,
+				4C94580C10EE7B4300D482E6 /* memory.m in Sources */,
+				4C94583E10EE871400D482E6 /* viscosity.cl in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
