@@ -158,6 +158,10 @@
 		4CE8F07B108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
 		4CE8F07C108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
 		4CE8F07D108E43430014AD01 /* fluid_dampen.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8F07A108E43430014AD01 /* fluid_dampen.c */; };
+		4CF0366010F35AA600D55D20 /* viscosity.cl in Resources */ = {isa = PBXBuildFile; fileRef = 4C94583C10EE871400D482E6 /* viscosity.cl */; };
+		4CF036CE10F368AA00D55D20 /* pressure.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4CF036CD10F368AA00D55D20 /* pressure.cl */; };
+		4CF036CF10F368AA00D55D20 /* pressure.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4CF036CD10F368AA00D55D20 /* pressure.cl */; };
+		4CF036D010F368B000D55D20 /* pressure.cl in Resources */ = {isa = PBXBuildFile; fileRef = 4CF036CD10F368AA00D55D20 /* pressure.cl */; };
 		4CF1CC3610CAC3B000B770B7 /* FluidTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */; };
 		4CF1CC3710CAC3B000B770B7 /* FluidTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */; };
 		4CF1CC8610CB206A00B770B7 /* FluidTabTopView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */; };
@@ -312,6 +316,7 @@
 		4CD92DEE10A351FE00714BD3 /* fluid_cpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_cpu.c; sourceTree = "<group>"; };
 		4CE8F07A108E43430014AD01 /* fluid_dampen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_dampen.c; sourceTree = "<group>"; };
 		4CF0309310E64A0F009FF567 /* x_simd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_simd.h; sourceTree = "<group>"; };
+		4CF036CD10F368AA00D55D20 /* pressure.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = pressure.cl; sourceTree = "<group>"; };
 		4CF1CC3410CAC3B000B770B7 /* FluidTabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabView.h; sourceTree = "<group>"; };
 		4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabView.m; sourceTree = "<group>"; };
 		4CF1CC8410CB206A00B770B7 /* FluidTabTopView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabTopView.h; sourceTree = "<group>"; };
@@ -617,6 +622,7 @@
 			isa = PBXGroup;
 			children = (
 				4C94583C10EE871400D482E6 /* viscosity.cl */,
+				4CF036CD10F368AA00D55D20 /* pressure.cl */,
 			);
 			name = GPU;
 			sourceTree = "<group>";
@@ -803,6 +809,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CF036D010F368B000D55D20 /* pressure.cl in Resources */,
+				4CF0366010F35AA600D55D20 /* viscosity.cl in Resources */,
 				4C437047104DDD7F0069E6D9 /* InfoPlist.strings in Resources */,
 				4C549E9510BEEB1500D9A7AC /* FluidAppDocument.xib in Resources */,
 				4C549E9910BEEB2400D9A7AC /* FluidApp.xib in Resources */,
@@ -957,6 +965,7 @@
 				4C9457E610EE779F00D482E6 /* gpgpu_program.c in Sources */,
 				4C94580D10EE7B4300D482E6 /* memory.m in Sources */,
 				4C94583D10EE871400D482E6 /* viscosity.cl in Sources */,
+				4CF036CE10F368AA00D55D20 /* pressure.cl in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1015,6 +1024,7 @@
 				4C9457E810EE779F00D482E6 /* gpgpu_program.c in Sources */,
 				4C94580C10EE7B4300D482E6 /* memory.m in Sources */,
 				4C94583E10EE871400D482E6 /* viscosity.cl in Sources */,
+				4CF036CF10F368AA00D55D20 /* pressure.cl in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

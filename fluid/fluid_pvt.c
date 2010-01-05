@@ -52,6 +52,9 @@ void fluidFree(void *in_o)
 	if (o->gpu_density)		x_free(o->gpu_density);
 	if (o->gpu_dens_tmp)	x_free(o->gpu_dens_tmp);
 	
+	if (o->gpu_fn_viscosity)	x_free(o->gpu_fn_viscosity);
+	if (o->gpu_fn_pressure)		x_free(o->gpu_fn_pressure);
+	
 	int i;
 	for (i=0; i<GPU_BUFFERS; i++)
 	{
@@ -91,6 +94,10 @@ fluid *fluidCreate(int in_width, int in_height)
 	{
 		toRet->gpu_tmp1[k] = GPUFieldCreate(in_width, in_height, 1);
 	}
+	
+	//GPU Programs...
+	toRet->gpu_fn_viscosity = GPUProgramCreate("viscosity.cl", GPUPROGRAM_FROM_FILE);
+	toRet->gpu_fn_pressure = GPUProgramCreate("pressure.cl", GPUPROGRAM_FROM_FILE);
 	
 	toRet->r_blocker = mpQueueCreate(2);
 	

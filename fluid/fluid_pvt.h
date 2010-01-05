@@ -253,6 +253,9 @@ struct fluid
 	GPUField *gpu_dens_in;		//	Density in
 	GPUField *gpu_density;		//	Current density
 	GPUField *gpu_dens_tmp;		//	Temporary density
+	
+	GPUProgram *gpu_fn_viscosity;	//	Compute viscosity
+	GPUProgram *gpu_fn_pressure;	//	Compute pressure
 };
 
 
