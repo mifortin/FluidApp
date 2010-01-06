@@ -62,6 +62,7 @@ struct mpTaskWorld
 #ifdef CELL
 	int ps3_workers;			//Number of spawned worker threads for Cell
 	pthread_t *ps3_threads;		//All the threads for PS3 - 1 per SPU
+	mpTaskWorldCommunication *ps3_comms;
 	
 	mpQueue	*ps3_send;			//Send commands to an SPE
 	mpQueue *ps3_recv;			//Receive data from an SPE
@@ -182,6 +183,7 @@ void mpFree(void *in_o)
 			x_pthread_join(g_mpTaskWorld->ps3_threads[i]);
 		}
 		
+		free (g_mpTaskWorld->ps3_comms);
 		free (g_mpTaskWorld->ps3_threads);
 		x_free(g_mpTaskWorld->ps3_send);
 		x_free(g_mpTaskWorld->ps3_recv);
@@ -251,6 +253,8 @@ void mpInit(int in_workers)
 		g_mpTaskWorld->ps3_recv = mpQueueCreate(numSPEs*4);
 		
 		g_mpTaskWorld->ps3_threads = malloc(sizeof(pthread_t)*numSPEs);
+		g_mpTaskWorld->ps3_comms = malloc(sizeof(mpTaskWorldCommunication)
+										*numSPEs*4);
 		
 		g_mpTaskWorld->ps3_workers = numSPEs;
 	}
