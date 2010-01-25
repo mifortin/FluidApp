@@ -20,6 +20,9 @@ void GPGPU_Init();
 //Stop the GPGPU subsystem (if needed)
 void GPGPU_Stop();
 
+//Call each frame!
+void GPGPU_Finish();
+
 //Utilities to the images	(returns NULL if not supported)
 GPUField *GPUFieldCreate(int in_width, int in_height, int in_planes);
 GPUField *GPUFieldCreateFromField(field *in_field);
@@ -28,6 +31,13 @@ GPUField *GPUFieldCreateFromField(field *in_field);
 //Utilities to the programs	(returns NULL if not supported)
 #define GPUPROGRAM_FROM_FILE	0x00000001
 GPUProgram *GPUProgramCreate(char *in_szSource, unsigned int in_flags);
+
+// Push parameters to the program...
+void GPUProgramPushField(GPUProgram *p, GPUField *f);
+void GPUProgramPushFloat(GPUProgram *p, float f);
+
+//Executes the given program using width/height kernel
+void GPUProgramExecute(GPUProgram *p, GPUField *d);
 
 #endif
 

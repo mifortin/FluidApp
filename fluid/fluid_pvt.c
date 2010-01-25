@@ -53,7 +53,10 @@ void fluidFree(void *in_o)
 	if (o->gpu_dens_tmp)	x_free(o->gpu_dens_tmp);
 	
 	if (o->gpu_fn_viscosity)	x_free(o->gpu_fn_viscosity);
+	if (o->gpu_fn_viscosity_xy)	x_free(o->gpu_fn_viscosity_xy);
 	if (o->gpu_fn_pressure)		x_free(o->gpu_fn_pressure);
+	
+	if (o->gpu_pressure)	x_free(o->gpu_pressure);
 	
 	int i;
 	for (i=0; i<GPU_BUFFERS; i++)
@@ -88,6 +91,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->gpu_dens_in = GPUFieldCreate(in_width, in_height, 4);
 	toRet->gpu_density = GPUFieldCreate(in_width, in_height, 4);
 	toRet->gpu_dens_tmp = GPUFieldCreate(in_width, in_height, 4);
+	toRet->gpu_pressure = GPUFieldCreate(in_width, in_height, 1);
 	int k;
 	toRet->gpu_curBuffer = 0;
 	for (k=0; k<GPU_BUFFERS; k++)
@@ -97,7 +101,9 @@ fluid *fluidCreate(int in_width, int in_height)
 	
 	//GPU Programs...
 	toRet->gpu_fn_viscosity = GPUProgramCreate("viscosity.cl", GPUPROGRAM_FROM_FILE);
+	toRet->gpu_fn_viscosity_xy = GPUProgramCreate("viscosity_xy.cl", GPUPROGRAM_FROM_FILE);
 	toRet->gpu_fn_pressure = GPUProgramCreate("pressure.cl", GPUPROGRAM_FROM_FILE);
+	toRet->gpu_fn_advection = GPUProgramCreate("advection.cl", GPUPROGRAM_FROM_FILE);
 	
 	toRet->r_blocker = mpQueueCreate(2);
 	
@@ -115,6 +121,14 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->m_fadeVel = 1.0f;
 	toRet->m_fadeDens = 1.0f;
 	
+	toRet->m_gravity = 0.01f;
+	toRet->m_heatSpeed = -0.2f;
+	toRet->m_ambient = 0.0f;
+	toRet->m_gravityX = 0;
+	toRet->m_gravityY = -1.0f;
+	
+	toRet->accelerator = ACCEL_CPU;
+	
 	toRet->flags = 0;
 	
 	int i;
@@ -124,6 +138,13 @@ fluid *fluidCreate(int in_width, int in_height)
 	return toRet;
 }
 
+void fluidAdvance(fluid *in_f)
+{
+	if (in_f->accelerator == ACCEL_CPU)
+		fluidAdvance_cpu(in_f);
+	else if (in_f->accelerator == ACCEL_GPU)
+		fluidAdvance_gpu(in_f);
+}
 
 void fluidSetViscosity(fluid *f, float in_v)
 {
@@ -149,6 +170,22 @@ void fluidSetDensityFade(fluid *f, float in_v)
 void fluidSetVelocityFade(fluid *f, float in_v)
 {
 	f->m_fadeVel = in_v;
+}
+
+void fluidSetGravityVector(fluid *f, float x, float y)
+{
+	f->m_gravityX = x;
+	f->m_gravityY = y;
+}
+
+void fluidSetGravityMagnitude(fluid *f, float v)
+{
+	f->m_gravity = v;
+}
+
+void fluidSetTemperatureMagnitude(fluid *f, float v)
+{
+	f->m_heatSpeed = v;
 }
 
 void fluidFreeSurfaceNone(fluid *f)
@@ -231,4 +268,14 @@ float fluidThreadSchedulerTime(fluid *f)
 field *fluidVideoOut(fluid *in_f)
 {
 	return in_f->r_vidOutput;
+}
+
+void fluidEnableCPU(fluid *in_f)
+{
+	in_f->accelerator = ACCEL_CPU;
+}
+
+void fluidEnableCL(fluid *in_f)
+{
+	in_f->accelerator = ACCEL_GPU;
 }

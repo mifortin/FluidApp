@@ -41,7 +41,7 @@ kernel void main(	read_only image2d_t in_velX,
 	if (p.x == get_image_width(in_velX)-1)
 		rightVelX.w = -curVelX.w;
 	else
-		rightVelX.w = read_imagef(in_velX, s, p+shiftX).w;
+		rightVelX.w = read_imagef(in_velX, s, p+shiftX).x;
 	
 	//Assume compiler is somewhat smart...
 	leftVelX.yzw = curVelX.xyz;

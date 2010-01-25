@@ -447,6 +447,31 @@ void fluidAdvectionForwardGenRepos(fluid *f)
 }
 
 
+void fluidTaskTemperature(fluid *f)
+{
+	if (fabsf(f->m_gravity) < 0.001f && fabsf(f->m_heatSpeed) < 0.001f)
+		return;
+
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn < MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_force_heat;
+	f->m_fns[curFn].mode.temperature.density = f->r_density;
+	f->m_fns[curFn].mode.temperature.velX = f->r_velocityX;
+	f->m_fns[curFn].mode.temperature.velY = f->r_velocityY;
+	f->m_fns[curFn].mode.temperature.upX = f->m_gravityX;
+	f->m_fns[curFn].mode.temperature.upY = f->m_gravityY;
+	f->m_fns[curFn].mode.temperature.alpha = f->m_gravity;
+	f->m_fns[curFn].mode.temperature.beta = f->m_heatSpeed;
+	f->m_fns[curFn].mode.temperature.ambient = f->m_ambient;
+	f->m_fns[curFn].times = NULL;
+	
+	mpCTaskAdd(f->r_coherence, curFn, 0,0,0);
+	
+	f->m_usedFunctions = curFn+1;
+}
+
+
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o)
 {
@@ -528,21 +553,23 @@ void fluidTimedMP(void *in_o)
 //	5.0 FPS on PPC x4 using new program		(13% improvement)
 
 //Called every frame to advance the fluid simulation...
-void fluidAdvance(fluid *in_f)
+void fluidAdvance_cpu(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
 	fluidTaskVorticity(in_f);
+	
+	fluidTaskDampen(in_f, in_f->r_density, in_f->m_fadeDens);
+	fluidTaskDampen(in_f, in_f->r_velocityX, in_f->m_fadeVel);
+	fluidTaskDampen(in_f, in_f->r_velocityY, in_f->m_fadeVel);
+	fluidTaskTemperature(in_f);
+	
 	fluidTaskViscosity(in_f, 20);
 	
 	if (in_f->flags & FLUID_SIMPLEFREE)
 		fluidTaskPressure(in_f, 20, in_f->r_density);
 	else
 		fluidTaskPressure(in_f, 20, NULL);
-	
-	fluidTaskDampen(in_f, in_f->r_density, in_f->m_fadeDens);
-	fluidTaskDampen(in_f, in_f->r_velocityX, in_f->m_fadeVel);
-	fluidTaskDampen(in_f, in_f->r_velocityY, in_f->m_fadeVel);
 	
 	/*fluidTaskAddNptForwardAdvection(in_f);
 	fluidTaskAdvectDensity(in_f);/**/

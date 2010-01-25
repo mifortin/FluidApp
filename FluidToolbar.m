@@ -16,7 +16,8 @@
 	[btnBasic makeLeftMost];
 	[btnClient makeRightMost];
 	
-	allItems = [NSArray arrayWithObjects:btnBasic, btnDiffusion, btnQuality, btnClient, btnServer, nil];
+	allItems = [NSArray arrayWithObjects:btnBasic, btnDiffusion, btnQuality,
+										btnClient, btnServer, btnTemperature, nil];
 	[allItems retain];
 }
 
@@ -54,6 +55,8 @@
 				visibleView = clientTools;
 			else if (in_btn == btnServer)
 				visibleView = serverTools;
+			else if (in_btn == btnTemperature)
+				visibleView = temperature;
 			else
 				visibleView = nil;
 			

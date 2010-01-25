@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "gpgpu.h"
 
+//hw specific versions of FluidAdvance (to switch used solver)
+void fluidAdvance_cpu(fluid *in_f);
+void fluidAdvance_gpu(fluid *in_f);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -124,6 +127,22 @@ struct velocityIO
 	float scale;		//We might use this at some point....
 };
 
+//Required for temperature
+struct temperature
+{
+	field *density;
+	field *velX;
+	field *velY;
+	
+	float upX;		//For gravity (up direction)
+	float upY;
+	
+	float alpha;	//For temperature effects...
+	float beta;
+	
+	float ambient;	//Ambient temperature
+};
+
 //Ensure that parameters are passed around somewhat cleanly
 typedef union
 {
@@ -152,6 +171,8 @@ typedef union
 	struct video video;
 	
 	struct velocityIO velocityIO;
+	
+	struct temperature temperature;
 	
 } pvt_fluidMode;
 
@@ -182,6 +203,9 @@ typedef struct
 #define TIME_TOTAL			5
 
 #define GPU_BUFFERS			8
+
+#define ACCEL_CPU			0
+#define ACCEL_GPU			1
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -217,10 +241,20 @@ struct fluid
 	//Used to stall the system until an iteration completes
 	mpQueue		*r_blocker;
 	
+	//The type of data we hold
+	int accelerator;
+	
 	//The viscosity		(default 1.0f)
 	float m_viscosity;
 	float m_vorticity;
 	float m_timestep;
+	
+	//Temperature
+	float m_gravity;		//Amount of gravity
+	float m_heatSpeed;		//Impact from change in temperature
+	float m_ambient;		//Ambient temperature
+	float m_gravityX;
+	float m_gravityY;
 	
 	//Fade of the velocity/density (for effects)
 	float m_fadeVel;
@@ -250,12 +284,16 @@ struct fluid
 	GPUField *gpu_velocityX;	//	Current holder of velocity data
 	GPUField *gpu_velocityY;
 	
+	GPUField *gpu_pressure;		//	Current holder of pressure data
+	
 	GPUField *gpu_dens_in;		//	Density in
 	GPUField *gpu_density;		//	Current density
 	GPUField *gpu_dens_tmp;		//	Temporary density
 	
 	GPUProgram *gpu_fn_viscosity;	//	Compute viscosity
+	GPUProgram *gpu_fn_viscosity_xy;	//	Compute viscosity
 	GPUProgram *gpu_fn_pressure;	//	Compute pressure
+	GPUProgram *gpu_fn_advection;	//	Move stuff!  Stam99 Style!
 };
 
 

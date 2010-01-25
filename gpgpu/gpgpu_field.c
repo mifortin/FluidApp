@@ -52,6 +52,9 @@ GPUField *GPUFieldCreate_pvt(int in_width, int in_height, int in_planes,
 									in_width, in_height, in_strideY,
 									in_data, &err);
 	
+	ret->m_width = in_width;
+	ret->m_height = in_height;
+	
 	errorAssert(err == CL_SUCCESS, error_create, "Failed creating image (%i)",err);
 	
 	return ret;
