@@ -77,7 +77,7 @@ void fieldMsgReceive(fieldMsg *in_fm, netClient *in_client)
 			in_fm->links[i]->data.iData = ntohl(in_fm->links[i]->data.iData);
 			
 		if (in_fm->links[i]->type == 'f')
-			in_fm->links[i]->data.fData = ntohl(in_fm->links[i]->data.fData);
+			in_fm->links[i]->data.iData = ntohl(in_fm->links[i]->data.iData);
 	}
 }
 
@@ -96,6 +96,11 @@ int isFieldInt(fieldMsg *in_fm, int in_fld)
 	return in_fm->links[in_fld]->type == 'l';
 }
 
+int isFieldFloat(fieldMsg *in_fm, int in_fld)
+{
+	return in_fm->links[in_fld]->type == 'f';
+}
+
 const char *fieldCharPtr(fieldMsg *in_fm, int in_fld)
 {
 	return in_fm->links[in_fld]->data.szData;
@@ -106,6 +111,11 @@ int fieldInt(fieldMsg *in_fm, int in_fld)
 	return in_fm->links[in_fld]->data.iData;
 }
 
+float fieldFloat(fieldMsg *in_fm, int in_fld)
+{
+	return in_fm->links[in_fld]->data.fData;
+}
+
 void fieldMsgClear(fieldMsg *in_fm)
 {
 	memset(in_fm, 0, sizeof(fieldMsg));
@@ -113,10 +123,56 @@ void fieldMsgClear(fieldMsg *in_fm)
 
 void fieldMsgAddInt(fieldMsg *in_fm, int in_data)
 {
+	errorAssert(in_fm->header.numAtoms < FIELDMSG_LINKS, error_specify,
+				"Number of messages is hard-coded!");
+	
+	errorAssert(in_fm->header.sizeInBytes + 4 < FIELDMSG_DATA,
+				error_specify, "Not enough space to store string!");
+	
+	in_fm->links[in_fm->header.numAtoms]
+				= (struct fieldMsgLink*)(in_fm->data + in_fm->header.sizeInBytes);
+	
+	in_fm->data[in_fm->header.sizeInBytes] = 'i';
+	in_fm->links[in_fm->header.numAtoms]->data.iData = in_data;
+	
+	in_fm->header.numAtoms = in_fm->header.numAtoms + 1;
+	in_fm->header.sizeInBytes = in_fm->header.sizeInBytes + 5;
+}
+
+void fieldMsgAddFloat(fieldMsg *in_fm, float in_data)
+{
+	errorAssert(in_fm->header.numAtoms < FIELDMSG_LINKS, error_specify,
+				"Number of messages is hard-coded!");
+	
+	errorAssert(in_fm->header.sizeInBytes + 4 < FIELDMSG_DATA,
+				error_specify, "Not enough space to store string!");
+	
+	in_fm->links[in_fm->header.numAtoms]
+				= (struct fieldMsgLink*)(in_fm->data + in_fm->header.sizeInBytes);
+	
+	in_fm->data[in_fm->header.sizeInBytes] = 'f';
+	in_fm->links[in_fm->header.numAtoms]->data.fData = in_data;
+	
+	in_fm->header.numAtoms = in_fm->header.numAtoms + 1;
+	in_fm->header.sizeInBytes = in_fm->header.sizeInBytes + 5;
 }
 
 void fieldMsgAddChar(fieldMsg *in_fm, const char *in_ch)
 {
+	errorAssert(in_fm->header.numAtoms < FIELDMSG_LINKS, error_specify,
+				"Number of messages is hard-coded!");
+	
+	errorAssert(in_fm->header.sizeInBytes + strlen(in_ch) + 1 < FIELDMSG_DATA,
+				error_specify, "Not enough space to store string!");
+	
+	in_fm->links[in_fm->header.numAtoms]
+				= (struct fieldMsgLink*)(in_fm->data + in_fm->header.sizeInBytes);
+	
+	in_fm->data[in_fm->header.sizeInBytes] = 's';
+	strcpy(in_fm->data + in_fm->header.sizeInBytes + 1, in_ch);
+	
+	in_fm->header.numAtoms = in_fm->header.numAtoms + 1;
+	in_fm->header.sizeInBytes = in_fm->header.sizeInBytes + 2 + strlen(in_ch);
 }
 
 void fieldMsgSend(fieldMsg *in_fm, netClient *in_client)

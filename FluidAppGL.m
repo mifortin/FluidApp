@@ -194,6 +194,8 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
 	[self createVelocityServerOnPort:2525];
 	[self createDensityServerOnPort:2626];
+	
+	r_messenger = fluidMessengerCreate(r_fluid);
 }
 
 
@@ -207,6 +209,7 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 	x_free(r_densityClient);
 	x_free(r_velocityClient);
 	x_free(r_fluid);
+	x_free(r_messenger);
 	
 	if (work_buff)	free(work_buff);
 	
@@ -480,6 +483,7 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 				else
 					printf("- Floating: \n");
 			}
+			fluidMessengerHandleMessage(r_messenger, m);
 		}
 	}
 	x_catch(e)
@@ -654,6 +658,12 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 		x_free(r_velocityClient);
 		[self createVelocityClientToHost:in_host port:in_port];
 	}
+}
+
+
+- (void)addHandler:(fluidMessengerHandler)h forObject:(void*)obj
+{
+	fluidMessengerAddHandler(r_messenger, h, obj);
 }
 
 @end

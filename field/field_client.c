@@ -127,7 +127,7 @@ reconnect:
 			struct fieldServerJitLatency latency;
 			netClientGetBinary(c, &latency, sizeof(latency), 10);
 			
-			if (htonl(latency.id) == 'JMLP')
+			if (latency.id == htonl('JMLP'))
 			{
 				//printf("LATENCY INFO:\n");
 				//printf(" - send: %f\n", latency.client_time);

@@ -95,34 +95,31 @@ void *netServerThread(void *eData)
 						goto done;
 					}
 					
-					if (sel != 0)			//Not timed out
-					{
-						struct sockaddr remoteAddress;
-						socklen_t remoteSize;
-						remoteSize = sizeof(remoteAddress);
-						int clientSock = accept(sData->m_socket,
-												&remoteAddress,
-												&remoteSize);
-						if (clientSock != -1)
-						{
-							printf("Server got connection\n");
-							netClient *client = netClientFromSocket(clientSock);
-							if (client != NULL)
-							{
-								pthread_t tmp;
-								
-								if (!((sData->m_flags) & NETS_SINGLE_CLIENT) ||
+					if (!((sData->m_flags) & NETS_SINGLE_CLIENT) ||
 									sData->m_runningThreads == 0)
+					{
+						if (sel != 0)			//Not timed out
+						{
+							struct sockaddr remoteAddress;
+							socklen_t remoteSize;
+							remoteSize = sizeof(remoteAddress);
+							int clientSock = accept(sData->m_socket,
+													&remoteAddress,
+													&remoteSize);
+							if (clientSock != -1)
+							{
+								printf("Server got connection\n");
+								netClient *client = netClientFromSocket(clientSock);
+								if (client != NULL)
 								{
+									pthread_t tmp;
+								
+								
 									sData->m_client = client;
 									sData->m_runningThreads++;
 									
 									x_pthread_create(&tmp, NULL, netServerConnection,
 													eData);
-								}
-								else
-								{
-									x_free(client);
 								}
 							}
 						}

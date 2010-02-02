@@ -12,4 +12,5 @@
 
 - (NSPoint)vector;
 
+- (void)setVectorX:(float) x Y:(float)y;
 @end

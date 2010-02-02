@@ -84,4 +84,16 @@
 	return m_value;
 }
 
+- (void)setVectorX:(float) x Y:(float)y
+{
+	float d = sqrtf(x*x + y*y);
+			
+	if (d > 0.01f)
+	{
+		m_value = (NSPoint){x/d, y/d};
+		[self setNeedsDisplay:YES];
+	}
+}
+
+
 @end

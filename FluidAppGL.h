@@ -22,6 +22,7 @@
 	fieldClient *r_densityClient;
 	fieldClient *r_velocityClient;
 	fluid *r_fluid;
+	fluidMessenger *r_messenger;
 	GLuint r_texture;
 	
 	NSPoint prevPt;
@@ -73,4 +74,5 @@
 - (float)vorticityTime;
 - (float)schedulerTime;
 
+- (void)addHandler:(fluidMessengerHandler)h forObject:(void*)obj;
 @end

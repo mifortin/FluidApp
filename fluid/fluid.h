@@ -68,5 +68,20 @@ void fluidVelocityBlendIn(fluid *in_f, field *in_ch, float in_s);
 void fluidEnableCPU(fluid *in_f);
 void fluidEnableCL(fluid *in_f);
 
+
+//FluidMessenger is a seperate object that dispatches messages to the fluid,
+//servers, and others to handle communication (either from command line or from
+//remote applications)
+typedef struct fluidMessenger fluidMessenger;
+typedef void(*fluidMessengerHandler)(void *o, fieldMsg *msg);
+
+fluidMessenger *fluidMessengerCreate(fluid *in_f);
+
+// 1 is success!
+int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg);
+
+void fluidMessengerAddHandler(fluidMessenger *fm, fluidMessengerHandler h,
+								void *ptr);
+
 #endif
 

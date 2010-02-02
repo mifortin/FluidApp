@@ -45,6 +45,9 @@ int fieldServerOnConnect(void *i, netServer *s, netClient *c)
 	fieldServer *r = (fieldServer*)i;
 	struct fieldServerJitHeader header;
 	
+	double prevTime;		//Store times (no manipulation == easier!)
+	int hasLatency = 0;		//Set to 1 after first matrix arrives.
+	
 nextPacket:
 	netClientGetBinary(c, &header, sizeof(header), 10);
 	header.id = ntohl(header.id);
@@ -53,7 +56,6 @@ nextPacket:
 	{
 		struct fieldServerJitLatency latency;
 		latency.id = htonl('JMLP');
-		latency.parsed_header = x_time()*1000;
 		
 		//printf("FieldServer: Jitter Matrix!\n");
 		struct fieldServerJitMatrix matrixInfo;
@@ -143,22 +145,32 @@ nextPacket:
 			//printf("AWAKE!!\n");
 			pthread_mutex_unlock(&r->mtx);
 			
-			latency.client_time = matrixInfo.time;
-			latency.parsed_done = x_time()*1000;
-			
-			double diff = latency.parsed_header - matrixInfo.time;
-			
-			latency.parsed_header -= diff;
-			latency.parsed_done -= diff;
-			
-			diff = (latency.parsed_done-latency.parsed_header)/2;
-			latency.parsed_header += diff;
-			latency.parsed_done += diff;
-			
-			//printf("LATENCY (%f,%f,%f)\n",latency.client_time,
-			//							latency.parsed_done,
-			//							latency.parsed_header);
-			netClientSendBinary(c, &latency, sizeof(latency));
+			if (hasLatency == 0)
+			{
+				hasLatency = 1;
+				prevTime = matrixInfo.time;
+			}
+			else
+			{
+				latency.client_time = prevTime;
+				latency.parsed_header = matrixInfo.time;
+				latency.parsed_done = matrixInfo.time;
+				
+				/*double diff = latency.parsed_header - matrixInfo.time;
+				
+				latency.parsed_header -= diff;
+				latency.parsed_done -= diff;
+				
+				diff = (latency.parsed_done-latency.parsed_header)/2;
+				latency.parsed_header += diff;
+				latency.parsed_done += diff;*/
+				
+				//printf("LATENCY (%f,%f,%f)\n",latency.client_time,
+				//							latency.parsed_done,
+				//							latency.parsed_header);
+				netClientSendBinary(c, &latency, sizeof(latency));
+				prevTime = matrixInfo.time;
+			}
 			
 			goto nextPacket;
 		}

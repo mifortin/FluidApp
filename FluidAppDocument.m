@@ -7,6 +7,7 @@
 #include <OpenGL/gl.h>
 #include <sys/time.h>
 #include "memory.h"
+#include "fluid_macros_2.h"
 
 #ifdef MAC_10_4
 #ifndef CGFloat
@@ -17,6 +18,59 @@
 
 
 @implementation FluidAppDocument
+
+
+- (void)handlerHandle:(fieldMsg *)m
+{
+	if (strcmp(fieldCharPtr(m, 0), "viscosity") == 0)
+	{
+		float f = fluidClamp(fieldFloat(m, 1), 0,10);
+		[ib_sld_viscosity setFloatValue:f];
+		[ib_txt_viscosity setFloatValue:f];
+	}
+	else if (strcmp(fieldCharPtr(m, 0), "vorticity") == 0)
+	{
+		float f = fluidClamp(fieldFloat(m, 1), 0,10);
+		[ib_sld_vorticity setFloatValue:f];
+		[ib_txt_vorticity setFloatValue:f];
+	}
+	else if (strcmp(fieldCharPtr(m, 0), "timestep") == 0)
+	{
+		float f = fluidClamp(fieldFloat(m, 1),0,1);
+		[ib_sld_timestep setFloatValue:f];
+		[ib_txt_timestep setFloatValue:f];
+	}
+	else if (strcmp(fieldCharPtr(m, 0), "density-fade") == 0)
+	{
+		float f = fluidClamp(fieldFloat(m, 1),0,1);
+		[ib_sld_fadeDensity setFloatValue:f];
+		[ib_txt_fadeDensity setFloatValue:f];
+	}
+	else if (strcmp(fieldCharPtr(m, 0), "velocity-fade") == 0)
+	{
+		float f = fluidClamp(fieldFloat(m, 1),0,1);
+		[ib_sld_fadeVelocity setFloatValue:f];
+		[ib_txt_fadeVelocity setFloatValue:f];
+	}
+	else if (strcmp(fieldCharPtr(m, 0), "gravity-direction") == 0)
+	{
+		float f1 = fieldFloat(m, 1);
+		float f2 = fieldFloat(m, 2);
+		float d = sqrtf(f1*f1 + f2*f2);
+			
+		if (d > 0.01f)
+		{
+			
+			[ib_gravDir setVectorX:f1 Y:f2];
+		}
+	}
+}
+
+void handler(void *o, fieldMsg *m)
+{
+	FluidAppDocument *d = (FluidAppDocument*)o;
+	[d handlerHandle:m];
+}
 
 
 - (void)windowControllerDidLoadNib:(NSWindowController *)windowController
@@ -64,6 +118,8 @@
 	
 	[ib_fpsView setTitle:@"Scheduler" forIndex:6];
 	[ib_fpsView setColor:[NSColor colorWithDeviceRed:0.3f green:0.3f blue:0.3f alpha:1] forIndex:6];
+	
+	[ib_glView addHandler:handler forObject:self];
 }
 
 - (BOOL)windowShouldClose:(id)window
