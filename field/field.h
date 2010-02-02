@@ -20,8 +20,8 @@ void fieldMsgReceive(fieldMsg *in_fm, netClient *in_client);
 int fieldMsgCount(fieldMsg *in_fm);
 int isFieldCharPtr(fieldMsg *in_fm, int in_fld);
 int isFieldInt(fieldMsg *in_fm, int in_fld);
-const char *fieldCharPtr(fieldMsg *in_fm);
-int fieldInt(fieldMsg *in_fm);
+const char *fieldCharPtr(fieldMsg *in_fm, int in_fld);
+int fieldInt(fieldMsg *in_fm, int in_fld);
 
 void fieldMsgClear(fieldMsg *in_fm);
 void fieldMsgAddInt(fieldMsg *in_fm, int in_data);
@@ -72,6 +72,9 @@ field *fieldServerLock(fieldServer *fs);
 void fieldServerUnlock(fieldServer *fs);
 
 void fieldServerSetDelegate(fieldServer *fs, netServerDelegate *d);
+
+fieldMsg *fieldServerNextMessage(fieldServer *fs);
+
 
 //A field backed with a client (one buffer for send)
 typedef struct fieldClient fieldClient;

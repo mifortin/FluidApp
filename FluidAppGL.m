@@ -462,6 +462,24 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 			fieldClientUnlock(r_velocityClient);
 		fieldServerUnlock(r_velocityServer);
 		fieldServerUnlock(r_densityServer);
+		
+		//Now process any commands as needed...
+		fieldMsg *m;
+		while ((m = fieldServerNextMessage(r_densityServer))
+				|| (m = fieldServerNextMessage(r_velocityServer)))
+		{
+			printf("Got message: elements %i\n", fieldMsgCount(m));
+			int k;
+			for (k=0; k<fieldMsgCount(m); k++)
+			{
+				if (isFieldCharPtr(m, k))
+					printf("- String: %s\n", fieldCharPtr(m, k));
+				else if (isFieldInt(m, k))
+					printf("- Integer: %i\n", fieldInt(m, k));
+				else
+					printf("- Floating: \n");
+			}
+		}
 	}
 	x_catch(e)
 		errorListAdd(e);
