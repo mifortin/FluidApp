@@ -16,11 +16,13 @@ LIB_NET=net/netInStream.ppu.o net/netOutStream.ppu.o net/netClient.ppu.o net/net
 
 APP_SERVER=FluidServer.ppu.o
 
-PPU= $(LIB_HALF) $(LIB_ERROR) $(LIB_FIELD) $(LIB_FLUID) $(LIB_SYS) $(LIB_MP) $(LIB_NET) $(APP_SERVER)
+GPGPU=gpgpu/gpgpu.ppu.o gpgpu/gpgpu_field.ppu.o gpgpu/gpgpu_program.ppu.o
+
+PPU= $(LIB_HALF) $(LIB_ERROR) $(LIB_FIELD) $(LIB_FLUID) $(LIB_SYS) $(LIB_MP) $(LIB_NET) $(APP_SERVER) $(GPGPU)
 
 SPU=
 
-INCLUDE= -I$(PWD) -I$(PWD)/field -I$(PWD)/fluid -I$(PWD)/net -I$(PWD)/error
+INCLUDE= -I$(PWD) -I$(PWD)/field -I$(PWD)/fluid -I$(PWD)/net -I$(PWD)/error -I$(PWD)/gpgpu
 
 all:	ppu	spu
 	@ppu32-gcc -maltivec $(PPU) $(SPU) -std=c99 -lm -lspe2 -o FluidServer
