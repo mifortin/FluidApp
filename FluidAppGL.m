@@ -185,6 +185,7 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(SIMW,SIMH);
+	fluidEnableCL(r_fluid);
 	[self createDensityClientToHost:@"127.0.0.1" port:3636];
 	[self createVelocityClientToHost:@"127.0.0.1" port:3535];
 	glGenTextures(1, &r_texture);
@@ -551,6 +552,21 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 - (void)setFadeDensity:(float)in_v
 {
 	fluidSetDensityFade(r_fluid, in_v);
+}
+
+- (void)setGravityVector:(NSPoint)in_pt
+{
+	fluidSetGravityVector(r_fluid, in_pt.x, in_pt.y);
+}
+
+- (void)setGravityMagnitude:(float)in_grav
+{
+	fluidSetGravityMagnitude(r_fluid, in_grav);
+}
+
+- (void)setTemperatureMagnitude:(float)in_temp
+{
+	fluidSetTemperatureMagnitude(r_fluid, in_temp);
 }
 
 - (void)noFreeSurfaces

@@ -82,6 +82,50 @@ GPUProgram *GPUProgramCreate(char *in_szSource, unsigned int in_flags)
 	errorAssert(err == CL_SUCCESS, error_create,
 				"Failed preparing executable for main function (%i)!\n", err);
 	
+	r->m_arg = 0;
+	
+	return r;
+}
+
+
+void GPUProgramPushField(GPUProgram *p, GPUField *f)
+{
+	cl_int err;
+	err = clSetKernelArg(p->r_execution, p->m_arg, sizeof(cl_mem), &f->r_handle);
+	p->m_arg = p->m_arg + 1;
+	
+	errorAssert(err == CL_SUCCESS, error_create,
+				"Failed setting kernel cl_mem argument (%i)!", err);
+}
+
+
+void GPUProgramPushFloat(GPUProgram *p, float f)
+{
+	errorAssert(p->m_float < 4, error_create, "Out of float buffers!");
+	p->m_floats[p->m_float] = f;
+
+	cl_int err;
+	err = clSetKernelArg(p->r_execution, p->m_arg, sizeof(cl_mem),
+			p->m_floats+p->m_float);
+	p->m_arg = p->m_arg + 1;
+	
+	errorAssert(err == CL_SUCCESS, error_create,
+				"Failed setting kernel float argument (%i)!", err);
+}
+
+
+void GPUProgramExecute(GPUProgram *p,  GPUField *d)
+{
+	p->m_arg = 0;
+	p->m_float = 0;
+	
+	size_t dim[] = {d->m_width, d->m_height};
+	cl_int err;
+	
+	err = clEnqueueNDRangeKernel(GPGPU_OpenCLCommandQueue_pvt(), p->r_execution, 2, NULL, dim, NULL, 0, NULL, NULL);
+	
+	errorAssert(err == CL_SUCCESS, error_create,
+				"Failed executing kernel (%i)!", err);
 }
 
 #else
@@ -90,5 +134,14 @@ GPUProgram *GPUProgramCreate(char *in_szSource, unsigned int in_flags)
 {
 	return NULL;
 }
+
+void GPUProgramPushField(GPUProgram *p, GPUField *f)
+{	/* NOOP */	}
+
+void GPUProgramPushFloat(GPUProgram *p, float f)
+{	/* NOOP */	}
+
+void GPUProgramExecute(GPUProgram *p, GPUField *d)
+{	/* NOOP */	}
 
 #endif

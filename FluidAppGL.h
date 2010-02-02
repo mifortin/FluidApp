@@ -54,6 +54,10 @@
 - (void)setFadeVelocity:(float)in_v;
 - (void)setFadeDensity:(float)in_v;
 
+- (void)setGravityVector:(NSPoint)in_pt;
+- (void)setGravityMagnitude:(float)in_grav;
+- (void)setTemperatureMagnitude:(float)in_temp;
+
 - (void)noFreeSurfaces;
 - (void)simpleFreeSurfaces;
 

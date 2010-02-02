@@ -119,6 +119,7 @@
 	else
 		[ib_glView disableTimers];
 	
+	[ib_glView setGravityVector:[ib_gravDir vector]];
 	[ib_glView onFrame];
 	[self onPaint];
 	double t2 = x_time();
@@ -224,6 +225,17 @@
 	else
 		[ib_glView accurateVorticity];
 }
+
+- (IBAction)onChangeGravityMagnitude:(id)value
+{
+	[ib_glView setGravityMagnitude:[value floatValue]];
+}
+
+- (IBAction)onChangeTemperatureMag:(id)value
+{
+	[ib_glView setTemperatureMagnitude:[value floatValue]];
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //	Toolbar code follows!

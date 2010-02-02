@@ -31,6 +31,19 @@ cl_device_id GPGPU_OpenCLDevice_pvt()
 	return g_gpu->r_device;
 }
 
+cl_command_queue GPGPU_OpenCLCommandQueue_pvt()
+{
+	errorAssert(g_gpu != NULL, error_flags, "Call GPGPU_Init() first!");
+	
+	return g_gpu->r_commQueue;
+}
+
+void GPGPU_Finish()
+{
+	cl_int err = clFinish(g_gpu->r_commQueue);
+	errorAssert(err == CL_SUCCESS, error_create, "Failed finishing command: %i", err);
+}
+
 void GPGPU_OnFree(void *o)
 {
 	errorAssert(o == g_gpu, error_flags, "Consistent-check failed!");
@@ -141,6 +154,10 @@ void GPGPU_Stop()
 #else
 
 static int didInit = 0;
+
+void GPGPU_Finish()
+{
+}
 
 void GPGPU_Init()
 {

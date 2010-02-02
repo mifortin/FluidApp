@@ -43,4 +43,6 @@ void fluid_advection_stam_velocity_npt(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_advection_fwd_generate_repos(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode);
+
+void fluid_force_heat(fluid *in_f, int y, pvt_fluidMode *mode);
 #endif

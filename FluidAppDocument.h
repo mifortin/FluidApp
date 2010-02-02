@@ -5,6 +5,7 @@
 #import <Cocoa/Cocoa.h>
 #import "FluidAppGL.h"
 #import "FluidFPSView.h"
+#import "Select360.h"
 
 @interface FluidAppDocument : NSDocument
 {
@@ -34,6 +35,8 @@
 	
 	IBOutlet FluidFPSView	*ib_fpsView;
 	
+	IBOutlet Select360		*ib_gravDir;
+	
 	NSTimer			*r_timer;
 }
 
@@ -46,5 +49,8 @@
 - (IBAction)onChangeFreeSurface:(id)value;
 
 - (IBAction)onChangeVorticityQuality:(id)value;
+
+- (IBAction)onChangeGravityMagnitude:(id)value;
+- (IBAction)onChangeTemperatureMag:(id)value;
 
 @end
