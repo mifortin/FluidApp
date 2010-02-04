@@ -334,6 +334,38 @@ void localityNCoherence(void *in_o)
 }
 
 
+mpStack *mps;
+void *testStack(void *o)
+{
+	printf("Starting: \n");
+	int i2;
+	for (i2=0; i2<1000000; i2++)
+	{
+		if (rand()%2 == 1)
+		{
+			int j = rand();
+			if (mpStackPush(mps, (void*)j));/*
+				printf("PUSHED %i\n", j);
+			else
+				printf("NO PUSH SPACE\n");*/
+		}
+		else
+		{
+			int j;
+			
+			if (mpStackPop(mps, (void**)&j));/*
+				printf("POPPED %i\n", j);
+			else
+				printf("NOTHING TO POP\n");*/
+		}
+	}
+	printf("Done!\n");
+	//mpQueuePush(q, NULL);
+	
+	return NULL;
+}
+
+
 pthread_mutex_t pMutex = PTHREAD_MUTEX_INITIALIZER;
 void testDiningPhilosophers(void *in_o)
 {
@@ -374,6 +406,8 @@ void testLocality()
 	//	purposes.  This is 64MB, too big to fit into any cache.
 
 	q = mpQueueCreate(4);
+	
+	mps = mpStackCreate(200);
 
 	printf(" Benching Locality:\n");
 	
@@ -457,9 +491,14 @@ void testLocality()
 		pthread_t pt[16];
 		totalThreads = k;
 		start = localityTimeFunc();
-		for (z=0; z<k; z++)
+		/*for (z=0; z<k; z++)
 		{
 			x_pthread_create(&pt[z], NULL, localityInOrderTestMP, data);
+		}*/
+		
+		for (z=0; z<k; z++)
+		{
+			x_pthread_create(&pt[z], NULL, testStack, data);
 		}
 		
 		for (z=0; z<k; z++)

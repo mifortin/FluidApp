@@ -82,6 +82,10 @@
 		4C618C7D10BCBDA500C8790C /* field_client.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C618C7C10BCBDA500C8790C /* field_client.c */; };
 		4C618C7E10BCBDA500C8790C /* field_client.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C618C7C10BCBDA500C8790C /* field_client.c */; };
 		4C618C7F10BCBDA500C8790C /* field_client.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C618C7C10BCBDA500C8790C /* field_client.c */; };
+		4C6E8EF7111B32D000431481 /* mp_stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C6E8EF6111B32D000431481 /* mp_stack.c */; };
+		4C6E8EF8111B32D000431481 /* mp_stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C6E8EF6111B32D000431481 /* mp_stack.c */; };
+		4C6E8EF9111B32D000431481 /* mp_stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C6E8EF6111B32D000431481 /* mp_stack.c */; };
+		4C6E8EFA111B32D000431481 /* mp_stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C6E8EF6111B32D000431481 /* mp_stack.c */; };
 		4C72961210C1E9AD001A515D /* error_lst.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C72961110C1E9AD001A515D /* error_lst.c */; };
 		4C72961310C1E9AD001A515D /* error_lst.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C72961110C1E9AD001A515D /* error_lst.c */; };
 		4C72961410C1E9AD001A515D /* error_lst.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C72961110C1E9AD001A515D /* error_lst.c */; };
@@ -288,6 +292,7 @@
 		4C549EA010BEEB6300D9A7AC /* FluidZip_Window.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FluidZip_Window.xib; sourceTree = "<group>"; };
 		4C618B8E10BC854800C8790C /* field_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = field_server.c; sourceTree = "<group>"; };
 		4C618C7C10BCBDA500C8790C /* field_client.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = field_client.c; sourceTree = "<group>"; };
+		4C6E8EF6111B32D000431481 /* mp_stack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_stack.c; sourceTree = "<group>"; };
 		4C72961110C1E9AD001A515D /* error_lst.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = error_lst.c; sourceTree = "<group>"; };
 		4C7307A20F9BDA4300C6D0BD /* X_NumberFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X_NumberFormatter.h; sourceTree = "<group>"; };
 		4C7307A30F9BDA4300C6D0BD /* X_NumberFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X_NumberFormatter.m; sourceTree = "<group>"; };
@@ -621,6 +626,7 @@
 				4C30F9530FD86C3500B2B86D /* mp_x.c */,
 				4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */,
 				4C54726A1003A3EF0069EB93 /* mp_coherence.c */,
+				4C6E8EF6111B32D000431481 /* mp_stack.c */,
 			);
 			name = mp;
 			sourceTree = "<group>";
@@ -913,6 +919,7 @@
 				4C87DC4010FA1CF500A23521 /* fluid_heat.c in Sources */,
 				4C8D337D11047D6900EF6539 /* fluid_gpu.c in Sources */,
 				4CF2E8D91118A3B300AE2CD6 /* fluid_messenger.c in Sources */,
+				4C6E8EFA111B32D000431481 /* mp_stack.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -933,6 +940,7 @@
 				4CF825080FEB30E3003AEE44 /* netOutStream.c in Sources */,
 				4C54726B1003A3EF0069EB93 /* mp_coherence.c in Sources */,
 				4C0B4ACA1004230700C7C081 /* netClient.c in Sources */,
+				4C6E8EF9111B32D000431481 /* mp_stack.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1008,6 +1016,7 @@
 				4C8D337B11047D6900EF6539 /* fluid_gpu.c in Sources */,
 				4C880694110DBFFC00CBA3F3 /* viscosity_xy.cl in Sources */,
 				4CF2E8D71118A3B300AE2CD6 /* fluid_messenger.c in Sources */,
+				4C6E8EF8111B32D000431481 /* mp_stack.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1073,6 +1082,7 @@
 				4C8D337C11047D6900EF6539 /* fluid_gpu.c in Sources */,
 				4C880695110DBFFC00CBA3F3 /* viscosity_xy.cl in Sources */,
 				4CF2E8D81118A3B300AE2CD6 /* fluid_messenger.c in Sources */,
+				4C6E8EF7111B32D000431481 /* mp_stack.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
