@@ -17,7 +17,7 @@
 //#define COHERENCE_TQ
 
 //Force sequential work with an underlying task queue (simplest)
-//#define SEQUENTIAL
+#define SEQUENTIAL
 
 #ifdef COHERENCE_TQ
 #ifndef COHERENCE_MUTEX
@@ -95,9 +95,7 @@ union mpCoMessage
 typedef struct mpCoTask mpCoTask;
 struct mpCoTask
 {
-#ifndef SEQUENTIAL
 	mpCoProgress	progress;
-#endif
 	mpCoDescription	description;
 }
 #ifdef SEQUENTIAL
@@ -127,6 +125,8 @@ struct mpCoherence
 #ifndef SEQUENTIAL
 	//Min/max in task list (always incrementing)
 	atomic_int32	m_min, m_max;
+#else
+	atomic_int32	m_min;
 #endif
 	
 	//------------------------------------------------------ NOT USED AT RUNTIME
@@ -185,7 +185,7 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	o->m_cacheSize = in_cache;
 	
 #ifdef SEQUENTIAL
-	o->r_stack = mpStackCreate(in_tasks * 10);
+	o->r_stack = mpStackCreate(in_tasks * 2);
 #endif
 	
 #ifdef COHERENCE_TQ
@@ -202,8 +202,8 @@ void mpCReset(mpCoherence *o)
 {
 	o->m_nTasks = 0;
 
-#ifndef SEQUENTIAL
 	o->m_min = 0;
+#ifndef SEQUENTIAL
 	o->m_max = 0;
 #endif
 	o->m_nBlocking = 0;
@@ -233,11 +233,16 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 	
 	o->r_tasks[rowToAddAt].description.data.function = in_fn;
 	
+	
+	o->r_tasks[rowToAddAt].progress.data.completed = 0;
+	o->r_tasks[rowToAddAt].progress.data.working = 0;
+	
 	#ifdef SEQUENTIAL
-	o->r_tasks[rowToAddAt].description.data.depend = -1;		//For completion data...
 	
 	if (rowToAddAt == 0)
 	{
+		o->r_tasks[rowToAddAt].progress.data.working = 1;
+		
 		mpCoMessage m;
 		errorAssert(!mpStackPop(o->r_stack, (void**)&m.msg), error_create,
 				"Stack not empty!!");
@@ -247,10 +252,8 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 		errorAssert(mpStackPush(o->r_stack, (void*)m.msg), error_create,
 				"Failed putting first item on stack!");
 	}
-	#else
-		o->r_tasks[rowToAddAt].progress.data.completed = 0;
-		o->r_tasks[rowToAddAt].progress.data.working = 0;
 	#endif
+	
 	
 	if (in_depEnd < 0)	in_depEnd = 0;
 	o->r_tasks[rowToAddAt].description.data.bottom = in_depEnd;
@@ -488,6 +491,43 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 
 #ifdef SEQUENTIAL
 
+int mpCFetchMinTask(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
+{
+	mpCoProgress t;
+	//Before fetching a task; see if there is one that has been forgotten...
+	int m, origM;
+	m = origM = CoAtomicExtract(o->m_min);
+	t.atom = CoAtomicExtract(o->r_tasks[m].progress.atom);
+	while (m < o->m_nTasks-1 && t.data.completed == o->m_nData)
+	{
+		m++;
+		t.atom = CoAtomicExtract(o->r_tasks[m].progress.atom);
+	}
+	if (m != origM)
+	{
+		CoAtomicCompareAndSwapInt(o->m_min, origM, m);
+	}
+	
+	if (t.data.completed == t.data.working)
+	{
+		mpCoProgress nP = t;
+		nP.data.working++;
+		if (CoAtomicCompareAndSwapInt(o->r_tasks[m].progress.atom,
+			t.atom, nP.atom))
+		{
+			*out_tid = m;
+			*out_tsk = nP.data.completed;
+			*out_fn = o->r_tasks[m].description.data.function;
+		}
+		else
+			return 0;
+	}
+	else
+		return 0;
+	
+	return 1;
+}
+
 void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 									 int *out_tid, int *out_fn, int *out_tsk)
 {
@@ -499,9 +539,16 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 		return;
 	}
 	
-	//Mark the dependencies (only one thread gets here)
-	o->r_tasks[in_tid].description.data.depend = in_tid;
-
+	//Write out the task as completed...
+	mpCoProgress pg, nPg;
+	pg.atom = CoAtomicExtract(o->r_tasks[in_tid].progress.atom);
+	errorAssert(pg.data.working-1 == in_tsk && in_tsk == pg.data.completed,
+				error_specify,
+				"Task not marked as currently dispatched (tid=%i tsk=%i w=%i c=%i)",
+					in_tid, in_tsk, pg.data.working, pg.data.completed);
+	nPg = pg;
+	nPg.data.completed = nPg.data.working;
+	
 	//printf("COMPLETE: %i %i %i\n", in_tid, in_fn, in_tsk);
 	//OK, mark item to the right...
 	mpCoMessage msgA;
@@ -510,9 +557,40 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 		|| in_tsk >= o->m_nData - o->r_tasks[in_tid].description.data.bottom-1)
 			&& in_tsk < o->m_nData - 1)
 	{
+		nPg.data.working++;
+		errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+				pg.atom, nPg.atom), error_specify, "Task should be on one thread");
+		
 		//printf("BOOT TASK: %i %i\n", in_tsk+1, in_tid);
 		msgA.data.task = in_tsk + 1;
 		msgA.data.tid = in_tid;
+	}
+	else if (in_tsk < o->m_nData-1 && in_tid != 0)
+	{
+		mpCoProgress prevProg;
+		prevProg.atom = CoAtomicExtract(o->r_tasks[in_tid-1].progress.atom);
+		if (prevProg.data.completed == prevProg.data.working
+			&& prevProg.data.completed-1 - o->r_tasks[in_tid].description.data.bottom
+				>= in_tsk+1)
+		{
+			nPg.data.working++;
+			errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+					pg.atom, nPg.atom), error_specify, "Task should be on one thread");
+			msgA.data.task = in_tsk + 1;
+			msgA.data.tid = in_tid;
+			
+			//printf("Added task: %i %i\n", in_tid, in_tsk+1);
+		}
+		else
+		{
+			errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+					pg.atom, nPg.atom), error_specify, "Too many tasks accessing same data!");
+		}
+	}
+	else
+	{
+		errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+				pg.atom, nPg.atom), error_specify, "Too many tasks accessing same data!");
 	}
 	
 	//Mark items above...
@@ -520,13 +598,36 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	msgB.data.tid= 0xFFFF;
 	if (in_tid < o->m_nTasks-1)
 	{
+		mpCoProgress nextProg;
+		retry:
+		nextProg.atom = CoAtomicExtract(o->r_tasks[in_tid+1].progress.atom);
 		int ab = in_tsk - o->r_tasks[in_tid+1].description.data.bottom;
-		if (ab >= 0)
+		if (ab >= 0 && nextProg.data.working == nextProg.data.completed
+			&& ab >= nextProg.data.working+1-1)
 		{
+			mpCoProgress newNextProg = nextProg;
+			newNextProg.data.working++;
+		
 			//printf("RESUME TASK: %i %i\n",ab, in_tid+1);
-			msgB.data.task = ab;
-			msgB.data.tid = in_tid+1;
+			if (AtomicCompareAndSwapInt(o->r_tasks[in_tid+1].progress.atom,
+				nextProg.atom, newNextProg.atom))
+			{
+				msgB.data.task = nextProg.data.completed;
+				msgB.data.tid = in_tid+1;
+			}
+			else
+			{
+				//printf("FAILED COMPARE AND SWAP!\n");
+				goto retry;
+			}
+			/*printf("Add: ab=%i working=%i complete=%i tid=%i\n",
+					ab, nextProg.data.working, nextProg.data.completed, in_tid+1);*/
 		}
+		/*else
+		{
+			printf("No Add: ab=%i working=%i complete=%i tid=%i\n",
+					ab, nextProg.data.working, nextProg.data.completed, in_tid+1);
+		}/**/
 	}
 	
 	if (msgA.data.tid == 0xFFFF)
@@ -536,12 +637,48 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	}
 	
 	if (msgA.data.tid == 0xFFFF)
-		mpCTaskObtain(o, out_tid, out_fn, out_tsk);
+	{
+		if (!mpCFetchMinTask(o, out_tid, out_fn, out_tsk))
+			mpCTaskObtain(o, out_tid, out_fn, out_tsk);
+	}
 	else
 	{
-		*out_tid = msgA.data.tid;
-		*out_tsk = msgA.data.task;
-		*out_fn = o->r_tasks[msgA.data.tid].description.data.function;
+		if (!mpCFetchMinTask(o, out_tid, out_fn, out_tsk))
+		{
+			*out_tid = msgA.data.tid;
+			*out_tsk = msgA.data.task;
+			*out_fn = o->r_tasks[msgA.data.tid].description.data.function;
+		}
+		else
+		{
+			int v = CoAtomicExtract(o->m_nBlocking);
+			if (v > 0)
+			{
+				//printf("Recuperating from cache misses!\n");
+				co_pthread_mutex_lock(&o->m_mutex);
+				
+				v = CoAtomicExtract(o->m_nBlocking);
+				if (v == 0)
+				{
+					co_pthread_mutex_unlock(&o->m_mutex);
+					errorAssert(mpStackPush(o->r_stack, (void*)msgA.msg), error_specify,
+							"Unable to add task to run!");
+					//printf("PUSH 1: %i %i\n", msgB.data.tid, msgB.data.task);
+					return;
+				}
+				mpQueuePushInt(o->r_q,msgA.msg);
+				//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+				CoAtomicAdd32Barrier(o->m_nBlocking, -1);
+				
+				co_pthread_mutex_unlock(&o->m_mutex);
+			}
+			else
+			{
+				errorAssert(mpStackPush(o->r_stack, (void*)msgA.msg), error_specify,
+						"Unable to add task to run!");
+				//printf("PUSH 2: %i %i\n", msgB.data.tid, msgB.data.task);
+			}
+		}
 		
 		if (msgB.data.tid != 0xFFFF)
 		{
