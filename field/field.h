@@ -51,6 +51,9 @@ int fieldWidth(field *in_f);
 int fieldHeight(field *in_f);
 int fieldComponents(field *in_f);
 
+//Resize the field
+void fieldResize(field *in_f, int newW, int newH);
+
 //These two are in bytes.  (distance between each Y and each X)
 int fieldStrideX(field *in_f);
 int fieldStrideY(field *in_f);

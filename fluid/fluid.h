@@ -60,6 +60,8 @@ float fluidThreadSchedulerTime(fluid *f);
 field *fluidVideoOut(fluid *in_f);
 void fluidVideoVelocityOut(fluid *in_f, field *in_dest);
 
+void fluidVideoVelocityOutSize(fluid *f, int w, int h);
+
 //Video-input functions
 void fluidVideoBlendIn(fluid *in_f, field *in_ch, float in_s);
 void fluidVelocityBlendIn(fluid *in_f, field *in_ch, float in_s);

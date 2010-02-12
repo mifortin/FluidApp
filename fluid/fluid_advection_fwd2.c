@@ -170,7 +170,7 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 				
 				
 				fluidFloatPointer(destX, x*sX + y*sY)[0] = 
-					fminf(fmaxf(fluidFloatPointer(destX, x*sX + y*sY)[0],fx-9),fx+9);
+					fminf(fmaxf(fluidFloatPointer(destX, x*sX + y*sY)[0],fx-ADVECT_DIST),fx+ADVECT_DIST);
 			}
 			fluidFloatPointer(destX, x*sX + y*sY)[0] = w-2;
 			
@@ -193,7 +193,7 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 					fminf(fmaxf(fluidFloatPointer(destY, x*sX + y*sY)[0],0),h2);
 				
 				fluidFloatPointer(destY, x*sX + y*sY)[0] = 
-					fminf(fmaxf(fluidFloatPointer(destY, x*sX + y*sY)[0],fy-9),fy+9);
+					fminf(fmaxf(fluidFloatPointer(destY, x*sX + y*sY)[0],fy-ADVECT_DIST),fy+ADVECT_DIST);
 			}
 			fluidFloatPointer(destY, x*sX + y*sY)[0] = y==0?0:h-2;
 		}
@@ -247,7 +247,7 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		x128f vZero = {0,0,0,0};
 		x128f vPN = {0,0,0,0};
 		
-		x128f v9 = {9,9,9,9};
+		x128f v9 = {ADVECT_DIST,ADVECT_DIST,ADVECT_DIST,ADVECT_DIST};
 		
 		float fw = (float)w-2.0f;
 		float fh = (float)h-2.0f;
@@ -513,7 +513,7 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 				
 				
 				fluidFloatPointer(destX, x*sX + y*sY)[0] = 
-					fminf(fmaxf(fluidFloatPointer(destX, x*sX + y*sY)[0],fx-9),fx+9);
+					fminf(fmaxf(fluidFloatPointer(destX, x*sX + y*sY)[0],fx-ADVECT_DIST),fx+ADVECT_DIST);
 			}
 			
 			float fy = (float)y;
@@ -538,7 +538,7 @@ void fluid_advection_fwd_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 					fminf(fmaxf(fluidFloatPointer(destY, x*sX + y*sY)[0],0),h2);
 				
 				fluidFloatPointer(destY, x*sX + y*sY)[0] = 
-					fminf(fmaxf(fluidFloatPointer(destY, x*sX + y*sY)[0],fy-9),fy+9);
+					fminf(fmaxf(fluidFloatPointer(destY, x*sX + y*sY)[0],fy-ADVECT_DIST),fy+ADVECT_DIST);
 			}
 		}
 		else

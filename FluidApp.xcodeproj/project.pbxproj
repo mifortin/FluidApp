@@ -160,6 +160,10 @@
 		4CA4C8EF10F748CF00436A6B /* advection.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4CA4C8ED10F748CF00436A6B /* advection.cl */; };
 		4CBC1E8D104496AC003F84A0 /* fluid_advection_repos.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */; };
 		4CBC1E8E104496AC003F84A0 /* fluid_advection_repos.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */; };
+		4CBF5EB41120B46300A4E997 /* Test_Pipeline.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBF5EB31120B46300A4E997 /* Test_Pipeline.c */; };
+		4CBF5EB51120B46300A4E997 /* Test_Pipeline.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBF5EB31120B46300A4E997 /* Test_Pipeline.c */; };
+		4CBF5EB61120B46300A4E997 /* Test_Pipeline.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBF5EB31120B46300A4E997 /* Test_Pipeline.c */; };
+		4CBF5EB71120B46300A4E997 /* Test_Pipeline.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBF5EB31120B46300A4E997 /* Test_Pipeline.c */; };
 		4CC5E72C0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		4CC5E72D0F69833700CE7928 /* lagrange_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */; };
 		4CC757221063060F003C1369 /* fluid_pressure.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CC757211063060F003C1369 /* fluid_pressure.c */; };
@@ -180,6 +184,12 @@
 		4CF036CE10F368AA00D55D20 /* pressure.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4CF036CD10F368AA00D55D20 /* pressure.cl */; };
 		4CF036CF10F368AA00D55D20 /* pressure.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4CF036CD10F368AA00D55D20 /* pressure.cl */; };
 		4CF036D010F368B000D55D20 /* pressure.cl in Resources */ = {isa = PBXBuildFile; fileRef = 4CF036CD10F368AA00D55D20 /* pressure.cl */; };
+		4CF137F111231F0200A34095 /* fluid_pressure_rb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF137F011231F0200A34095 /* fluid_pressure_rb.c */; };
+		4CF137F211231F0200A34095 /* fluid_pressure_rb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF137F011231F0200A34095 /* fluid_pressure_rb.c */; };
+		4CF137F311231F0200A34095 /* fluid_pressure_rb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF137F011231F0200A34095 /* fluid_pressure_rb.c */; };
+		4CF13825112325CF00A34095 /* fluid_viscosity_rb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF13824112325CF00A34095 /* fluid_viscosity_rb.c */; };
+		4CF13826112325CF00A34095 /* fluid_viscosity_rb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF13824112325CF00A34095 /* fluid_viscosity_rb.c */; };
+		4CF13827112325CF00A34095 /* fluid_viscosity_rb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF13824112325CF00A34095 /* fluid_viscosity_rb.c */; };
 		4CF1CC3610CAC3B000B770B7 /* FluidTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */; };
 		4CF1CC3710CAC3B000B770B7 /* FluidTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */; };
 		4CF1CC8610CB206A00B770B7 /* FluidTabTopView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1CC8510CB206A00B770B7 /* FluidTabTopView.m */; };
@@ -329,6 +339,7 @@
 		4CA33EAE10D1729800C50A88 /* fluid_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_input.c; sourceTree = "<group>"; };
 		4CA4C8ED10F748CF00436A6B /* advection.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = advection.cl; sourceTree = "<group>"; };
 		4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_advection_repos.c; sourceTree = "<group>"; };
+		4CBF5EB31120B46300A4E997 /* Test_Pipeline.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Test_Pipeline.c; sourceTree = "<group>"; };
 		4CC5E7270F697C4900CE7928 /* lagrange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange.h; sourceTree = "<group>"; };
 		4CC5E72A0F69833700CE7928 /* lagrange_pvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lagrange_pvt.h; sourceTree = "<group>"; };
 		4CC5E72B0F69833700CE7928 /* lagrange_pvt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lagrange_pvt.c; sourceTree = "<group>"; };
@@ -345,6 +356,8 @@
 		4CE8F07A108E43430014AD01 /* fluid_dampen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_dampen.c; sourceTree = "<group>"; };
 		4CF0309310E64A0F009FF567 /* x_simd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_simd.h; sourceTree = "<group>"; };
 		4CF036CD10F368AA00D55D20 /* pressure.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pressure.cl; sourceTree = "<group>"; };
+		4CF137F011231F0200A34095 /* fluid_pressure_rb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_pressure_rb.c; sourceTree = "<group>"; };
+		4CF13824112325CF00A34095 /* fluid_viscosity_rb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_viscosity_rb.c; sourceTree = "<group>"; };
 		4CF1CC3410CAC3B000B770B7 /* FluidTabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabView.h; sourceTree = "<group>"; };
 		4CF1CC3510CAC3B000B770B7 /* FluidTabView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidTabView.m; sourceTree = "<group>"; };
 		4CF1CC8410CB206A00B770B7 /* FluidTabTopView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidTabTopView.h; sourceTree = "<group>"; };
@@ -500,6 +513,7 @@
 				27BD79240FB112070077C0B0 /* FluidTest.c */,
 				4C8E16430FC44AD90051397F /* Test_Half.c */,
 				4C8E16810FC4544D0051397F /* Test_Locality.c */,
+				4CBF5EB31120B46300A4E997 /* Test_Pipeline.c */,
 			);
 			name = FluidTest;
 			sourceTree = "<group>";
@@ -693,6 +707,8 @@
 				4CA33EAE10D1729800C50A88 /* fluid_input.c */,
 				4CFA69690FAA952000E6847C /* fluid_macros.h */,
 				4CD34055104055D200C318A4 /* fluid_macros_2.h */,
+				4CF137F011231F0200A34095 /* fluid_pressure_rb.c */,
+				4CF13824112325CF00A34095 /* fluid_viscosity_rb.c */,
 			);
 			name = CPU;
 			sourceTree = "<group>";
@@ -920,6 +936,9 @@
 				4C8D337D11047D6900EF6539 /* fluid_gpu.c in Sources */,
 				4CF2E8D91118A3B300AE2CD6 /* fluid_messenger.c in Sources */,
 				4C6E8EFA111B32D000431481 /* mp_stack.c in Sources */,
+				4CBF5EB71120B46300A4E997 /* Test_Pipeline.c in Sources */,
+				4CF137F111231F0200A34095 /* fluid_pressure_rb.c in Sources */,
+				4CF13826112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -941,6 +960,7 @@
 				4C54726B1003A3EF0069EB93 /* mp_coherence.c in Sources */,
 				4C0B4ACA1004230700C7C081 /* netClient.c in Sources */,
 				4C6E8EF9111B32D000431481 /* mp_stack.c in Sources */,
+				4CBF5EB41120B46300A4E997 /* Test_Pipeline.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1017,6 +1037,9 @@
 				4C880694110DBFFC00CBA3F3 /* viscosity_xy.cl in Sources */,
 				4CF2E8D71118A3B300AE2CD6 /* fluid_messenger.c in Sources */,
 				4C6E8EF8111B32D000431481 /* mp_stack.c in Sources */,
+				4CBF5EB61120B46300A4E997 /* Test_Pipeline.c in Sources */,
+				4CF137F211231F0200A34095 /* fluid_pressure_rb.c in Sources */,
+				4CF13827112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1083,6 +1106,9 @@
 				4C880695110DBFFC00CBA3F3 /* viscosity_xy.cl in Sources */,
 				4CF2E8D81118A3B300AE2CD6 /* fluid_messenger.c in Sources */,
 				4C6E8EF7111B32D000431481 /* mp_stack.c in Sources */,
+				4CBF5EB51120B46300A4E997 /* Test_Pipeline.c in Sources */,
+				4CF137F311231F0200A34095 /* fluid_pressure_rb.c in Sources */,
+				4CF13825112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -51,8 +51,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	vector float vTimestep = {timestep, timestep, timestep, timestep};
 	vector float vZero = {0,0,0,0};
 	
-	vector float vNine = {9,9,9,9};
-	vector float vNegNine = {-9,-9,-9,-9};
+	vector float vNine = {ADVECT_DIST,ADVECT_DIST,ADVECT_DIST,ADVECT_DIST};
+	vector float vNegNine = {-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST};
 	vector float wm2 = {w-2,w-2,w-2,w-2};
 	vector float hm2 = {h-2,h-2,h-2,h-2};
 	
@@ -137,8 +137,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	__m128 vTimestep = {timestep, timestep, timestep, timestep};
 	__m128 vZero = {0,0,0,0};
 	
-	__m128 vNine = {9,9,9,9};
-	__m128 vNegNine = {-9,-9,-9,-9};
+	__m128 vNine = {ADVECT_DIST,ADVECT_DIST,ADVECT_DIST,ADVECT_DIST};
+	__m128 vNegNine = {-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST};
 	__m128 wm2 = {w-2,w-2,w-2,w-2};
 	__m128 hm2 = {h-2,h-2,h-2,h-2};
 	
@@ -264,7 +264,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		//Most of the error is from velocity advection (so we assume)
 		//	This is a cheap way of computing error!
-		float backX = fluidClamp(-timestep*fSrcVelX + 0.5f*errX*timestep,-9,9) + (float)x;
+		float backX = fluidClamp(-timestep*fSrcVelX + 0.5f*errX*timestep,-ADVECT_DIST,ADVECT_DIST) + (float)x;
 		fDstReposX[0] = fluidClamp(backX,0,w-2);
 		
 		curxy += sX;
@@ -312,7 +312,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		//Most of the error is from velocity advection (so we assume)
 		//	This is a cheap way of computing error!
-		float backY = fluidClamp(-timestep*fSrcVelY + 0.5f*errY*timestep,-9,9) + (float)y;
+		float backY = fluidClamp(-timestep*fSrcVelY + 0.5f*errY*timestep,-ADVECT_DIST,ADVECT_DIST) + (float)y;
 		fDstReposY[0] = fluidClamp(backY,0,h-2);
 		
 		curxy += sX;

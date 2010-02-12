@@ -85,6 +85,8 @@ struct viscosity
 	
 	float alpha;		//Improved thanks to Harris
 	float beta;
+	
+	int red;			//For red/black...
 };
 
 //Vorticity data...
@@ -273,6 +275,10 @@ struct fluid
 	
 	//If we want timing, we take some sort of performance penalty...
 	int32_t m_times[TIME_TOTAL];
+	
+	//Output size
+	int m_velWidth;
+	int m_velHeight;
 	
 	//GPGPU data...				//	(I/O)
 	GPUField *gpu_velX_in;

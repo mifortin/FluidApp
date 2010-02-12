@@ -18,6 +18,12 @@
 
 struct field
 {
+	union {
+		float *f;
+		int *i;
+		unsigned char *c;
+	} r_data;
+	
 	//Note - assume that everything is tightly packed.
 	//	(we have the assumption that everything's in order)
 	int m_width, m_height;
@@ -26,14 +32,12 @@ struct field
 	//In bytes  - forward looking - that's it!
 	int m_strideX, m_strideY;
 	
+	//Number (of bytes) we have allocated to store data
+	//	(allow for resize)
+	int m_allocatedBytes;
+	
 	//Flags
 	int m_flags;
-	
-	union {
-		float *f;
-		int *i;
-		unsigned char *c;
-	} r_data;
 };
 
 

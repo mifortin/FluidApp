@@ -542,10 +542,10 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	//Write out the task as completed...
 	mpCoProgress pg, nPg;
 	pg.atom = CoAtomicExtract(o->r_tasks[in_tid].progress.atom);
-	errorAssert(pg.data.working-1 == in_tsk && in_tsk == pg.data.completed,
-				error_specify,
-				"Task not marked as currently dispatched (tid=%i tsk=%i w=%i c=%i)",
-					in_tid, in_tsk, pg.data.working, pg.data.completed);
+//	errorAssert(pg.data.working-1 == in_tsk && in_tsk == pg.data.completed,
+//				error_specify,
+//				"Task not marked as currently dispatched (tid=%i tsk=%i w=%i c=%i)",
+//					in_tid, in_tsk, pg.data.working, pg.data.completed);
 	nPg = pg;
 	nPg.data.completed = nPg.data.working;
 	
@@ -564,6 +564,24 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 		//printf("BOOT TASK: %i %i\n", in_tsk+1, in_tid);
 		msgA.data.task = in_tsk + 1;
 		msgA.data.tid = in_tid;
+		
+//		int v = CoAtomicExtract(o->m_nBlocking);
+//		if (v > 0)
+//		{
+//			//printf("Recuperating from cache misses!\n");
+//			co_pthread_mutex_lock(&o->m_mutex);
+//			
+//			v = CoAtomicExtract(o->m_nBlocking);
+//			if (v > 0)
+//			{
+//				mpQueuePushInt(o->r_q,msgA.msg);
+//				//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+//				CoAtomicAdd32Barrier(o->m_nBlocking, -1);
+//				msgA.data.tid = 0xFFFF;
+//			}
+//			
+//			co_pthread_mutex_unlock(&o->m_mutex);
+//		}
 	}
 	else if (in_tsk < o->m_nData-1 && in_tid != 0)
 	{
@@ -580,6 +598,24 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 			msgA.data.tid = in_tid;
 			
 			//printf("Added task: %i %i\n", in_tid, in_tsk+1);
+			
+//			int v = CoAtomicExtract(o->m_nBlocking);
+//			if (v > 0)
+//			{
+//				//printf("Recuperating from cache misses!\n");
+//				co_pthread_mutex_lock(&o->m_mutex);
+//				
+//				v = CoAtomicExtract(o->m_nBlocking);
+//				if (v > 0)
+//				{
+//					mpQueuePushInt(o->r_q,msgA.msg);
+//					//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+//					CoAtomicAdd32Barrier(o->m_nBlocking, -1);
+//					msgA.data.tid = 0xFFFF;
+//				}
+//				
+//				co_pthread_mutex_unlock(&o->m_mutex);
+//			}
 		}
 		else
 		{

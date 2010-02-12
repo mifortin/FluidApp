@@ -143,6 +143,7 @@ int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg)
 		}
 		
 		float farg, fx,fy;
+		int ix, iy;
 		
 		if (fluidMessengerParse(fm, msg, &curOffset, "viscosity", "f", &farg))
 			fluidSetViscosity(fm->f, fluidClamp(farg, 0,10));
@@ -169,6 +170,11 @@ int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg)
 			fluidFreeSurfaceSimple(fm->f);
 		else if (fluidMessengerParse(fm, msg, &curOffset, "free-surface-on", ""))
 			fluidFreeSurfaceNone(fm->f);
+		else if (fluidMessengerParse(fm, msg, &curOffset, "velocity-out-size", "ii", &ix, &iy))
+		{
+			if (ix > 0 && iy > 0 && ix < 512 && iy < 512)
+				fluidVideoVelocityOutSize(fm->f, ix, iy);
+		}
 		else
 		{
 			do {

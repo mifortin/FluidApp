@@ -11,14 +11,17 @@
 
 void testHalfFloat();
 void testLocality();
+void testPipeline();
 
 int main(int argc, char **argv)
 {
 	//testHalfFloat();
-	testLocality();
-	testLocality();
-	testLocality();
-	testLocality();
+//	testLocality();
+//	testLocality();
+//	testLocality();
+//	testLocality();
+
+	testPipeline();
 	
 	return 0;
 }

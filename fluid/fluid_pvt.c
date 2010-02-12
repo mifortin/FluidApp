@@ -127,6 +127,9 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->m_gravityX = 0;
 	toRet->m_gravityY = -1.0f;
 	
+	toRet->m_velWidth = in_width;
+	toRet->m_velHeight = in_height;
+	
 	toRet->accelerator = ACCEL_CPU;
 	
 	toRet->flags = 0;
@@ -278,4 +281,11 @@ void fluidEnableCPU(fluid *in_f)
 void fluidEnableCL(fluid *in_f)
 {
 	in_f->accelerator = ACCEL_GPU;
+}
+
+
+void fluidVideoVelocityOutSize(fluid *f, int w, int h)
+{
+	f->m_velWidth = w;
+	f->m_velHeight = h;
 }

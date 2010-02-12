@@ -111,3 +111,39 @@ void fluid_input_vel2float(fluid *in_f, int y, pvt_fluidMode *mode)
 		fVelIn[2*x+1] = t.f;
 	}
 }
+
+
+void fluid_input_vel2float_scale(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct velocityIO *v = &mode->velocityIO;
+	
+	int w = fieldWidth(v->velX);
+	
+	int w2 = fieldWidth(v->velIn);
+	
+	int h = fieldHeight(v->velX);
+	int h2 = fieldHeight(v->velIn);
+	
+	int y2 = y*h/h2;
+	
+	if (y2 >= h)		return;
+	
+	float *fVelX = fluidFloatPointer(fieldData(v->velX),y2*fieldStrideY(v->velX));
+	float *fVelY = fluidFloatPointer(fieldData(v->velY),y2*fieldStrideY(v->velY));
+	float *fVelIn = fluidFloatPointer(fieldData(v->velIn),y*fieldStrideY(v->velIn));
+	
+	union {
+		float f;
+		int i;
+	} t;
+	
+	int x;
+	for (x=0; x<w2; x++)
+	{
+		t.i = htonl(((int*)fVelX)[x*w/w2]);
+		fVelIn[2*x] = t.f;
+		
+		t.i = htonl(((int*)fVelY)[x*w/w2]);
+		fVelIn[2*x+1] = t.f;
+	}
+}

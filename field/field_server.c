@@ -103,6 +103,8 @@ nextPacket:
 		else
 			sizeOfData = 1;
 
+		//Attempt to resize the field
+		fieldResize(r->fld_net, matrixInfo.dim[0], matrixInfo.dim[1]);
 		
 		//Loop over and receive!!!
 		if (matrixInfo.dimCount == 2
@@ -235,6 +237,29 @@ nextPacket:
 }
 
 
+void fieldServerFinishInit(fieldServer *r, int in_port)
+{
+	
+	pthread_mutex_init(&r->mtx, NULL);
+	x_pthread_cond_init(&r->cnd, NULL);
+	x_pthread_cond_init(&r->cndMsg, NULL);
+	
+	char szPort[64];
+	snprintf(szPort, 64, "%i", in_port);
+	
+	r->msg_loop[0] = fieldMsgCreate();
+	r->msg_loop[1] = fieldMsgCreate();
+	r->msg_loop[2] = fieldMsgCreate();
+	r->msg_loop[3] = fieldMsgCreate();
+	r->msg_loop[4] = fieldMsgCreate();
+	r->msg_loop[5] = fieldMsgCreate();
+	r->msg_loop[6] = fieldMsgCreate();
+	r->msg_loop[7] = fieldMsgCreate();
+	
+	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
+}
+
+
 fieldServer *fieldServerCreateFloat(int in_width, int in_height,
 									int in_components,
 							   		int in_port)
@@ -246,24 +271,9 @@ fieldServer *fieldServerCreateFloat(int in_width, int in_height,
 	r->fld_net = fieldCreate(in_width, in_height, in_components);
 	r->fld_local = fieldCreate(in_width, in_height, in_components);
 	
-	pthread_mutex_init(&r->mtx, NULL);
-	x_pthread_cond_init(&r->cnd, NULL);
-	
-	char szPort[64];
-	snprintf(szPort, 64, "%i", in_port);
-	
 	r->dataType = FIELD_JIT_FLOAT32;
 	
-	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
-	
-	r->msg_loop[0] = fieldMsgCreate();
-	r->msg_loop[1] = fieldMsgCreate();
-	r->msg_loop[2] = fieldMsgCreate();
-	r->msg_loop[3] = fieldMsgCreate();
-	r->msg_loop[4] = fieldMsgCreate();
-	r->msg_loop[5] = fieldMsgCreate();
-	r->msg_loop[6] = fieldMsgCreate();
-	r->msg_loop[7] = fieldMsgCreate();
+	fieldServerFinishInit(r, in_port);
 	
 	return r;
 }
@@ -280,25 +290,9 @@ fieldServer *fieldServerCreateChar(int in_width, int in_height,
 	r->fld_net = fieldCreateChar(in_width, in_height, in_components);
 	r->fld_local = fieldCreateChar(in_width, in_height, in_components);
 	
-	pthread_mutex_init(&r->mtx, NULL);
-	x_pthread_cond_init(&r->cnd, NULL);
-	x_pthread_cond_init(&r->cndMsg, NULL);
-	
-	char szPort[64];
-	snprintf(szPort, 64, "%i", in_port);
-	
 	r->dataType = FIELD_JIT_CHAR;
 	
-	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
-	
-	r->msg_loop[0] = fieldMsgCreate();
-	r->msg_loop[1] = fieldMsgCreate();
-	r->msg_loop[2] = fieldMsgCreate();
-	r->msg_loop[3] = fieldMsgCreate();
-	r->msg_loop[4] = fieldMsgCreate();
-	r->msg_loop[5] = fieldMsgCreate();
-	r->msg_loop[6] = fieldMsgCreate();
-	r->msg_loop[7] = fieldMsgCreate();
+	fieldServerFinishInit(r, in_port);
 	
 	return r;
 }
