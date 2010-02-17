@@ -126,6 +126,8 @@ void fluid_input_float2vel_scale(fluid *in_f, int y, pvt_fluidMode *mode)
 		int in_x = x * in_w / w;
 		t.i = ntohl(((int*)fVelIn)[2*in_x]);
 		fVelX[x] += t.f * v->scale;
+		
+		//fVelX[x] = fluidClamp(fVelX[x], -ADVECT_DIST, ADVECT_DIST);
 	}
 	
 	for (x=0; x<w; x++)
@@ -133,5 +135,7 @@ void fluid_input_float2vel_scale(fluid *in_f, int y, pvt_fluidMode *mode)
 		int in_x = x * in_w / w;
 		t.i = ntohl(((int*)fVelIn)[2*in_x+1]);
 		fVelY[x] += t.f * v->scale;
+		
+		//fVelY[x] = fluidClamp(fVelY[x], -ADVECT_DIST, ADVECT_DIST);
 	}
 }

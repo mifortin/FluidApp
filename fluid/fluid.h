@@ -86,6 +86,13 @@ void fluidServerVelocityServer(fluidServer *s, int in_port);
 void fluidServerDensityClient(fluidServer *s, const char *szHost, int in_port);
 void fluidServerVelocityClient(fluidServer *s, const char *szHost, int in_port);
 
+void fluidServerOnFrame(fluidServer *s);
+
+fieldMsg *fluidServerNextMessage(fluidServer *s);
+
+void fluidServerDensityBlend(fluidServer *s, float in_blend);
+void fluidServerVelocityBlend(fluidServer *s, float in_blend);
+
 //Simple delegate to specify what's happening...
 #define FLUIDSERVER_VEL_SERVER		0x10
 #define FLUIDSERVER_DENS_SERVER		0x20
@@ -96,6 +103,7 @@ void fluidServerVelocityClient(fluidServer *s, const char *szHost, int in_port);
 #define FLUIDSERVER_SUCCESS			0x01
 #define FLUIDSERVER_PENDING			0x02
 #define FLUIDSERVER_FAIL			0x03
+#define FLUIDSERVER_STAT_MASK		0x0F
 
 typedef void(*fluidServerDelegate)(void *o, fluidServer *s, int in_msg);
 

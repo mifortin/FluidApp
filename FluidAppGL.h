@@ -17,10 +17,7 @@
 	IBOutlet FluidAppServerController *ib_serverController;
 	IBOutlet FluidAppClientController *ib_clientController;
 	
-	fieldServer *r_densityServer;
-	fieldServer *r_velocityServer;
-	fieldClient *r_densityClient;
-	fieldClient *r_velocityClient;
+	fluidServer *r_network;
 	fluid *r_fluid;
 	fluidMessenger *r_messenger;
 	GLuint r_texture;

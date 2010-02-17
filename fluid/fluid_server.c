@@ -8,6 +8,7 @@
 #include "fluid_pvt.h"
 #include "mpx.h"
 #include <string.h>
+#include <stdio.h>
 
 struct fluidServer
 {
@@ -22,6 +23,10 @@ struct fluidServer
 	fluidServerDelegate d;
 	
 	pthread_mutex_t r_mtx;
+	
+	float m_densBlend, m_velBlend;
+	
+	char m_densServ, m_densClient, m_velServ, m_velClient;
 };
 
 
@@ -34,6 +39,8 @@ void fluidServerOnFree(void *o)
 	if (s->r_densityClient)		x_free(s->r_densityClient);
 	if (s->r_velocityClient)	x_free(s->r_velocityClient);
 	
+	x_free(s->r_f);
+	
 	pthread_mutex_destroy(&s->r_mtx);
 }
 
@@ -43,6 +50,25 @@ void fluidServerSendMessage(fluidServer *s, int msg)
 	x_pthread_mutex_lock(&s->r_mtx);
 	
 	if (s->d)	s->d(s->o, s, msg);
+	
+	switch(msg & FLUIDSERVER_SRC_MASK)
+	{
+	case FLUIDSERVER_VEL_SERVER:
+		s->m_velServ = msg & FLUIDSERVER_STAT_MASK;
+		break;
+		
+	case FLUIDSERVER_DENS_SERVER:
+		s->m_densServ = msg & FLUIDSERVER_STAT_MASK;
+		break;
+		
+	case FLUIDSERVER_VEL_CLIENT:
+		s->m_velClient = msg & FLUIDSERVER_STAT_MASK;
+		break;
+		
+	case FLUIDSERVER_DENS_CLIENT:
+		s->m_densClient = msg & FLUIDSERVER_STAT_MASK;
+		break;
+	}
 	
 	x_pthread_mutex_unlock(&s->r_mtx);
 }
@@ -113,6 +139,7 @@ void fluidServerDensityServer(fluidServer *s, int in_port)
 		fieldServerSetDelegate(s->r_densityServer, &d);
 	} x_catch(e) {
 		fluidServerSendMessage(s, FLUIDSERVER_DENS_SERVER | FLUIDSERVER_FAIL);
+		errorListAdd(e);
 	} x_finally {}
 }
 
@@ -135,6 +162,7 @@ void fluidServerVelocityServer(fluidServer *s, int in_port)
 		fieldServerSetDelegate(s->r_velocityServer, &d);
 	} x_catch(e) {
 		fluidServerSendMessage(s, FLUIDSERVER_VEL_SERVER | FLUIDSERVER_FAIL);
+		errorListAdd(e);
 	} x_finally {}
 }
 
@@ -175,6 +203,13 @@ fluidServer *fluidServerCreate(fluid *in_f)
 {
 	fluidServer *r = x_malloc(sizeof(fluidServer), fluidServerOnFree);
 	memset(r, 0, sizeof(fluidServer));
+	r->r_f = in_f;
+	x_retain(in_f);
+	
+	r->m_densServ = FLUIDSERVER_PENDING;
+	r->m_densClient = FLUIDSERVER_PENDING;
+	r->m_velServ = FLUIDSERVER_PENDING;
+	r->m_velClient = FLUIDSERVER_PENDING;
 	
 	x_pthread_mutex_init(&r->r_mtx, NULL);
 	
@@ -193,4 +228,70 @@ void fluidServerSetDelegate(fluidServer *s, void *o, fluidServerDelegate d)
 	s->o = o;
 	s->d = d;
 	x_pthread_mutex_unlock(&s->r_mtx);
+	
+	//Spam...
+	fluidServerSendMessage(s, FLUIDSERVER_VEL_SERVER | s->m_velServ);
+	fluidServerSendMessage(s, FLUIDSERVER_VEL_CLIENT | s->m_velClient);
+	fluidServerSendMessage(s, FLUIDSERVER_DENS_SERVER | s->m_densServ);
+	fluidServerSendMessage(s, FLUIDSERVER_DENS_CLIENT | s->m_densClient);
+}
+
+void fluidServerOnFrame(fluidServer *s)
+{
+	fieldClientSend(s->r_densityClient, fluidVideoOut(s->r_f));
+
+	field *tmp = fieldServerLock(s->r_densityServer);
+	field *velTmp = fieldServerLock(s->r_velocityServer);
+	field *outVel = fieldClientLock(s->r_velocityClient);
+	
+	if (outVel)
+		fluidVideoVelocityOut(s->r_f, outVel);
+	
+	x_pthread_mutex_lock(&s->r_mtx);
+	if (velTmp && (s->m_velServ & FLUIDSERVER_STAT_MASK) == FLUIDSERVER_SUCCESS)
+	{
+		fluidVelocityBlendIn(s->r_f, velTmp, s->m_velBlend);
+	}
+		
+	if (tmp && (s->m_densServ & FLUIDSERVER_STAT_MASK) == FLUIDSERVER_SUCCESS)
+		fluidVideoBlendIn(s->r_f, tmp, s->m_densBlend);
+	
+	x_pthread_mutex_unlock(&s->r_mtx);
+	
+	fluidAdvance(s->r_f);
+	
+	if (outVel)
+		fieldClientUnlock(s->r_velocityClient);
+	fieldServerUnlock(s->r_velocityServer);
+	fieldServerUnlock(s->r_densityServer);
+}
+
+void fluidServerDensityBlend(fluidServer *s, float in_blend)
+{
+	s->m_densBlend = in_blend;
+}
+
+
+void fluidServerVelocityBlend(fluidServer *s, float in_blend)
+{
+	s->m_velBlend = in_blend;
+}
+
+
+fieldMsg *fluidServerNextMessage(fluidServer *s)
+{
+	fieldMsg *m = NULL;
+	
+	if (s->r_densityServer)
+	{
+		m = fieldServerNextMessage(s->r_densityServer);
+		if (m)	return m;
+	}
+	
+	if (s->r_velocityServer)
+	{
+		m = fieldServerNextMessage(s->r_velocityServer);
+	}
+	
+	return m;
 }
