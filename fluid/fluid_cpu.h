@@ -7,6 +7,7 @@
 #ifndef FLUID_CPU_H
 #define FLUID_CPU_H
 #include "fluid_pvt.h"
+#include <math.h>
 
 #define ADVECT_DIST		9
 

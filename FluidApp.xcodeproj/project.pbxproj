@@ -67,6 +67,9 @@
 		4C437088104DDD7F0069E6D9 /* fluid_advection_repos.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC1E8C104496AC003F84A0 /* fluid_advection_repos.c */; };
 		4C43708A104DDD7F0069E6D9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		4C43708B104DDD7F0069E6D9 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 272D28050F62F18C004E794A /* OpenGL.framework */; };
+		4C51E64C1129DA4000C54F93 /* fluid_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C51E64B1129DA4000C54F93 /* fluid_server.c */; };
+		4C51E64D1129DA4000C54F93 /* fluid_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C51E64B1129DA4000C54F93 /* fluid_server.c */; };
+		4C51E64E1129DA4000C54F93 /* fluid_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C51E64B1129DA4000C54F93 /* fluid_server.c */; };
 		4C54726B1003A3EF0069EB93 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C54726A1003A3EF0069EB93 /* mp_coherence.c */; };
 		4C54726C1003A3EF0069EB93 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C54726A1003A3EF0069EB93 /* mp_coherence.c */; };
 		4C54726D1003A3EF0069EB93 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C54726A1003A3EF0069EB93 /* mp_coherence.c */; };
@@ -295,6 +298,7 @@
 		4C414FEF0FF1941C002B8CD1 /* transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = transform.h; sourceTree = "<group>"; };
 		4C43708F104DDD7F0069E6D9 /* FluidApp_x64.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluidApp_x64.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C437091104DDD7F0069E6D9 /* Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info copy.plist"; sourceTree = "<group>"; };
+		4C51E64B1129DA4000C54F93 /* fluid_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_server.c; sourceTree = "<group>"; };
 		4C54726A1003A3EF0069EB93 /* mp_coherence.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_coherence.c; sourceTree = "<group>"; };
 		4C549E9310BEEB1500D9A7AC /* FluidAppDocument.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FluidAppDocument.xib; sourceTree = "<group>"; };
 		4C549E9810BEEB2400D9A7AC /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/FluidApp.xib; sourceTree = "<group>"; };
@@ -467,6 +471,7 @@
 				27A18C570F672BBE0023F24B /* fluid_pvt.h */,
 				27A18C580F672BBE0023F24B /* fluid_pvt.c */,
 				4CF2E8D61118A3B300AE2CD6 /* fluid_messenger.c */,
+				4C51E64B1129DA4000C54F93 /* fluid_server.c */,
 			);
 			path = fluid;
 			sourceTree = "<group>";
@@ -939,6 +944,7 @@
 				4CBF5EB71120B46300A4E997 /* Test_Pipeline.c in Sources */,
 				4CF137F111231F0200A34095 /* fluid_pressure_rb.c in Sources */,
 				4CF13826112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
+				4C51E64E1129DA4000C54F93 /* fluid_server.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1040,6 +1046,7 @@
 				4CBF5EB61120B46300A4E997 /* Test_Pipeline.c in Sources */,
 				4CF137F211231F0200A34095 /* fluid_pressure_rb.c in Sources */,
 				4CF13827112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
+				4C51E64D1129DA4000C54F93 /* fluid_server.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1109,6 +1116,7 @@
 				4CBF5EB51120B46300A4E997 /* Test_Pipeline.c in Sources */,
 				4CF137F311231F0200A34095 /* fluid_pressure_rb.c in Sources */,
 				4CF13825112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
+				4C51E64C1129DA4000C54F93 /* fluid_server.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

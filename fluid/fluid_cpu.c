@@ -216,8 +216,8 @@ void fluidTaskViscosity(fluid *f, int in_iterations)
 	f->m_fns[curFn].fn = fluid_viscosity;//_rb;
 	f->m_fns[curFn].mode.viscosity.velX = f->r_velocityX;
 	f->m_fns[curFn].mode.viscosity.velY = f->r_velocityY;
-	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / viscocity * f->m_timestep;
-	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep  + 4.0f);
+	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / viscocity * f->m_timestep/(float)in_iterations;
+	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep/(float)in_iterations  + 4.0f);
 	f->m_fns[curFn].times = f->m_times + TIME_VISCOSITY;
 	f->m_fns[curFn].mode.viscosity.red =  1;
 	
@@ -229,8 +229,8 @@ void fluidTaskViscosity(fluid *f, int in_iterations)
 	f->m_fns[curFn].fn = fluid_viscosity;//_rb;
 	f->m_fns[curFn].mode.viscosity.velX = f->r_velocityX;
 	f->m_fns[curFn].mode.viscosity.velY = f->r_velocityY;
-	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / viscocity * f->m_timestep;
-	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep  + 4.0f);
+	f->m_fns[curFn].mode.viscosity.alpha = 1.0f / viscocity * f->m_timestep/(float)in_iterations;
+	f->m_fns[curFn].mode.viscosity.beta = 1.0f / (1.0f / viscocity * f->m_timestep/(float)in_iterations  + 4.0f);
 	f->m_fns[curFn].times = f->m_times + TIME_VISCOSITY;
 	f->m_fns[curFn].mode.viscosity.red =  0;
 	

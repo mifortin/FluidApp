@@ -18,6 +18,9 @@ fluid *fluidCreate(int in_width, int in_height);
 
 void fluidAdvance(fluid *in_f);
 
+int fluidWidth(fluid *in_f);
+int fluidHeight(fluid *in_f);
+
 field *fluidDensity(fluid *in_f);
 field *fluidMovedDensity(fluid *in_f);
 field *fluidVelocityX(fluid *in_f);
@@ -69,6 +72,34 @@ void fluidVelocityBlendIn(fluid *in_f, field *in_ch, float in_s);
 //Select accelerator
 void fluidEnableCPU(fluid *in_f);
 void fluidEnableCL(fluid *in_f);
+
+
+//FluidServer creates the appropriate data-structures to send/receive data
+//over the network.  Abstracting away Objective-C and moving towards are pure C
+//environment.
+typedef struct fluidServer fluidServer;
+fluidServer *fluidServerCreate(fluid *in_f);
+
+//Connect to various sources...
+void fluidServerDensityServer(fluidServer *s, int in_port);
+void fluidServerVelocityServer(fluidServer *s, int in_port);
+void fluidServerDensityClient(fluidServer *s, const char *szHost, int in_port);
+void fluidServerVelocityClient(fluidServer *s, const char *szHost, int in_port);
+
+//Simple delegate to specify what's happening...
+#define FLUIDSERVER_VEL_SERVER		0x10
+#define FLUIDSERVER_DENS_SERVER		0x20
+#define FLUIDSERVER_VEL_CLIENT		0x30
+#define FLUIDSERVER_DENS_CLIENT		0x40
+#define FLUIDSERVER_SRC_MASK		0xF0
+
+#define FLUIDSERVER_SUCCESS			0x01
+#define FLUIDSERVER_PENDING			0x02
+#define FLUIDSERVER_FAIL			0x03
+
+typedef void(*fluidServerDelegate)(void *o, fluidServer *s, int in_msg);
+
+void fluidServerSetDelegate(fluidServer *s, void *o, fluidServerDelegate d);
 
 
 //FluidMessenger is a seperate object that dispatches messages to the fluid,
