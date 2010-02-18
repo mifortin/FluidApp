@@ -38,7 +38,7 @@ void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 	vector short min = {0,0,0,0,0,0,0,0};
 	vector short max = {255,255,255,255,255,255,255,255};
 	
-	for (x=0; x<w*c; x++)
+	for (x=0; x<w; x++)
 	{
 		vector int i1 = vec_cts(vf[x*4+0], 8);
 		vector int i2 = vec_cts(vf[x*4+1], 8);
@@ -61,7 +61,7 @@ void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	__m128 max = {255,255,255,255};
 	
-	for (x=0; x<w*c; x++)
+	for (x=0; x<w; x++)
 	{
 		__m128i i1 = _mm_cvtps_epi32(_mm_mul_ps(vf[x*4+0],max));
 		__m128i i2 = _mm_cvtps_epi32(_mm_mul_ps(vf[x*4+1],max));

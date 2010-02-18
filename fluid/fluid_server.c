@@ -150,8 +150,6 @@ void fluidServerVelocityServer(fluidServer *s, int in_port)
 		if (s->r_velocityServer)
 			x_free(s->r_velocityServer);
 		
-		s->r_velocityServer = NULL;
-		
 		s->r_velocityServer = fieldServerCreateFloat(
 									fluidWidth(s->r_f), 
 									fluidHeight(s->r_f),
@@ -247,16 +245,13 @@ void fluidServerOnFrame(fluidServer *s)
 	if (outVel)
 		fluidVideoVelocityOut(s->r_f, outVel);
 	
-	x_pthread_mutex_lock(&s->r_mtx);
-	if (velTmp && (s->m_velServ & FLUIDSERVER_STAT_MASK) == FLUIDSERVER_SUCCESS)
+	if (velTmp)
 	{
 		fluidVelocityBlendIn(s->r_f, velTmp, s->m_velBlend);
 	}
 		
-	if (tmp && (s->m_densServ & FLUIDSERVER_STAT_MASK) == FLUIDSERVER_SUCCESS)
+	if (tmp)
 		fluidVideoBlendIn(s->r_f, tmp, s->m_densBlend);
-	
-	x_pthread_mutex_unlock(&s->r_mtx);
 	
 	fluidAdvance(s->r_f);
 	

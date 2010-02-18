@@ -163,7 +163,6 @@ void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 	r_fluid = fluidCreate(SIMW,SIMH);
 	fluidEnableCL(r_fluid);
 	r_network = fluidServerCreate(r_fluid);
-	fluidServerSetDelegate(r_network, self, FluidAppGLNetworkDelegate);
 	
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
@@ -171,6 +170,7 @@ void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
 	
 	r_messenger = fluidMessengerCreate(r_fluid);
+	fluidServerSetDelegate(r_network, self, FluidAppGLNetworkDelegate);
 }
 
 
