@@ -169,7 +169,7 @@ void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SIMW, SIMH, 0,
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
 	
-	r_messenger = fluidMessengerCreate(r_fluid);
+	r_messenger = fluidMessengerCreate(r_fluid, r_network);
 	fluidServerSetDelegate(r_network, self, FluidAppGLNetworkDelegate);
 }
 

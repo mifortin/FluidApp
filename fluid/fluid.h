@@ -116,7 +116,7 @@ void fluidServerSetDelegate(fluidServer *s, void *o, fluidServerDelegate d);
 typedef struct fluidMessenger fluidMessenger;
 typedef void(*fluidMessengerHandler)(void *o, fieldMsg *msg);
 
-fluidMessenger *fluidMessengerCreate(fluid *in_f);
+fluidMessenger *fluidMessengerCreate(fluid *in_f, fluidServer *in_s);
 
 // 1 is success!
 int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg);

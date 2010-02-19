@@ -18,6 +18,8 @@ struct fluidMessenger
 {
 	fluid *f;		//Retained fluid object
 	
+	fluidServer *s;	//Retained server
+	
 	fieldMsg *m;	//Used during call-backs...
 	
 	fluidMessengerHandler handler;
@@ -28,17 +30,20 @@ struct fluidMessenger
 void fluidMessengerOnFree(void *o)
 {
 	fluidMessenger *fm = (fluidMessenger*)o;
+	x_free(fm->s);
 	x_free(fm->f);
 	x_free(fm->m);
 }
 
 
-fluidMessenger *fluidMessengerCreate(fluid *in_f)
+fluidMessenger *fluidMessengerCreate(fluid *in_f, fluidServer *in_s)
 {
 	fluidMessenger *r = x_malloc(sizeof(fluidMessenger), fluidMessengerOnFree);
 	
 	r->f = in_f;
 	x_retain(in_f);
+	r->s = in_s;
+	x_retain(in_s);
 	r->m = fieldMsgCreate();
 	
 	r->handler = NULL;
@@ -101,6 +106,21 @@ int fluidMessengerParse(fluidMessenger *fm, fieldMsg *msg, int *offset,
 				return 0;
 			}
 		}
+		else if (*szPattern == 's')
+		{
+			if (isFieldCharPtr(msg, *offset))
+			{
+				const char ** a = va_arg(p, const char**);
+				*a = fieldCharPtr(msg, *offset);
+				fieldMsgAddChar(fm->m, *a);
+			}
+			else
+			{
+				printf("==> Invalid arguments to command %s(%s)\n", szCode, szPattern);
+				va_end(p);
+				return 0;
+			}
+		}
 		else
 		{
 			printf("==> Invalid arguments to command %s(%s)\n", szCode, szPattern);
@@ -144,6 +164,7 @@ int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg)
 		
 		float farg, fx,fy;
 		int ix, iy;
+		char *ch;
 		
 		if (fluidMessengerParse(fm, msg, &curOffset, "viscosity", "f", &farg))
 			fluidSetViscosity(fm->f, fluidClamp(farg, 0,10));
@@ -174,6 +195,24 @@ int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg)
 		{
 			if (ix > 0 && iy > 0 && ix < 512 && iy < 512)
 				fluidVideoVelocityOutSize(fm->f, ix, iy);
+		}
+		else if (fluidMessengerParse(fm, msg, &curOffset, "velocity-blend", "f", &farg))
+		{
+			if (farg >= 0.0f && farg <= 1.0f)
+				fluidServerVelocityBlend(fm->s, farg);
+		}
+		else if (fluidMessengerParse(fm, msg, &curOffset, "density-blend", "f", &farg))
+		{
+			if (farg >= 0.0f && farg <= 1.0f)
+				fluidServerDensityBlend(fm->s, farg);
+		}
+		else if (fluidMessengerParse(fm, msg, &curOffset, "density-client", "si", &ch, &ix))
+		{
+			fluidServerDensityClient(fm->s, ch, ix);
+		}
+		else if (fluidMessengerParse(fm, msg, &curOffset, "velocity-client", "si", &ch, &ix))
+		{
+			fluidServerVelocityClient(fm->s, ch, ix);
 		}
 		else
 		{
