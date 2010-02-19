@@ -9,7 +9,7 @@
 #include "fluid_pvt.h"
 #include <math.h>
 
-#define ADVECT_DIST		9
+#define ADVECT_DIST		64
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -21,6 +21,7 @@ void fluid_advection_stam_velocity(fluid *in_f, int rowID, pvt_fluidMode *mode);
 void fluid_advection_mccormack_repos(fluid *in_f, int rowID, pvt_fluidMode *mode);
 
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode);
+void fluid_reposVel(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode);
 

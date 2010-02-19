@@ -43,14 +43,9 @@ struct mccormack_vel_repos
 {
 	field *srcVelX;		//Source velocities
 	field *srcVelY;
-	field *srcErrVelX;	//When we return back to the source
-	field *srcErrVelY;
-	field *srcAdvX;		//Original advected results
-	field *srcAdvY;
+	
 	field *dstReposX;	//Used to advect everything else once....
 	field *dstReposY;
-	field *dstVelX;		//Most likely an initial velocity...
-	field *dstVelY;
 	
 	//Useful...
 	float timestep;
@@ -63,6 +58,8 @@ struct repos
 	field *reposY;
 	field *src;			//Source field
 	field *dst;			//Destination field
+	field *src2;
+	field *dst2;
 	
 	float timestep;
 	int clamp;			//Set to 1 to clamp

@@ -17,7 +17,7 @@
 //#define COHERENCE_TQ
 
 //Force sequential work with an underlying task queue (simplest)
-#define SEQUENTIAL
+//#define SEQUENTIAL
 
 #ifdef COHERENCE_TQ
 #ifndef COHERENCE_MUTEX

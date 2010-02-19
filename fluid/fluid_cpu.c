@@ -95,17 +95,11 @@ void fluidTaskCorrectorRepos(fluid *f)
 	f->m_fns[curFn].fn = fluid_advection_mccormack_repos;
 	f->m_fns[curFn].mode.mccormack_vel_repos.srcVelX = f->r_velocityX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.srcVelY = f->r_velocityY;
-	f->m_fns[curFn].mode.mccormack_vel_repos.srcAdvX = f->r_tmpVelX;
-	f->m_fns[curFn].mode.mccormack_vel_repos.srcAdvY = f->r_tmpVelY;
-	f->m_fns[curFn].mode.mccormack_vel_repos.srcErrVelX = f->r_reposX;
-	f->m_fns[curFn].mode.mccormack_vel_repos.srcErrVelY = f->r_reposY;
-	f->m_fns[curFn].mode.mccormack_vel_repos.dstVelX = f->r_velocityX;
-	f->m_fns[curFn].mode.mccormack_vel_repos.dstVelY = f->r_velocityY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposY = f->r_reposY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.timestep = f->m_timestep;
 	f->m_fns[curFn].times = /*NULL;//*/f->m_times + TIME_ADVECTION;
-	mpCTaskAdd(f->r_coherence, curFn, -1, 1, 0);
+	mpCTaskAdd(f->r_coherence, curFn, -ADVECT_DIST-1, ADVECT_DIST+1, 0);
 	
 	f->m_usedFunctions = curFn+1;
 }
@@ -129,6 +123,32 @@ void fluidTaskAdvectDensity(fluid *f)
 	
 	//In the future, this is true!
 	fluidSwap(field*, f->r_density, f->r_density_swap);
+}
+
+
+void fluidTaskAdvectVelocity(fluid *f)
+{
+	int curFn = f->m_usedFunctions;
+	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+	
+	f->m_fns[curFn].fn = fluid_reposVel;
+	f->m_fns[curFn].mode.repos.reposX = f->r_reposX;
+	f->m_fns[curFn].mode.repos.reposY = f->r_reposY;
+	f->m_fns[curFn].mode.repos.src = f->r_velocityX;
+	f->m_fns[curFn].mode.repos.dst = f->r_tmpVelX;
+	
+	f->m_fns[curFn].mode.repos.src2 = f->r_velocityY;
+	f->m_fns[curFn].mode.repos.dst2 = f->r_tmpVelY;
+	
+	f->m_fns[curFn].times = /*NULL;//*/ f->m_times + TIME_ADVECTION;
+	
+	mpCTaskAdd(f->r_coherence, curFn, -ADVECT_DIST-1, ADVECT_DIST+1, 0);
+	
+	f->m_usedFunctions = curFn+1;
+	
+	//In the future, this is true!
+	fluidSwap(field*, f->r_velocityX, f->r_tmpVelX);
+	fluidSwap(field*, f->r_velocityY, f->r_tmpVelY);
 }
 
 
@@ -621,10 +641,11 @@ void fluidAdvance_cpu(fluid *in_f)
 	
 	/*fluidTaskAddNptForwardAdvection(in_f);
 	fluidTaskAdvectDensity(in_f);/**/
-	fluidTaskAddForwardAdvection(in_f);
-	fluidTaskAddBackwardAdvection(in_f);
+	//fluidTaskAddForwardAdvection(in_f);	//DEPRECATED!
+	//fluidTaskAddBackwardAdvection(in_f);	//DEPRECATED!
 	fluidTaskCorrectorRepos(in_f);
-	fluidTaskAdvectDensity(in_f);/**/
+	fluidTaskAdvectDensity(in_f);
+	fluidTaskAdvectVelocity(in_f);/**/
 	/*fluidAdvectionForwardVel(in_f);
 	fluidAdvectionForwardDens(in_f);/**/
 	/*fluidAdvectionForwardGenRepos(in_f);

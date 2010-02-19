@@ -482,8 +482,6 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 #ifdef __APPLE_ALTIVEC__
 		int x;
 		
-		vector float vNegNine = {-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST};
-		vector float vNine = {ADVECT_DIST,ADVECT_DIST,ADVECT_DIST,ADVECT_DIST};
 		vector float vZero = {0,0,0,0};
 		
 		vector float *vVelX = (vector float*)fluidFloatPointer(velX,y*sy);
@@ -505,8 +503,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = vec_and(tmp, leftMask);
 			tmp = vec_sub(vVelX[0], tmp);
 			
-			tmp = vec_min(tmp, vNine);
-			vVelX[0] = vec_max(tmp, vNegNine);
+			vVelX[0] = tmp;
 		}
 		for (x=1; x<w-1; x++)
 		{
@@ -516,8 +513,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			vector float tmp = vec_sub(sl, sr);
 			tmp = vec_sub(vVelX[x], tmp);
 			
-			tmp = vec_min(tmp, vNine);
-			vVelX[x] = vec_max(tmp, vNegNine);
+			vVelX[x] = tmp;
 		}
 		{
 			vector float sl = vec_sld(vPressure[x], vZero, 4);
@@ -527,8 +523,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = vec_and(tmp, rightMask);
 			tmp = vec_sub(vVelX[x], tmp);
 			
-			tmp = vec_min(tmp, vNine);
-			vVelX[x] = vec_max(tmp, vNegNine);
+			vVelX[x] = tmp;
 		}
 		
 		{			
@@ -536,24 +531,21 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			tmp = vec_and(tmp, leftMask);
 			tmp = vec_sub(vVelY[0], tmp);
 			
-			tmp = vec_min(tmp, vNine);
-			vVelY[0] = vec_max(tmp, vNegNine);
+			vVelY[0] = tmp;
 		}
 		for (x=1; x<w-1; x++)
 		{			
 			vector float tmp = vec_sub(vPressureN[x], vPressureP[x]);
 			tmp = vec_sub(vVelY[x], tmp);
 			
-			tmp = vec_min(tmp, vNine);
-			vVelY[x] = vec_max(tmp, vNegNine);
+			vVelY[x] = tmp;
 		}
 		{			
 			vector float tmp = vec_sub(vPressureN[x], vPressureP[x]);
 			tmp = vec_and(tmp, rightMask);
 			tmp = vec_sub(vVelY[x], tmp);
 			
-			tmp = vec_min(tmp, vNine);
-			vVelY[x] = vec_max(tmp, vNegNine);
+			vVelY[x] = tmp;
 		}
 #elif defined __SSE3__
 		int x;
@@ -580,8 +572,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		__m128 tmp ## n = _mm_sub_ps(sl ## n, sr ## n);		\
 		tmp ## n = _mm_sub_ps(vVelX[x+n], tmp ## n);		\
 															\
-		vVelX[x+n] = _mm_max_ps(tmp ## n, vNegNine);		\
-		vVelX[x+n] = _mm_min_ps(vVelX[x+n], vNine);
+		vVelX[x+n] = tmp ## n
 		
 		{
 			__m128 sl = _mm_srli_sf128(vPressure[0], 4);
@@ -623,10 +614,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			
 			__m128i mask = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFF00000000};
 			__m128 tmp = _mm_sub_ps(sl, sr);
-			tmp = _mm_sub_ps(vVelX[x], _mm_and_ps((__m128)mask,tmp));
-			
-			vVelX[x] = _mm_max_ps(tmp, vNegNine);
-			vVelX[x] = _mm_min_ps(vVelX[x], vNine);
+			vVelX[x] = _mm_sub_ps(vVelX[x], _mm_and_ps((__m128)mask,tmp));
 		}
 		
 #define SSE_PRESSURE_Y_PRE(n)												\
@@ -634,8 +622,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		tmp ## n = _mm_sub_ps(vVelY[x+n], tmp ## n);
 
 #define SSE_PRESSURE_Y_POST(n)												\
-		vVelY[x+n] = _mm_max_ps(tmp ## n, vNegNine);						\
-		vVelY[x+n] = _mm_min_ps(vVelY[x+n], vNine);
+		vVelY[x+n] = tmp ## n;
 		
 		
 		{			
@@ -656,10 +643,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		{			
 			__m128 tmp = _mm_sub_ps(vPressureN[x], vPressureP[x]);
 			__m128i mask = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFF00000000};
-			tmp = _mm_sub_ps(vVelY[x], _mm_and_ps((__m128)mask,tmp));
-			
-			vVelY[x] = _mm_max_ps(tmp, vNegNine);
-			vVelY[x] = _mm_min_ps(vVelY[x], vNine);
+			vVelY[x] = _mm_sub_ps(vVelY[x], _mm_and_ps((__m128)mask,tmp));
 		}
 #else
 		int sx = fieldStrideX(p->velX);
@@ -671,19 +655,12 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 						- *fluidFloatPointer(pressure,(x-1)*sx+y*sy);
 			
 			
-			*fluidFloatPointer(velX,x*sx + y*sy)
-				= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-ADVECT_DIST,ADVECT_DIST);
-			
-			
 		}
 		for (x=1; x<w-1; x++)
 		{
 			*fluidFloatPointer(velY,x*sx + y*sy)
 				-= *fluidFloatPointer(pressure,x*sx+(y+1)*sy)
 					- *fluidFloatPointer(pressure,x*sx+(y-1)*sy);
-			
-			*fluidFloatPointer(velY,x*sx + y*sy)
-				= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-ADVECT_DIST,ADVECT_DIST);
 		}
 #endif
 	}
