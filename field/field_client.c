@@ -300,7 +300,7 @@ field *fieldClientLock(fieldClient *fc)
 	{
 		fc->allSent = fc->allSent + 1;
 		
-		if (fc->allSent == 100)
+		if (fc->allSent >= 5000 && rand()%100 == 50)
 		{
 			fc->allSent = 10;
 			x_pthread_cond_signal(&fc->cnd);
