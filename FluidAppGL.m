@@ -161,7 +161,7 @@ void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(SIMW,SIMH);
-	fluidEnableCL(r_fluid);
+	//fluidEnableCL(r_fluid);
 	r_network = fluidServerCreate(r_fluid);
 	
 	glGenTextures(1, &r_texture);

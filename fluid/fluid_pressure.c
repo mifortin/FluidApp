@@ -550,9 +550,6 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 #elif defined __SSE3__
 		int x;
 		
-		__m128 vNegNine = {-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST};
-		__m128 vNine = {ADVECT_DIST,ADVECT_DIST,ADVECT_DIST,ADVECT_DIST};
-		
 		__m128 *vVelX = (__m128*)fluidFloatPointer(velX,y*sy);
 		__m128 *vVelY = (__m128*)fluidFloatPointer(velY,y*sy);
 		__m128 *vPressureN = (__m128*)fluidFloatPointer(pressure,(y+1)*sy);
@@ -581,11 +578,10 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 sr = _mm_slli_sf128(vPressure[0], 4);
 			
 			__m128 tmp = _mm_sub_ps(sl, sr);
-			__m128i mask = {0x00000000FFFFFFFF,0xFFFFFFFFFFFFFFFF};
+			__v4si mask = {0x00000000, 0xFFFFFFFF,0xFFFFFFFF, 0xFFFFFFFF};
 			tmp = _mm_sub_ps(vVelX[0], _mm_and_ps((__m128)mask,tmp));
 			
-			vVelX[0] = _mm_max_ps(tmp, vNegNine);
-			vVelX[0] = _mm_min_ps(vVelX[0], vNine);
+			vVelX[0] = tmp;
 		}
 		x=1;
 		while(x<w-5)
@@ -612,7 +608,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 			__m128 sr = _mm_slli_sf128(vPressure[x], 4);
 			sr = _mm_add_ps(sr, _mm_srli_sf128(vPressure[x-1], 12));
 			
-			__m128i mask = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFF00000000};
+			__v4si mask = {0xFFFFFFFF,0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 			__m128 tmp = _mm_sub_ps(sl, sr);
 			vVelX[x] = _mm_sub_ps(vVelX[x], _mm_and_ps((__m128)mask,tmp));
 		}
@@ -627,11 +623,10 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		{			
 			__m128 tmp = _mm_sub_ps(vPressureN[0], vPressureP[0]);
-			__m128i mask = {0x00000000FFFFFFFF,0xFFFFFFFFFFFFFFFF};
+			__v4si mask = {0x00000000, 0xFFFFFFFF,0xFFFFFFFF, 0xFFFFFFFF};
 			tmp = _mm_sub_ps(vVelY[0], _mm_and_ps((__m128)mask,tmp));
 			
-			vVelY[0] = _mm_max_ps(tmp, vNegNine);
-			vVelY[0] = _mm_min_ps(vVelY[0], vNine);
+			vVelY[0] = tmp;
 		}
 		x=1;
 		while(x<w-1)
@@ -642,7 +637,7 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		}
 		{			
 			__m128 tmp = _mm_sub_ps(vPressureN[x], vPressureP[x]);
-			__m128i mask = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFF00000000};
+			__v4si mask = {0xFFFFFFFF,0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 			vVelY[x] = _mm_sub_ps(vVelY[x], _mm_and_ps((__m128)mask,tmp));
 		}
 #else
