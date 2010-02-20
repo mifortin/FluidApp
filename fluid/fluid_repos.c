@@ -3,21 +3,14 @@
  *  FluidApp
  */
 
-#ifdef __SSE3__
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#include <pmmintrin.h>
-//#undef __SSE3__
-#endif
+#include "x_simd.h"
 
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 #include <math.h>
 
-#ifdef CELL
-#include "altivec.h"
-#endif
+
 
 //Simple repositioning of the data
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
@@ -231,5 +224,67 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		}
 	}
 #endif
+}
+
+void fluid_reposVel(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct repos *data = &mode->repos;
+	
+	int x;
+	int w = fieldWidth(data->reposX);
+	int sX = fieldStrideX(data->reposX);
+	int sY = fieldStrideY(data->reposX);
+	
+	int dX = fieldStrideX(data->src);
+	int dY = fieldStrideY(data->src);
+	
+	float *reposX = fieldData(data->reposX);
+	float *reposY = fieldData(data->reposY);
+	float *srcX = fieldData(data->src);
+	float *dstX = fieldData(data->dst);
+	float *srcY = fieldData(data->src2);
+	float *dstY = fieldData(data->dst2);
+	
+	for (x=0; x<w; x++)
+	{
+		float fReposX = fluidFloatPointer(reposX, x*sX + y*sY)[0];
+		float fReposY = fluidFloatPointer(reposY, x*sX + y*sY)[0];
+		
+		float *fDstX = fluidFloatPointer(dstX, x*dX + y*dY);
+		float *fDstY = fluidFloatPointer(dstY, x*dX + y*dY);
+		
+		int inBackX = (int)fReposX;
+		int inBackY = (int)fReposY;
+		
+		float nBackX = (float)(inBackX);
+		float nBackY = (float)(inBackY);
+		
+		float scaleX = fReposX - nBackX;
+		float scaleY = fReposY - nBackY;
+		
+		int offBackX = inBackX * dX;
+		int offBackY = inBackY * dY;
+		int offX2 = offBackX + dX;
+		int offY2 = offBackY + dY;
+		
+		float *bZZ = fluidFloatPointer(srcX, offBackX + offBackY);
+		float *bOZ = fluidFloatPointer(srcX, offX2 + offBackY);
+		float *bZO = fluidFloatPointer(srcX, offBackX + offY2);
+		float *bOO = fluidFloatPointer(srcX, offX2 + offY2);
+		
+		//For each component, do standard advection!
+		fDstX[0] = fluidLinearInterpolation(scaleX, scaleY,
+										bZZ[0], bOZ[0], bZO[0], bOO[0]);
+		
+		
+		bZZ = fluidFloatPointer(srcY, offBackX + offBackY);
+		bOZ = fluidFloatPointer(srcY, offX2 + offBackY);
+		bZO = fluidFloatPointer(srcY, offBackX + offY2);
+		bOO = fluidFloatPointer(srcY, offX2 + offY2);
+		
+		//For each component, do standard advection!
+		fDstY[0] = fluidLinearInterpolation(scaleX, scaleY,
+										bZZ[0], bOZ[0], bZO[0], bOO[0]);
+	}
 }
 

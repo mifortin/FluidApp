@@ -28,17 +28,9 @@
 }
 
 
-void FluidAppGLOnConnect(void *obj, netServer*ns)
+- (void)onServerFail:(netServer*)ns
 {
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onServerConnect:)
-									 withObject:nil waitUntilDone:NO]; 
-}
-
-
-void FluidAppGLOnDisconnect(void *obj, netServer*ns)
-{
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onServerDisconnect:)
-									 withObject:nil waitUntilDone:NO];
+	[ib_serverController setStatus:FluidServerStatusFail forServer:1];
 }
 
 
@@ -54,55 +46,9 @@ void FluidAppGLOnDisconnect(void *obj, netServer*ns)
 }
 
 
-void FluidAppGLOnVelConnect(void *obj, netServer*ns)
+- (void)onVelServerFail:(netServer*)ns
 {
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerConnect:)
-									 withObject:nil waitUntilDone:NO]; 
-}
-
-
-void FluidAppGLOnVelDisconnect(void *obj, netServer*ns)
-{
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerDisconnect:)
-									 withObject:nil waitUntilDone:NO];
-}
-
-
-- (void)createDensityServerOnPort:(int)in_port
-{
-	x_try
-	{
-		[ib_serverController setStatus:FluidServerStatusPending forServer:1];
-		r_densityServer = fieldServerCreateChar(SIMW, SIMH, 4, in_port);
-		netServerDelegate d = {self, FluidAppGLOnConnect, FluidAppGLOnDisconnect};
-		fieldServerSetDelegate(r_densityServer, &d);
-	}
-	x_catch(e)
-	{
-		[ib_serverController setStatus:FluidServerStatusFail forServer:1];
-		errorListAdd(e);
-	}
-	x_finally
-	{}
-}
-
-
-- (void)createVelocityServerOnPort:(int)in_port
-{
-	x_try
-	{
-		[ib_serverController setStatus:FluidServerStatusPending forServer:0];
-		r_velocityServer = fieldServerCreateFloat(SIMW, SIMH, 2, in_port);
-		netServerDelegate d = {self, FluidAppGLOnVelConnect, FluidAppGLOnVelDisconnect};
-		fieldServerSetDelegate(r_velocityServer, &d);
-	}
-	x_catch(e)
-	{
-		[ib_serverController setStatus:FluidServerStatusFail forServer:0];
-		errorListAdd(e);
-	}
-	x_finally
-	{}
+	[ib_serverController setStatus:FluidServerStatusFail forServer:0];
 }
 
 
@@ -116,33 +62,6 @@ void FluidAppGLOnVelDisconnect(void *obj, netServer*ns)
 	[ib_clientController setStatus:FluidClientStatusFail forClient:1];
 }
 
-
-void FluidAppGLOnClientConnect(void *obj, fieldClient *fc)
-{
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onClientConnect:)
-									 withObject:nil waitUntilDone:NO]; 
-}
-
-
-void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
-{
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onClientDisconnect:)
-									 withObject:nil waitUntilDone:NO]; 
-}
-
-
-- (void)createDensityClientToHost:(NSString*)in_host port:(int)in_port
-{
-	const char *c = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
-	
-	[ib_clientController setStatus:FluidClientStatusFail forClient:1];
-	r_densityClient = fieldClientCreateChar(SIMW,SIMH,4,c,in_port);
-	
-	fieldClientDelegate d = {self, FluidAppGLOnClientConnect,
-								FluidAppGLOnClientDisconnect};
-	fieldClientSetDelegate(r_densityClient, &d);
-}
-
 - (void)onVelClientConnect:(fieldClient*)fc
 {
 	[ib_clientController setStatus:FluidClientStatusGood forClient:0];
@@ -154,29 +73,86 @@ void FluidAppGLOnClientDisconnect(void *obj, fieldClient *fc)
 }
 
 
-void FluidAppGLOnVelClientConnect(void *obj, fieldClient *fc)
+void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 {
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelClientConnect:)
+	switch (msg & FLUIDSERVER_SRC_MASK)
+	{
+	case FLUIDSERVER_VEL_SERVER:
+		switch (msg & FLUIDSERVER_STAT_MASK)
+		{
+		case FLUIDSERVER_SUCCESS:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerConnect:)
 									 withObject:nil waitUntilDone:NO]; 
-}
-
-
-void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
-{
-	[(NSObject*)obj performSelectorOnMainThread:@selector(onVelClientDisconnect:)
+			break;
+			
+		case FLUIDSERVER_PENDING:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerDisconnect:)
+									 withObject:nil waitUntilDone:NO];
+			break;
+			
+		case FLUIDSERVER_FAIL:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerFail:)
+									 withObject:nil waitUntilDone:NO];
+			break;
+		}
+		break;
+	
+	case FLUIDSERVER_DENS_SERVER:
+		switch (msg & FLUIDSERVER_STAT_MASK)
+		{
+		case FLUIDSERVER_SUCCESS:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onServerConnect:)
 									 withObject:nil waitUntilDone:NO]; 
-}
-
-- (void)createVelocityClientToHost:(NSString*)in_host port:(int)in_port
-{
-	const char *c = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
+			break;
+			
+		case FLUIDSERVER_PENDING:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onServerDisconnect:)
+									 withObject:nil waitUntilDone:NO];
+			break;
+			
+		case FLUIDSERVER_FAIL:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onVelServerFail:)
+									 withObject:nil waitUntilDone:NO];
+			break;
+		}
+		break;
+		
+	case FLUIDSERVER_VEL_CLIENT:
+		switch (msg & FLUIDSERVER_STAT_MASK)
+		{
+		case FLUIDSERVER_SUCCESS:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onVelClientConnect:)
+									 withObject:nil waitUntilDone:NO]; 
+			break;
+			
+		case FLUIDSERVER_PENDING:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onVelClientDisconnect:)
+									 withObject:nil waitUntilDone:NO]; 
+			break;
+			
+		case FLUIDSERVER_FAIL:
+			break;
+		}
+		break;
 	
-	[ib_clientController setStatus:FluidClientStatusFail forClient:0];
-	r_velocityClient = fieldClientCreateFloat(SIMW,SIMH,2,c,in_port);
-	
-	fieldClientDelegate d = {self, FluidAppGLOnVelClientConnect,
-								FluidAppGLOnVelClientDisconnect};
-	fieldClientSetDelegate(r_velocityClient, &d);
+	case FLUIDSERVER_DENS_CLIENT:
+		switch (msg & FLUIDSERVER_STAT_MASK)
+		{
+		case FLUIDSERVER_SUCCESS:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onClientConnect:)
+									 withObject:nil waitUntilDone:NO]; 
+			break;
+			
+		case FLUIDSERVER_PENDING:
+			[(NSObject*)obj performSelectorOnMainThread:@selector(onClientDisconnect:)
+									 withObject:nil waitUntilDone:NO]; 
+			break;
+			
+		case FLUIDSERVER_FAIL:
+			break;
+		}
+		break;
+	}
 }
 
 
@@ -186,14 +162,15 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(SIMW,SIMH);
 	fluidEnableCL(r_fluid);
-	[self createDensityClientToHost:@"127.0.0.1" port:3636];
-	[self createVelocityClientToHost:@"127.0.0.1" port:3535];
+	r_network = fluidServerCreate(r_fluid);
+	
 	glGenTextures(1, &r_texture);
 	glBindTexture(GL_TEXTURE_2D, r_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SIMW, SIMH, 0,
 				 GL_RGBA, GL_UNSIGNED_BYTE, fieldCharData(fluidVideoOut(r_fluid)));
-	[self createVelocityServerOnPort:2525];
-	[self createDensityServerOnPort:2626];
+	
+	r_messenger = fluidMessengerCreate(r_fluid, r_network);
+	fluidServerSetDelegate(r_network, self, FluidAppGLNetworkDelegate);
 }
 
 
@@ -202,11 +179,9 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	glDeleteTextures(1, &r_texture);
-	x_free(r_densityServer);
-	x_free(r_velocityServer);
-	x_free(r_densityClient);
-	x_free(r_velocityClient);
+	x_free(r_network);
 	x_free(r_fluid);
+	x_free(r_messenger);
 	
 	if (work_buff)	free(work_buff);
 	
@@ -443,26 +418,16 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 			src_b = [FluidTools B];
 		}
 		
-		fieldClientSend(r_densityClient, fluidVideoOut(r_fluid));
-	
-		field *tmp = fieldServerLock(r_densityServer);
-		field *velTmp = fieldServerLock(r_velocityServer);
-		field *outVel = fieldClientLock(r_velocityClient);
+		fluidServerDensityBlend(r_network, [ib_serverController blendForServer:1]);
+		fluidServerVelocityBlend(r_network, [ib_serverController blendForServer:0]);
+		fluidServerOnFrame(r_network);
 		
-		if (outVel)
-			fluidVideoVelocityOut(r_fluid, outVel);
-		
-		if ([ib_serverController serverConnected:1])
-			fluidVideoBlendIn(r_fluid, tmp, [ib_serverController blendForServer:1]);
-		
-		if ([ib_serverController serverConnected:0])
-			fluidVelocityBlendIn(r_fluid, velTmp, [ib_serverController blendForServer:0]);
-		fluidAdvance(r_fluid);
-		
-		if (outVel)
-			fieldClientUnlock(r_velocityClient);
-		fieldServerUnlock(r_velocityServer);
-		fieldServerUnlock(r_densityServer);
+		//Now process any commands as needed...
+		fieldMsg *m;
+		while (m = fluidServerNextMessage(r_network))
+		{
+			fluidMessengerHandleMessage(r_messenger, m);
+		}
 	}
 	x_catch(e)
 		errorListAdd(e);
@@ -614,28 +579,32 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 {
 	if (in_serv == 1)
 	{
-		x_free(r_densityServer);
-		[self createDensityServerOnPort:in_port];
+		fluidServerDensityServer(r_network, in_port);
 	}
 	else if (in_serv == 0)
 	{
-		x_free(r_velocityServer);
-		[self createVelocityServerOnPort:in_port];
+		fluidServerVelocityServer(r_network, in_port);
 	}
 }
 
 - (void)onAlterClient:(int)in_client host:(NSString*)in_host port:(int)in_port
 {
+	const char *szHost = [in_host cStringUsingEncoding:NSASCIIStringEncoding];
+
 	if (in_client == 1)
 	{
-		x_free(r_densityClient);
-		[self createDensityClientToHost:in_host port:in_port];
+		fluidServerDensityClient(r_network, szHost, in_port);
 	}
 	else if (in_client == 0)
 	{
-		x_free(r_velocityClient);
-		[self createVelocityClientToHost:in_host port:in_port];
+		fluidServerVelocityClient(r_network, szHost, in_port);
 	}
+}
+
+
+- (void)addHandler:(fluidMessengerHandler)h forObject:(void*)obj
+{
+	fluidMessengerAddHandler(r_messenger, h, obj);
 }
 
 @end

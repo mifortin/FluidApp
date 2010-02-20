@@ -108,7 +108,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_blocker = mpQueueCreate(2);
 	
 	//NOTE: Make this configurable????
-	toRet->r_coherence = mpCCreate(in_height, 128, 512);
+	toRet->r_coherence = mpCCreate(in_height, 128, 1024);
 	
 	toRet->m_curField = 0;
 	
@@ -126,6 +126,9 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->m_ambient = 0.0f;
 	toRet->m_gravityX = 0;
 	toRet->m_gravityY = -1.0f;
+	
+	toRet->m_velWidth = in_width;
+	toRet->m_velHeight = in_height;
 	
 	toRet->accelerator = ACCEL_CPU;
 	
@@ -242,27 +245,27 @@ field *fluidVelocityY(fluid *in_f)
 
 float fluidAdvectionTime(fluid *f)
 {
-	return (float)f->m_times[TIME_ADVECTION]/1000000;
+	return (float)f->m_times[TIME_ADVECTION]/1000000.0f;
 }
 
 float fluidPressureTime(fluid *f)
 {
-	return (float)f->m_times[TIME_PRESSURE]/1000000;
+	return (float)f->m_times[TIME_PRESSURE]/1000000.0f;
 }
 
 float fluidViscosityTime(fluid *f)
 {
-	return (float)f->m_times[TIME_VISCOSITY]/1000000;
+	return (float)f->m_times[TIME_VISCOSITY]/1000000.0f;
 }
 
 float fluidVorticityTime(fluid *f)
 {
-	return (float)f->m_times[TIME_VORTICITY]/1000000;
+	return (float)f->m_times[TIME_VORTICITY]/1000000.0f;
 }
 
 float fluidThreadSchedulerTime(fluid *f)
 {
-	return (float)f->m_times[TIME_TASKSCHED]/1000000;
+	return (float)f->m_times[TIME_TASKSCHED]/1000000.0f;
 }
 
 field *fluidVideoOut(fluid *in_f)
@@ -278,4 +281,21 @@ void fluidEnableCPU(fluid *in_f)
 void fluidEnableCL(fluid *in_f)
 {
 	in_f->accelerator = ACCEL_GPU;
+}
+
+
+void fluidVideoVelocityOutSize(fluid *f, int w, int h)
+{
+	f->m_velWidth = w;
+	f->m_velHeight = h;
+}
+
+int fluidWidth(fluid *in_f)
+{
+	return fieldWidth(in_f->r_density);
+}
+
+int fluidHeight(fluid *in_f)
+{
+	return fieldHeight(in_f->r_density);
 }

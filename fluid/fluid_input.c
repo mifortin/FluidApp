@@ -36,6 +36,38 @@ void fluid_input_char2dens(fluid *in_f, int y, pvt_fluidMode *mode)
 }
 
 
+void fluid_input_char2dens_scale(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct video *v = &mode->video;
+	
+	int w = fieldWidth(v->f);
+	
+	int in_w = fieldWidth(v->o);
+	int in_h = fieldHeight(v->o);
+	
+	int out_h = fieldWidth(v->f);
+	int in_y = y * in_h / out_h;
+	
+	float *f = fluidFloatPointer(fieldData(v->f),y*fieldStrideY(v->f));
+	int c = fieldComponents(v->f);
+	unsigned char *o = fieldCharData(v->o) + in_y*fieldStrideY(v->o);
+	
+	int x, x2;
+	for (x=0; x<w; x++)
+	{
+		int in_x = x * in_w / w;
+		
+		for (x2=0; x2< c; x2++)
+		{
+			float k = o[c*in_x+x2];
+			k/=255.0f;
+			
+			f[c*x+x2] = f[c*x+x2]*v->scale + (1-v->scale)*k;
+		}
+	}
+}
+
+
 void fluid_input_float2vel(fluid *in_f, int y, pvt_fluidMode *mode)
 {
 	struct velocityIO *v = &mode->velocityIO;
@@ -62,5 +94,52 @@ void fluid_input_float2vel(fluid *in_f, int y, pvt_fluidMode *mode)
 	{
 		t.i = ntohl(((int*)fVelIn)[2*x+1]);
 		fVelY[x] += t.f * v->scale;
+	}
+}
+
+void fluid_input_float2vel_scale(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct velocityIO *v = &mode->velocityIO;
+	
+	int w = fieldWidth(v->velX);
+	
+	int in_w = fieldWidth(v->velIn);
+	int in_h = fieldHeight(v->velIn);
+	
+	int out_h = fieldWidth(v->velY);
+	int in_y = y * in_h / out_h;
+	
+	
+	float *fVelX = fluidFloatPointer(fieldData(v->velX),y*fieldStrideY(v->velX));
+	float *fVelY = fluidFloatPointer(fieldData(v->velY),y*fieldStrideY(v->velY));
+	float *fVelIn = fluidFloatPointer(fieldData(v->velIn),in_y*fieldStrideY(v->velIn));
+	
+	
+	union {
+		float f;
+		int i;
+	} t;
+	
+	int x;
+	for (x=0; x<w; x++)
+	{
+		int in_x = x * in_w / w;
+		t.i = ntohl(((int*)fVelIn)[2*in_x]);
+		fVelX[x] += t.f * v->scale;
+		
+		//if (isnan(t.f) || isinf(t.f))
+		//	printf("INF/NAN X:%i %i = %f\n", in_x, in_y, t.f);
+		//fVelX[x] = fluidClamp(fVelX[x], -ADVECT_DIST, ADVECT_DIST);
+	}
+	
+	for (x=0; x<w; x++)
+	{
+		int in_x = x * in_w / w;
+		t.i = ntohl(((int*)fVelIn)[2*in_x+1]);
+		fVelY[x] += t.f * v->scale;
+		
+		//if (isnan(t.f) || isinf(t.f))
+		//	printf("INF/NAN Y:%i %i = %f\n", in_x, in_y, t.f);
+		//fVelY[x] = fluidClamp(fVelY[x], -ADVECT_DIST, ADVECT_DIST);
 	}
 }

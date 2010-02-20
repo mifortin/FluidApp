@@ -17,6 +17,7 @@ void fieldServerFree(void *i)
 	pthread_mutex_lock(&r->mtx);
 	r->server = NULL;
 	x_pthread_cond_signal(&r->cnd);
+	x_pthread_cond_signal(&r->cndMsg);
 	pthread_mutex_unlock(&r->mtx);
 	
 	if (ns)		x_free(ns);
@@ -25,7 +26,17 @@ void fieldServerFree(void *i)
 	if (r->fld_local)	x_free(r->fld_local);
 	
 	pthread_cond_destroy(&r->cnd);
+	pthread_cond_destroy(&r->cndMsg);
 	pthread_mutex_destroy(&r->mtx);
+	
+	if (r->msg_loop[0])		x_free(r->msg_loop[0]);
+	if (r->msg_loop[1])		x_free(r->msg_loop[1]);
+	if (r->msg_loop[2])		x_free(r->msg_loop[2]);
+	if (r->msg_loop[3])		x_free(r->msg_loop[3]);
+	if (r->msg_loop[4])		x_free(r->msg_loop[4]);
+	if (r->msg_loop[5])		x_free(r->msg_loop[5]);
+	if (r->msg_loop[6])		x_free(r->msg_loop[6]);
+	if (r->msg_loop[7])		x_free(r->msg_loop[7]);
 }
 
 
@@ -33,6 +44,9 @@ int fieldServerOnConnect(void *i, netServer *s, netClient *c)
 {
 	fieldServer *r = (fieldServer*)i;
 	struct fieldServerJitHeader header;
+	
+	double prevTime;		//Store times (no manipulation == easier!)
+	int hasLatency = 0;		//Set to 1 after first matrix arrives.
 	
 nextPacket:
 	netClientGetBinary(c, &header, sizeof(header), 10);
@@ -42,7 +56,6 @@ nextPacket:
 	{
 		struct fieldServerJitLatency latency;
 		latency.id = htonl('JMLP');
-		latency.parsed_header = x_time()*1000;
 		
 		//printf("FieldServer: Jitter Matrix!\n");
 		struct fieldServerJitMatrix matrixInfo;
@@ -90,6 +103,8 @@ nextPacket:
 		else
 			sizeOfData = 1;
 
+		//Attempt to resize the field
+		fieldResize(r->fld_net, matrixInfo.dim[0], matrixInfo.dim[1]);
 		
 		//Loop over and receive!!!
 		if (matrixInfo.dimCount == 2
@@ -103,6 +118,20 @@ nextPacket:
 						matrixInfo.dim[0]*matrixInfo.dim[1]*
 						matrixInfo.planeCount*sizeOfData)
 		{
+			
+			pthread_mutex_lock(&r->mtx);
+			while (r->needSwap == 1)
+			{
+				x_pthread_cond_wait(&r->cnd, &r->mtx);
+				
+				if (r->server == NULL)
+				{
+					pthread_mutex_unlock(&r->mtx);
+					return 0;
+				}
+			}
+			pthread_mutex_unlock(&r->mtx);
+		
 			//printf(" - OPTIMAL!\n");
 			float *d = fieldData(r->fld_net);
 			
@@ -115,32 +144,35 @@ nextPacket:
 				pthread_mutex_unlock(&r->mtx);
 				return 0;
 			}
-			x_pthread_cond_wait(&r->cnd, &r->mtx);
-			
-			if (r->server == NULL)
-			{
-				pthread_mutex_unlock(&r->mtx);
-				return 0;
-			}
 			//printf("AWAKE!!\n");
 			pthread_mutex_unlock(&r->mtx);
 			
-			latency.client_time = matrixInfo.time;
-			latency.parsed_done = x_time()*1000;
-			
-			double diff = latency.parsed_header - matrixInfo.time;
-			
-			latency.parsed_header -= diff;
-			latency.parsed_done -= diff;
-			
-			diff = (latency.parsed_done-latency.parsed_header)/2;
-			latency.parsed_header += diff;
-			latency.parsed_done += diff;
-			
-			//printf("LATENCY (%f,%f,%f)\n",latency.client_time,
-			//							latency.parsed_done,
-			//							latency.parsed_header);
-			netClientSendBinary(c, &latency, sizeof(latency));
+			if (hasLatency == 0)
+			{
+				hasLatency = 1;
+				prevTime = matrixInfo.time;
+			}
+			else
+			{
+				latency.client_time = prevTime;
+				latency.parsed_header = matrixInfo.time;
+				latency.parsed_done = matrixInfo.time;
+				
+				/*double diff = latency.parsed_header - matrixInfo.time;
+				
+				latency.parsed_header -= diff;
+				latency.parsed_done -= diff;
+				
+				diff = (latency.parsed_done-latency.parsed_header)/2;
+				latency.parsed_header += diff;
+				latency.parsed_done += diff;*/
+				
+				//printf("LATENCY (%f,%f,%f)\n",latency.client_time,
+				//							latency.parsed_done,
+				//							latency.parsed_header);
+				netClientSendBinary(c, &latency, sizeof(latency));
+				prevTime = matrixInfo.time;
+			}
 			
 			goto nextPacket;
 		}
@@ -164,16 +196,67 @@ nextPacket:
 	}
 	else if (header.id == 'JMMP')
 	{
-		printf("FieldServer: Jitter Message!\n");
+		int rdMsg = 0;
+		pthread_mutex_lock(&r->mtx);
+		
+		while ((r->curWriteMsg + 2) % 8 == r->curReadMsg)
+		{
+			printf("FieldServer: MSG Stall\n");
+			x_pthread_cond_wait(&r->cndMsg, &r->mtx);
+			
+			if (r->server == NULL)
+			{
+				pthread_mutex_unlock(&r->mtx);
+				return 0;
+			}
+		}
+		//printf("FieldServer: MSG Pass\n");
+		
+		rdMsg = r->curWriteMsg;
+		
+		pthread_mutex_unlock(&r->mtx);
+		
+		fieldMsgReceive(r->msg_loop[rdMsg], c);
+		
+		pthread_mutex_lock(&r->mtx);
+		r->curWriteMsg = (r->curWriteMsg+1)%8;
+		pthread_mutex_unlock(&r->mtx);
+		
+		goto nextPacket;
 	}
 	else
 	{
-		printf("FieldServer: ERROR: Unknown Packet!\n");
+		char *cda = (char*)&header.id;
+		printf("FieldServer: ERROR: Unknown Packet '%c%c%c%c'!\n",cda[0],cda[1],
+				cda[2], cda[3]);
 		return 0;
 	}
 	
 	printf("FieldServer: Completed Processing!\n");
 	return 0;
+}
+
+
+void fieldServerFinishInit(fieldServer *r, int in_port)
+{
+	
+	pthread_mutex_init(&r->mtx, NULL);
+	x_pthread_cond_init(&r->cnd, NULL);
+	x_pthread_cond_init(&r->cndMsg, NULL);
+	
+	char szPort[64];
+	snprintf(szPort, 64, "%i", in_port);
+	
+	r->msg_loop[0] = fieldMsgCreate();
+	r->msg_loop[1] = fieldMsgCreate();
+	r->msg_loop[2] = fieldMsgCreate();
+	r->msg_loop[3] = fieldMsgCreate();
+	r->msg_loop[4] = fieldMsgCreate();
+	r->msg_loop[5] = fieldMsgCreate();
+	r->msg_loop[6] = fieldMsgCreate();
+	r->msg_loop[7] = fieldMsgCreate();
+	
+	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
 }
 
 
@@ -188,15 +271,9 @@ fieldServer *fieldServerCreateFloat(int in_width, int in_height,
 	r->fld_net = fieldCreate(in_width, in_height, in_components);
 	r->fld_local = fieldCreate(in_width, in_height, in_components);
 	
-	pthread_mutex_init(&r->mtx, NULL);
-	x_pthread_cond_init(&r->cnd, NULL);
-	
-	char szPort[64];
-	snprintf(szPort, 64, "%i", in_port);
-	
 	r->dataType = FIELD_JIT_FLOAT32;
 	
-	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
+	fieldServerFinishInit(r, in_port);
 	
 	return r;
 }
@@ -213,15 +290,9 @@ fieldServer *fieldServerCreateChar(int in_width, int in_height,
 	r->fld_net = fieldCreateChar(in_width, in_height, in_components);
 	r->fld_local = fieldCreateChar(in_width, in_height, in_components);
 	
-	pthread_mutex_init(&r->mtx, NULL);
-	x_pthread_cond_init(&r->cnd, NULL);
-	
-	char szPort[64];
-	snprintf(szPort, 64, "%i", in_port);
-	
 	r->dataType = FIELD_JIT_CHAR;
 	
-	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
+	fieldServerFinishInit(r, in_port);
 	
 	return r;
 }
@@ -250,6 +321,24 @@ void fieldServerUnlock(fieldServer *fs)
 		pthread_cond_signal(&fs->cnd);
 	}
 	pthread_mutex_unlock(&fs->mtx);
+}
+
+
+fieldMsg *fieldServerNextMessage(fieldServer *fs)
+{
+	if (fs == NULL)		return NULL;
+	
+	fieldMsg *toRet = NULL;
+	pthread_mutex_lock(&fs->mtx);
+	if (fs->curReadMsg != fs->curWriteMsg)
+	{
+		toRet = fs->msg_loop[fs->curReadMsg];
+		fs->curReadMsg = (fs->curReadMsg + 1)%8;
+		pthread_cond_signal(&fs->cndMsg);
+	}
+	pthread_mutex_unlock(&fs->mtx);
+	
+	return toRet;
 }
 
 

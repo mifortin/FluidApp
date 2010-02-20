@@ -18,6 +18,12 @@
 
 struct field
 {
+	union {
+		float *f;
+		int *i;
+		unsigned char *c;
+	} r_data;
+	
 	//Note - assume that everything is tightly packed.
 	//	(we have the assumption that everything's in order)
 	int m_width, m_height;
@@ -26,33 +32,38 @@ struct field
 	//In bytes  - forward looking - that's it!
 	int m_strideX, m_strideY;
 	
+	//Number (of bytes) we have allocated to store data
+	//	(allow for resize)
+	int m_allocatedBytes;
+	
 	//Flags
 	int m_flags;
-	
-	union {
-		float *f;
-		int *i;
-		unsigned char *c;
-	} r_data;
 };
 
 
 #define FIELDMSG_DATA	256
-#define FIELDMSG_LINKS	6
+#define FIELDMSG_LINKS	32
 
 struct fieldMsgLink
 {
-	char type;									//Type of data that we have
+	uint8_t type;								//Type of data that we have
 	union {
 		int iData;								//Integer data
 		float fData;							//Float data
-		const char szData[FIELDMSG_DATA];		//NULL-terminated string
+		char szData[FIELDMSG_DATA];				//NULL-terminated string
 	} data;
+}__attribute((packed));
+
+
+struct fieldServerJitMessage
+{
+	uint32_t	sizeInBytes;
+	uint32_t	numAtoms;
 };
 
 struct fieldMsg								//WARNING: LOTS OF UNALIGNED DATA!
 {
-	int numLinks;								//Number of links
+	struct fieldServerJitMessage header;		//Size + num links
 	char data[FIELDMSG_DATA];					//Data within the message
 	struct fieldMsgLink *links[FIELDMSG_LINKS];	//Links to the data (in data)
 };
@@ -66,10 +77,16 @@ struct fieldServer
 	netServer *server;		//Server that receives the field using MAX/Jitter
 							//protocol
 	
+	fieldMsg *msg_loop[8];	//Loops over messages from MAX/Jitter
+	
 	pthread_mutex_t	mtx;	//Simple mutex
 	pthread_cond_t cnd;		//Simple condition
+	pthread_cond_t cndMsg;	//Simple condition (for messages)
 	
 	int needSwap;		//Set to 1 when needed...
+	
+	int curReadMsg;		//Message being read
+	int curWriteMsg;	//Message being written
 	
 	int dataType;		//Type of data from Jitter that we can accept.
 };
@@ -129,5 +146,6 @@ struct fieldServerJitLatency
 	double parsed_header;
 	double parsed_done;
 };
+
 
 #endif

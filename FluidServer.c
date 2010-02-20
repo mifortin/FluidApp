@@ -21,66 +21,60 @@ volatile int tmp = 0;
 
 #define SERVER_PORT		"2045"
 
-double dTime()
-{
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	
-	return (double)t.tv_sec + ((double)t.tv_usec) / 1000000.0;
-}
-
-int onConnect(void *d, netServer *in_vr, netClient *in_remote)
-{
-	netInStream *s = netInStreamCreate(in_remote, 1024*1024*5);
-	
-	int x,ds;
-	double st = dTime();
-	for (x=0; x<100; x++)
-	{
-		void *dat;
-		while ((dat = netInStreamRead(s, &ds)) == NULL) {}
-		
-		//printf("%i: '%s'\n", x, (char*)dat);
-		
-		netInStreamDoneRead(s);
-	}
-	printf("DONE! %f \n\n", dTime() - st);
-	
-	return 0;
-}
-
+fluid *r_fluid;
+fluidServer *r_server;
+fluidMessenger *r_messenger;
 
 int main(int argc, char *argv[])
 {
 	x_init();			//Setup exception handling / memory management.
 	
 	x_try
-		mpInit(3);		//Start up enough threads for system
+		mpInit(4);		//Start up enough threads for system
 		
 		printf("\n\nFluid Server Launching\n");
+		r_fluid = fluidCreate(512, 512);
+		r_server = fluidServerCreate(r_fluid);
+		r_messenger = fluidMessengerCreate(r_fluid, r_server);
 		
-		netServer *server = netServerCreate(SERVER_PORT, NETS_TCP, NULL, onConnect);
-		printf("Server Launched\n");
-		
-		netClient *c = netClientCreate("localhost", SERVER_PORT, NETS_TCP);
-		netOutStream *s = netOutStreamCreate(c, 1024*1024*5);
-		
-		int x;
-		for (x=0; x<100; x++)
+		int done = 0;
+		while (!done)
 		{
-			void *d = netOutStreamBuffer(s, 1024*1024*2);
-			sprintf(d, "Testing %i",x);
-			netOutStreamSend(s);
+			fluidServerOnFrame(r_server);
+			
+			fieldMsg *m;
+			while (m = fluidServerNextMessage(r_server))
+			{
+				if (isFieldCharPtr(m, 0))
+				{
+					if (strcmp(fieldCharPtr(m, 0), "quit") == 0)
+					{
+						done = 1;
+						break;
+					}
+				}
+				
+				int i;
+				printf("Execute: ");
+				for (i=0; i<fieldMsgCount(m); i++)
+				{
+					if (isFieldCharPtr(m, i))
+						printf("%s ", fieldCharPtr(m, i));
+					else if (isFieldInt(m, i))
+						printf("%i ", fieldInt(m, i));
+					else if (isFieldFloat(m, i))
+						printf("%f ", fieldFloat(m, i));
+				}
+				printf("\n");
+				
+				fluidMessengerHandleMessage(r_messenger, m);
+			}
 		}
-		printf("SENT!\n\n");
 		
-		//Now stress the queue structure...
+		x_free(r_server);
+		x_free(r_messenger);
+		x_free(r_fluid);
 		
-		
-		x_free(server);		//This blocks the current thread waiting for other
-							//threads!
-		
-		fflush(stdout);
 		return 0;
 	x_catch(e)
 		printf("In Handler: %s\n", errorMsg(e));

@@ -127,7 +127,7 @@ reconnect:
 			struct fieldServerJitLatency latency;
 			netClientGetBinary(c, &latency, sizeof(latency), 10);
 			
-			if (htonl(latency.id) == 'JMLP')
+			if (latency.id == htonl('JMLP'))
 			{
 				//printf("LATENCY INFO:\n");
 				//printf(" - send: %f\n", latency.client_time);
@@ -300,7 +300,7 @@ field *fieldClientLock(fieldClient *fc)
 	{
 		fc->allSent = fc->allSent + 1;
 		
-		if (fc->allSent == 100)
+		if (fc->allSent >= 5000 && rand()%100 == 50)
 		{
 			fc->allSent = 10;
 			x_pthread_cond_signal(&fc->cnd);

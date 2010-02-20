@@ -43,14 +43,9 @@ struct mccormack_vel_repos
 {
 	field *srcVelX;		//Source velocities
 	field *srcVelY;
-	field *srcErrVelX;	//When we return back to the source
-	field *srcErrVelY;
-	field *srcAdvX;		//Original advected results
-	field *srcAdvY;
+	
 	field *dstReposX;	//Used to advect everything else once....
 	field *dstReposY;
-	field *dstVelX;		//Most likely an initial velocity...
-	field *dstVelY;
 	
 	//Useful...
 	float timestep;
@@ -63,6 +58,8 @@ struct repos
 	field *reposY;
 	field *src;			//Source field
 	field *dst;			//Destination field
+	field *src2;
+	field *dst2;
 	
 	float timestep;
 	int clamp;			//Set to 1 to clamp
@@ -85,6 +82,8 @@ struct viscosity
 	
 	float alpha;		//Improved thanks to Harris
 	float beta;
+	
+	int red;			//For red/black...
 };
 
 //Vorticity data...
@@ -273,6 +272,10 @@ struct fluid
 	
 	//If we want timing, we take some sort of performance penalty...
 	int32_t m_times[TIME_TOTAL];
+	
+	//Output size
+	int m_velWidth;
+	int m_velHeight;
 	
 	//GPGPU data...				//	(I/O)
 	GPUField *gpu_velX_in;

@@ -20,11 +20,14 @@ void fieldMsgReceive(fieldMsg *in_fm, netClient *in_client);
 int fieldMsgCount(fieldMsg *in_fm);
 int isFieldCharPtr(fieldMsg *in_fm, int in_fld);
 int isFieldInt(fieldMsg *in_fm, int in_fld);
-const char *fieldCharPtr(fieldMsg *in_fm);
-int fieldInt(fieldMsg *in_fm);
+int isFieldFloat(fieldMsg *in_fm, int in_fld);
+const char *fieldCharPtr(fieldMsg *in_fm, int in_fld);
+int fieldInt(fieldMsg *in_fm, int in_fld);
+float fieldFloat(fieldMsg *in_fm, int in_fld);
 
 void fieldMsgClear(fieldMsg *in_fm);
 void fieldMsgAddInt(fieldMsg *in_fm, int in_data);
+void fieldMsgAddFloat(fieldMsg *in_fm, float in_data);
 void fieldMsgAddChar(fieldMsg *in_fm, const char *in_ch);
 void fieldMsgSend(fieldMsg *in_fm, netClient *in_client);
 
@@ -47,6 +50,9 @@ field *fieldFromFloatData(float *in_data, int in_width, int in_height,
 int fieldWidth(field *in_f);
 int fieldHeight(field *in_f);
 int fieldComponents(field *in_f);
+
+//Resize the field
+void fieldResize(field *in_f, int newW, int newH);
 
 //These two are in bytes.  (distance between each Y and each X)
 int fieldStrideX(field *in_f);
@@ -72,6 +78,9 @@ field *fieldServerLock(fieldServer *fs);
 void fieldServerUnlock(fieldServer *fs);
 
 void fieldServerSetDelegate(fieldServer *fs, netServerDelegate *d);
+
+fieldMsg *fieldServerNextMessage(fieldServer *fs);
+
 
 //A field backed with a client (one buffer for send)
 typedef struct fieldClient fieldClient;

@@ -283,9 +283,6 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 		vector float smallValueRight = {0.001f, 0.001f, 0.001f, INFINITY};
 		vector float vE = {e,e,e,e};
 		
-		vector float vNegNine = {-9,-9,-9,-9};
-		vector float vNine = {9,9,9,9};
-		
 		vector float vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
 		vector float vZero = {0.0f, 0.0f, 0.0f, 0.0f};
 		
@@ -312,12 +309,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				dzdy = vec_and(dzdy, magMask);
 				
 				vVelX[0] = vec_madd(dzdy,vZ[0],vVelX[0]);
-				vVelX[0] = vec_max(vVelX[0], vNegNine);
-				vVelX[0] = vec_min(vVelX[0], vNine);
 				
 				vVelY[0] = vec_sub(vVelY[0],vec_madd(dzdx,vZ[0],vZero));
-				vVelY[0] = vec_max(vVelY[0], vNegNine);
-				vVelY[0] = vec_min(vVelY[0], vNine);
 			}
 		}
 		for (x=1; x<vW-1; x++)
@@ -344,12 +337,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				dzdy = vec_and(dzdy, magMask);
 				
 				vVelX[x] = vec_madd(dzdy,vZ[x],vVelX[x]);
-				vVelX[x] = vec_max(vVelX[x], vNegNine);
-				vVelX[x] = vec_min(vVelX[x], vNine);
 				
 				vVelY[x] = vec_sub(vVelY[x],vec_madd(dzdx,vZ[x],vZero));
-				vVelY[x] = vec_max(vVelY[x], vNegNine);
-				vVelY[x] = vec_min(vVelY[x], vNine);
 			}
 		}
 		{
@@ -375,12 +364,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				dzdy = vec_and(dzdy, magMask);
 				
 				vVelX[x] = vec_madd(dzdy,vZ[x],vVelX[x]);
-				vVelX[x] = vec_max(vVelX[x], vNegNine);
-				vVelX[x] = vec_min(vVelX[x], vNine);
 				
 				vVelY[x] = vec_sub(vVelY[x],vec_madd(dzdx,vZ[x],vZero));
-				vVelY[x] = vec_max(vVelY[x], vNegNine);
-				vVelY[x] = vec_min(vVelY[x], vNine);
 			}
 		}
 #elif defined __SSE3__
@@ -400,9 +385,6 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 		__m128 smallLeftValue = {INFINITY,0.001f, 0.001f, 0.001f};
 		__m128 smallRightValue = {0.001f, 0.001f, 0.001f, INFINITY};
 		__m128 vE = {e,e,e,e};
-		
-		__m128 vNegNine = {-9,-9,-9,-9};
-		__m128 vNine = {9,9,9,9};
 		
 		__m128 vHalf = {0.5f, 0.5f, 0.5f, 0.5f};
 
@@ -435,14 +417,10 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 		dzdy ## n = _mm_and_ps(dzdy ## n, magMask ## n);
 	
 #define SSE_VORT_X(n)														\
-		vVelX[x+n] = _mm_add_ps(vVelX[x+n],_mm_mul_ps(dzdy ## n,vZ[x+n]));	\
-		vVelX[x+n] = _mm_max_ps(vVelX[x+n], vNegNine);						\
-		vVelX[x+n] = _mm_min_ps(vVelX[x+n], vNine);
+		vVelX[x+n] = _mm_add_ps(vVelX[x+n],_mm_mul_ps(dzdy ## n,vZ[x+n]));
 		
 #define SSE_VORT_Y(n)														\
-		vVelY[x+n] = _mm_sub_ps(vVelY[x+n],_mm_mul_ps(dzdx ## n,vZ[x+n]));	\
-		vVelY[x+n] = _mm_max_ps(vVelY[x+n], vNegNine);						\
-		vVelY[x+n] = _mm_min_ps(vVelY[x+n], vNine);
+		vVelY[x+n] = _mm_sub_ps(vVelY[x+n],_mm_mul_ps(dzdx ## n,vZ[x+n]));
 		
 		{
 			__m128 sl = _mm_srli_sf128(vZ[0], 4);
@@ -467,12 +445,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				dzdy = _mm_and_ps(dzdy, magMask);
 				
 				vVelX[0] = _mm_add_ps(vVelX[0],_mm_mul_ps(dzdy,vZ[0]));
-				vVelX[0] = _mm_max_ps(vVelX[0], vNegNine);
-				vVelX[0] = _mm_min_ps(vVelX[0], vNine);
 				
 				vVelY[0] = _mm_sub_ps(vVelY[0],_mm_mul_ps(dzdx,vZ[0]));
-				vVelY[0] = _mm_max_ps(vVelY[0], vNegNine);
-				vVelY[0] = _mm_min_ps(vVelY[0], vNine);
 			}
 		}
 		x=1;
@@ -554,12 +528,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				dzdy = _mm_and_ps(dzdy, magMask);
 				
 				vVelX[x] = _mm_add_ps(vVelX[x],_mm_mul_ps(dzdy,vZ[x]));
-				vVelX[x] = _mm_max_ps(vVelX[x], vNegNine);
-				vVelX[x] = _mm_min_ps(vVelX[x], vNine);
 				
 				vVelY[x] = _mm_sub_ps(vVelY[x],_mm_mul_ps(dzdx,vZ[x]));
-				vVelY[x] = _mm_max_ps(vVelY[x], vNegNine);
-				vVelY[x] = _mm_min_ps(vVelY[x], vNine);
 			}
 		}
 #else
@@ -581,9 +551,6 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				
 				fluidFloatPointer(velX, x*sx + sy*y)[0]
 							+= dzdy *fluidFloatPointer(z, x*sx+ y*sy)[0];
-				
-				*fluidFloatPointer(velX,x*sx + y*sy)
-						= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-9,9);
 			}
 		}
 		
@@ -602,9 +569,6 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				
 				fluidFloatPointer(velY, x*sx + sy*y)[0]
 						-= dzdx *fluidFloatPointer(z, x*sx+ y*sy)[0];
-				
-				*fluidFloatPointer(velY,x*sx + y*sy)
-						= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
 			}
 		}
 #endif

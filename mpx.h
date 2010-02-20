@@ -48,6 +48,58 @@ int mpQueuePopInt(mpQueue *in_q);
 void mpQueueClear(mpQueue *in_q);
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+//	Atomic utility / wrappers
+#ifndef CELL
+
+//Mac OS specific atomics
+#include <libkern/OSAtomic.h>
+
+#define atomic_int32	int32_t
+
+#define AtomicAdd32Barrier(x,y)				OSAtomicAdd32Barrier((y), &(x))
+#define AtomicCompareAndSwapInt(d, o, n)	OSAtomicCompareAndSwap32Barrier((o), (n), &(d))
+#define AtomicCompareAndSwapPtr(d, o, n)	OSAtomicCompareAndSwapPtrBarrier((o), (n), &(d))
+#define AtomicCompareInt(d, o)				OSAtomicCompareAndSwap32Barrier((o), (o), &(d))
+#define AtomicExtract(d)					OSAtomicAdd32Barrier(0, &(d))
+
+#else
+
+#define atomic_int32	int32_t
+
+//Other atomics  (GCC 4.2+)
+#define AtomicAdd32Barrier(x,y)				__sync_add_and_fetch(&(x), (y))
+#define AtomicCompareAndSwapInt(d, o, n)	__sync_bool_compare_and_swap(&(d), (o), (n))
+#define AtomicCompareAndSwapPtr(d, o, n)	__sync_bool_compare_and_swap(&(d), (o), (n))
+#define AtomicCompareInt(d, o)				__sync_bool_compare_and_swap(&(d), (o), (o))
+#define AtomicExtract(d)					__sync_add_and_fetch(&(d), 0)
+
+#endif
+
+
+typedef union atomic32Split
+{
+	atomic_int32 atom;
+	struct
+	{
+		int16_t		data;
+		int16_t		value;
+	} data;
+	
+} atomic32Split;
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	The second queue - a queue based on atomic instructions
+typedef struct mpStack mpStack;
+
+mpStack *mpStackCreate(int in_maxSize);
+
+int mpStackPush(mpStack *q, void *dat);		//1 for success, else FAIL!
+int mpStackPop(mpStack *q, void **out_dat);
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //	Data forms the basis of optimizations for data-bound software.  As the
 //	number of cores increases, the more "data-bound" the software becomes.
@@ -153,33 +205,6 @@ void mpTaskLaunch(mpTaskFn in_task, void *in_obj, int target);
 int mpTaskFlood(mpTaskFn in_task, void *in_obj, int target);
 
 
-////////////////////////////////////////////////////////////////////////////////
-//	Atomic utility / wrappers
-#ifndef CELL
-
-//Mac OS specific atomics
-#include <libkern/OSAtomic.h>
-
-#define atomic_int32	int32_t
-
-#define AtomicAdd32Barrier(x,y)				OSAtomicAdd32Barrier((y), &(x))
-#define AtomicCompareAndSwapInt(d, o, n)	OSAtomicCompareAndSwap32Barrier((o), (n), &(d))
-#define AtomicCompareAndSwapPtr(d, o, n)	OSAtomicCompareAndSwapPtrBarrier((o), (n), &(d))
-#define AtomicCompareInt(d, o)				OSAtomicCompareAndSwap32Barrier((o), (o), &(d))
-#define AtomicExtract(d)					OSAtomicAdd32Barrier(0, &(d))
-
-#else
-
-#define atomic_int32	int32_t
-
-//Other atomics  (GCC 4.2+)
-#define AtomicAdd32Barrier(x,y)				__sync_add_and_fetch(&(x), (y))
-#define AtomicCompareAndSwapInt(d, o, n)	__sync_bool_compare_and_swap(&(d), (o), (n))
-#define AtomicCompareAndSwapPtr(d, o, n)	__sync_bool_compare_and_swap(&(d), (o), (n))
-#define AtomicCompareInt(d, o)				__sync_bool_compare_and_swap(&(d), (o), (o))
-#define AtomicExtract(d)					__sync_add_and_fetch(&(d), 0)
-
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////

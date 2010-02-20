@@ -61,6 +61,8 @@ field *fieldCreate(int in_width, int in_height, int in_components)
 	memset(toRet->r_data.i, 1, numData);
 	memset(toRet->r_data.i, 0, numData);
 	
+	toRet->m_allocatedBytes = numData;
+	
 	return toRet;
 }
 
@@ -104,7 +106,36 @@ field *fieldCreateChar(int in_width, int in_height, int in_components)
 	memset(toRet->r_data.i, 1, numData);
 	memset(toRet->r_data.i, 0, numData);
 	
+	toRet->m_allocatedBytes = numData;
+	
 	return toRet;
+}
+
+
+void fieldResize(field *in_f, int newW, int newH)
+{
+	if (in_f->m_flags & Field_NoRelease)
+	{
+		errorRaise(error_specify, "Must own memory to resize field");
+	}
+
+	int numData = newW * newH * in_f->m_components;
+	int ds;
+	if (in_f->m_flags & Field_TypeChar)
+		ds = sizeof(char);
+	else
+		ds = sizeof(float);
+	
+	numData *= ds;
+	
+	errorAssert(numData <= in_f->m_allocatedBytes, error_specify,
+				"Internal buffer not large enough for %i %i grid!",
+				newW, newH);
+	
+	in_f->m_width = newW;
+	in_f->m_height = newH;
+	
+	in_f->m_strideY = newW * in_f->m_strideX;
 }
 
 

@@ -16,6 +16,8 @@
 //Use a standard task queue for all operations (should be simpler)
 //#define COHERENCE_TQ
 
+//Force sequential work with an underlying task queue (simplest)
+//#define SEQUENTIAL
 
 #ifdef COHERENCE_TQ
 #ifndef COHERENCE_MUTEX
@@ -95,8 +97,12 @@ struct mpCoTask
 {
 	mpCoProgress	progress;
 	mpCoDescription	description;
-} __attribute__((aligned(8)));
-
+}
+#ifdef SEQUENTIAL
+__attribute__((aligned(4)));
+#else
+__attribute__((aligned(8)));
+#endif
 
 //Stores the progress of each of the tasks.  Tasks are organized on
 //a grid.  Dependencies are organized based upon locations upon the grid.
@@ -116,8 +122,12 @@ struct mpCoherence
 	int				m_cacheSize;
 	atomic_int32	m_nCacheStart;
 	
+#ifndef SEQUENTIAL
 	//Min/max in task list (always incrementing)
 	atomic_int32	m_min, m_max;
+#else
+	atomic_int32	m_min;
+#endif
 	
 	//------------------------------------------------------ NOT USED AT RUNTIME
 	
@@ -130,6 +140,10 @@ struct mpCoherence
 	//Mutex and conditional
 	pthread_mutex_t	m_mutex;
 	mpQueue			*r_q;
+	
+#ifdef SEQUENTIAL
+	mpStack			*r_stack;
+#endif
 };
 
 
@@ -139,6 +153,10 @@ void mpCFree(void *in_o)
 	mpCoherence *o = (mpCoherence*)in_o;
 	if (o->r_tasks)		free(o->r_tasks);
 	if (o->r_q)			x_free(o->r_q);
+	
+#ifdef SEQUENTIAL
+	if (o->r_stack)		x_free(o->r_stack);
+#endif
 	
 	pthread_mutex_destroy(&o->m_mutex);
 }
@@ -166,6 +184,10 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 	o->m_nData = in_data;
 	o->m_cacheSize = in_cache;
 	
+#ifdef SEQUENTIAL
+	o->r_stack = mpStackCreate(in_tasks * 2);
+#endif
+	
 #ifdef COHERENCE_TQ
 	o->r_q = mpQueueCreate(2048);
 #else
@@ -179,8 +201,11 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache)
 void mpCReset(mpCoherence *o)
 {
 	o->m_nTasks = 0;
+
 	o->m_min = 0;
+#ifndef SEQUENTIAL
 	o->m_max = 0;
+#endif
 	o->m_nBlocking = 0;
 	o->m_nCacheStart = 0;
 	mpQueueClear(o->r_q);
@@ -208,8 +233,27 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 	
 	o->r_tasks[rowToAddAt].description.data.function = in_fn;
 	
+	
 	o->r_tasks[rowToAddAt].progress.data.completed = 0;
 	o->r_tasks[rowToAddAt].progress.data.working = 0;
+	
+	#ifdef SEQUENTIAL
+	
+	if (rowToAddAt == 0)
+	{
+		o->r_tasks[rowToAddAt].progress.data.working = 1;
+		
+		mpCoMessage m;
+		errorAssert(!mpStackPop(o->r_stack, (void**)&m.msg), error_create,
+				"Stack not empty!!");
+				
+		m.data.tid = 0;
+		m.data.task = 0;
+		errorAssert(mpStackPush(o->r_stack, (void*)m.msg), error_create,
+				"Failed putting first item on stack!");
+	}
+	#endif
+	
 	
 	if (in_depEnd < 0)	in_depEnd = 0;
 	o->r_tasks[rowToAddAt].description.data.bottom = in_depEnd;
@@ -243,7 +287,7 @@ void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 #endif
 }
 
-
+#ifndef SEQUENTIAL
 int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 									int x)
 {
@@ -310,6 +354,7 @@ int mpCTaskObtainPvt(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk,
 	
 	return 0;
 }
+#endif
 
 
 #ifdef COHERENCE_TQ
@@ -357,7 +402,27 @@ void mpCTasksPushPvt(mpCoherence *o, int in_tid)
 
 void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 {
-#ifndef COHERENCE_TQ
+#ifdef SEQUENTIAL
+	mpCoMessage nm;
+	if (mpStackPop(o->r_stack, (void**)&nm))
+	{
+		*out_tid = nm.data.tid;
+		*out_tsk = nm.data.task;
+		*out_fn = o->r_tasks[nm.data.tid].description.data.function;
+		
+		//if (*out_tid < 0 || *out_tid >= o->m_nTasks ||
+		//	*out_tsk < 0 || *out_tsk >= o->m_nData ||
+		//	*out_fn < 0 || *out_fn > 20)
+		//printf("STACK TASK: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+		return;
+	}
+	
+	//printf("HALT FOR TASK\n");
+	co_pthread_mutex_lock(&o->m_mutex);
+		CoAtomicAdd32Barrier(o->m_nBlocking, 1);
+	co_pthread_mutex_unlock(&o->m_mutex);
+	
+#else if not defined COHERENCE_TQ
 	co_pthread_mutex_lock_all(&o->m_mutex);
 	
 	//Scan from min->max for a task to obtain...  (loop a bit before blocking)
@@ -402,6 +467,7 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 	co_pthread_mutex_unlock(&o->m_mutex);
 	co_pthread_mutex_unlock_all(&o->m_mutex);
 #endif
+	//printf("BLOCKED!\n");
 	*out_tid = mpQueuePopInt(o->r_q);
 	if (*out_tid != 0xFFFFFFFF)
 	{
@@ -411,6 +477,7 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		*out_tid = msg.data.tid;
 		*out_fn = o->r_tasks[msg.data.tid].description.data.function;
 		*out_tsk = msg.data.task;
+		//printf("QUEUE TASK: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
 		//printf("WAIT_FOR_TASK: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
 	}
 	else
@@ -418,7 +485,272 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		mpQueuePushInt(o->r_q, 0xFFFFFFFF);		//Unlock next thread...
 		*out_tid = -1;
 	}
+	//printf("UNBLOCKED!\n");
 }
+
+
+#ifdef SEQUENTIAL
+
+int mpCFetchMinTask(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
+{
+	mpCoProgress t;
+	//Before fetching a task; see if there is one that has been forgotten...
+	int m, origM;
+	m = origM = CoAtomicExtract(o->m_min);
+	t.atom = CoAtomicExtract(o->r_tasks[m].progress.atom);
+	while (m < o->m_nTasks-1 && t.data.completed == o->m_nData)
+	{
+		m++;
+		t.atom = CoAtomicExtract(o->r_tasks[m].progress.atom);
+	}
+	if (m != origM)
+	{
+		CoAtomicCompareAndSwapInt(o->m_min, origM, m);
+	}
+	
+	if (t.data.completed == t.data.working)
+	{
+		mpCoProgress nP = t;
+		nP.data.working++;
+		if (CoAtomicCompareAndSwapInt(o->r_tasks[m].progress.atom,
+			t.atom, nP.atom))
+		{
+			*out_tid = m;
+			*out_tsk = nP.data.completed;
+			*out_fn = o->r_tasks[m].description.data.function;
+		}
+		else
+			return 0;
+	}
+	else
+		return 0;
+	
+	return 1;
+}
+
+void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
+									 int *out_tid, int *out_fn, int *out_tsk)
+{
+	//Quit condition...
+	if (in_tid == o->m_nTasks-1 && in_tsk == o->m_nData - 1)
+	{
+		mpQueuePushInt(o->r_q, 0xFFFFFFFF);
+		*out_tid = -1;
+		return;
+	}
+	
+	//Write out the task as completed...
+	mpCoProgress pg, nPg;
+	pg.atom = CoAtomicExtract(o->r_tasks[in_tid].progress.atom);
+//	errorAssert(pg.data.working-1 == in_tsk && in_tsk == pg.data.completed,
+//				error_specify,
+//				"Task not marked as currently dispatched (tid=%i tsk=%i w=%i c=%i)",
+//					in_tid, in_tsk, pg.data.working, pg.data.completed);
+	nPg = pg;
+	nPg.data.completed = nPg.data.working;
+	
+	//printf("COMPLETE: %i %i %i\n", in_tid, in_fn, in_tsk);
+	//OK, mark item to the right...
+	mpCoMessage msgA;
+	msgA.data.tid = 0xFFFF;
+	if ((in_tid == 0
+		|| in_tsk >= o->m_nData - o->r_tasks[in_tid].description.data.bottom-1)
+			&& in_tsk < o->m_nData - 1)
+	{
+		nPg.data.working++;
+		errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+				pg.atom, nPg.atom), error_specify, "Task should be on one thread");
+		
+		//printf("BOOT TASK: %i %i\n", in_tsk+1, in_tid);
+		msgA.data.task = in_tsk + 1;
+		msgA.data.tid = in_tid;
+		
+//		int v = CoAtomicExtract(o->m_nBlocking);
+//		if (v > 0)
+//		{
+//			//printf("Recuperating from cache misses!\n");
+//			co_pthread_mutex_lock(&o->m_mutex);
+//			
+//			v = CoAtomicExtract(o->m_nBlocking);
+//			if (v > 0)
+//			{
+//				mpQueuePushInt(o->r_q,msgA.msg);
+//				//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+//				CoAtomicAdd32Barrier(o->m_nBlocking, -1);
+//				msgA.data.tid = 0xFFFF;
+//			}
+//			
+//			co_pthread_mutex_unlock(&o->m_mutex);
+//		}
+	}
+	else if (in_tsk < o->m_nData-1 && in_tid != 0)
+	{
+		mpCoProgress prevProg;
+		prevProg.atom = CoAtomicExtract(o->r_tasks[in_tid-1].progress.atom);
+		if (prevProg.data.completed == prevProg.data.working
+			&& prevProg.data.completed-1 - o->r_tasks[in_tid].description.data.bottom
+				>= in_tsk+1)
+		{
+			nPg.data.working++;
+			errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+					pg.atom, nPg.atom), error_specify, "Task should be on one thread");
+			msgA.data.task = in_tsk + 1;
+			msgA.data.tid = in_tid;
+			
+			//printf("Added task: %i %i\n", in_tid, in_tsk+1);
+			
+//			int v = CoAtomicExtract(o->m_nBlocking);
+//			if (v > 0)
+//			{
+//				//printf("Recuperating from cache misses!\n");
+//				co_pthread_mutex_lock(&o->m_mutex);
+//				
+//				v = CoAtomicExtract(o->m_nBlocking);
+//				if (v > 0)
+//				{
+//					mpQueuePushInt(o->r_q,msgA.msg);
+//					//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+//					CoAtomicAdd32Barrier(o->m_nBlocking, -1);
+//					msgA.data.tid = 0xFFFF;
+//				}
+//				
+//				co_pthread_mutex_unlock(&o->m_mutex);
+//			}
+		}
+		else
+		{
+			errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+					pg.atom, nPg.atom), error_specify, "Too many tasks accessing same data!");
+		}
+	}
+	else
+	{
+		errorAssert(CoAtomicCompareAndSwapInt(o->r_tasks[in_tid].progress.atom,
+				pg.atom, nPg.atom), error_specify, "Too many tasks accessing same data!");
+	}
+	
+	//Mark items above...
+	mpCoMessage msgB;
+	msgB.data.tid= 0xFFFF;
+	if (in_tid < o->m_nTasks-1)
+	{
+		mpCoProgress nextProg;
+		retry:
+		nextProg.atom = CoAtomicExtract(o->r_tasks[in_tid+1].progress.atom);
+		int ab = in_tsk - o->r_tasks[in_tid+1].description.data.bottom;
+		if (ab >= 0 && nextProg.data.working == nextProg.data.completed
+			&& ab >= nextProg.data.working+1-1)
+		{
+			mpCoProgress newNextProg = nextProg;
+			newNextProg.data.working++;
+		
+			//printf("RESUME TASK: %i %i\n",ab, in_tid+1);
+			if (AtomicCompareAndSwapInt(o->r_tasks[in_tid+1].progress.atom,
+				nextProg.atom, newNextProg.atom))
+			{
+				msgB.data.task = nextProg.data.completed;
+				msgB.data.tid = in_tid+1;
+			}
+			else
+			{
+				//printf("FAILED COMPARE AND SWAP!\n");
+				goto retry;
+			}
+			/*printf("Add: ab=%i working=%i complete=%i tid=%i\n",
+					ab, nextProg.data.working, nextProg.data.completed, in_tid+1);*/
+		}
+		/*else
+		{
+			printf("No Add: ab=%i working=%i complete=%i tid=%i\n",
+					ab, nextProg.data.working, nextProg.data.completed, in_tid+1);
+		}/**/
+	}
+	
+	if (msgA.data.tid == 0xFFFF)
+	{
+		msgA = msgB;
+		msgB.data.tid = 0xFFFF;
+	}
+	
+	if (msgA.data.tid == 0xFFFF)
+	{
+		if (!mpCFetchMinTask(o, out_tid, out_fn, out_tsk))
+			mpCTaskObtain(o, out_tid, out_fn, out_tsk);
+	}
+	else
+	{
+		if (!mpCFetchMinTask(o, out_tid, out_fn, out_tsk))
+		{
+			*out_tid = msgA.data.tid;
+			*out_tsk = msgA.data.task;
+			*out_fn = o->r_tasks[msgA.data.tid].description.data.function;
+		}
+		else
+		{
+			int v = CoAtomicExtract(o->m_nBlocking);
+			if (v > 0)
+			{
+				//printf("Recuperating from cache misses!\n");
+				co_pthread_mutex_lock(&o->m_mutex);
+				
+				v = CoAtomicExtract(o->m_nBlocking);
+				if (v == 0)
+				{
+					co_pthread_mutex_unlock(&o->m_mutex);
+					errorAssert(mpStackPush(o->r_stack, (void*)msgA.msg), error_specify,
+							"Unable to add task to run!");
+					//printf("PUSH 1: %i %i\n", msgB.data.tid, msgB.data.task);
+					return;
+				}
+				mpQueuePushInt(o->r_q,msgA.msg);
+				//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+				CoAtomicAdd32Barrier(o->m_nBlocking, -1);
+				
+				co_pthread_mutex_unlock(&o->m_mutex);
+			}
+			else
+			{
+				errorAssert(mpStackPush(o->r_stack, (void*)msgA.msg), error_specify,
+						"Unable to add task to run!");
+				//printf("PUSH 2: %i %i\n", msgB.data.tid, msgB.data.task);
+			}
+		}
+		
+		if (msgB.data.tid != 0xFFFF)
+		{
+			int v = CoAtomicExtract(o->m_nBlocking);
+			if (v > 0)
+			{
+				//printf("Recuperating from cache misses!\n");
+				co_pthread_mutex_lock(&o->m_mutex);
+				
+				v = CoAtomicExtract(o->m_nBlocking);
+				if (v == 0)
+				{
+					co_pthread_mutex_unlock(&o->m_mutex);
+					errorAssert(mpStackPush(o->r_stack, (void*)msgB.msg), error_specify,
+							"Unable to add task to run!");
+					//printf("PUSH 1: %i %i\n", msgB.data.tid, msgB.data.task);
+					return;
+				}
+				mpQueuePushInt(o->r_q,msgB.msg);
+				//printf("FORWARDING: %i %i %i\n", *out_tid, *out_fn, *out_tsk);
+				CoAtomicAdd32Barrier(o->m_nBlocking, -1);
+				
+				co_pthread_mutex_unlock(&o->m_mutex);
+			}
+			else
+			{
+				errorAssert(mpStackPush(o->r_stack, (void*)msgB.msg), error_specify,
+						"Unable to add task to run!");
+				//printf("PUSH 2: %i %i\n", msgB.data.tid, msgB.data.task);
+			}
+		}
+	}
+	
+}
+
+#else
 
 void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 									 int *out_tid, int *out_fn, int *out_tsk)
@@ -628,3 +960,5 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	//	   in_tid, in_fn, in_tsk,
 	//	   *out_tid, *out_fn, *out_tsk);
 }
+
+#endif

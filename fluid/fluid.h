@@ -18,6 +18,9 @@ fluid *fluidCreate(int in_width, int in_height);
 
 void fluidAdvance(fluid *in_f);
 
+int fluidWidth(fluid *in_f);
+int fluidHeight(fluid *in_f);
+
 field *fluidDensity(fluid *in_f);
 field *fluidMovedDensity(fluid *in_f);
 field *fluidVelocityX(fluid *in_f);
@@ -60,6 +63,8 @@ float fluidThreadSchedulerTime(fluid *f);
 field *fluidVideoOut(fluid *in_f);
 void fluidVideoVelocityOut(fluid *in_f, field *in_dest);
 
+void fluidVideoVelocityOutSize(fluid *f, int w, int h);
+
 //Video-input functions
 void fluidVideoBlendIn(fluid *in_f, field *in_ch, float in_s);
 void fluidVelocityBlendIn(fluid *in_f, field *in_ch, float in_s);
@@ -67,6 +72,57 @@ void fluidVelocityBlendIn(fluid *in_f, field *in_ch, float in_s);
 //Select accelerator
 void fluidEnableCPU(fluid *in_f);
 void fluidEnableCL(fluid *in_f);
+
+
+//FluidServer creates the appropriate data-structures to send/receive data
+//over the network.  Abstracting away Objective-C and moving towards are pure C
+//environment.
+typedef struct fluidServer fluidServer;
+fluidServer *fluidServerCreate(fluid *in_f);
+
+//Connect to various sources...
+void fluidServerDensityServer(fluidServer *s, int in_port);
+void fluidServerVelocityServer(fluidServer *s, int in_port);
+void fluidServerDensityClient(fluidServer *s, const char *szHost, int in_port);
+void fluidServerVelocityClient(fluidServer *s, const char *szHost, int in_port);
+
+void fluidServerOnFrame(fluidServer *s);
+
+fieldMsg *fluidServerNextMessage(fluidServer *s);
+
+void fluidServerDensityBlend(fluidServer *s, float in_blend);
+void fluidServerVelocityBlend(fluidServer *s, float in_blend);
+
+//Simple delegate to specify what's happening...
+#define FLUIDSERVER_VEL_SERVER		0x10
+#define FLUIDSERVER_DENS_SERVER		0x20
+#define FLUIDSERVER_VEL_CLIENT		0x30
+#define FLUIDSERVER_DENS_CLIENT		0x40
+#define FLUIDSERVER_SRC_MASK		0xF0
+
+#define FLUIDSERVER_SUCCESS			0x01
+#define FLUIDSERVER_PENDING			0x02
+#define FLUIDSERVER_FAIL			0x03
+#define FLUIDSERVER_STAT_MASK		0x0F
+
+typedef void(*fluidServerDelegate)(void *o, fluidServer *s, int in_msg);
+
+void fluidServerSetDelegate(fluidServer *s, void *o, fluidServerDelegate d);
+
+
+//FluidMessenger is a seperate object that dispatches messages to the fluid,
+//servers, and others to handle communication (either from command line or from
+//remote applications)
+typedef struct fluidMessenger fluidMessenger;
+typedef void(*fluidMessengerHandler)(void *o, fieldMsg *msg);
+
+fluidMessenger *fluidMessengerCreate(fluid *in_f, fluidServer *in_s);
+
+// 1 is success!
+int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg);
+
+void fluidMessengerAddHandler(fluidMessenger *fm, fluidMessengerHandler h,
+								void *ptr);
 
 #endif
 

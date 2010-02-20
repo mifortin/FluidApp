@@ -63,8 +63,8 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		vector float vT = {timestep, timestep, timestep, timestep};
 		vector float vZero = {0,0,0,0};
-		vector float vPN = {9,9,9,9};
-		vector float vNN = {-9,-9,-9,-9};
+		vector float vPN = {ADVECT_DIST,ADVECT_DIST,ADVECT_DIST,ADVECT_DIST};
+		vector float vNN = {-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST};
 		
 #define ADVECT_X_PRE(n)															\
 		vector float sl_vx ## n = vec_sld(vVelX[x + n], vVelX[x+1 + n],4);		\
@@ -180,8 +180,8 @@ void fluid_advection_fwd_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 		
 		__m128 vT = {timestep, timestep, timestep, timestep};
 		
-		__m128 vPN = {9,9,9,9};
-		__m128 vNN = {-9,-9,-9,-9};
+		__m128 vPN = {ADVECT_DIST,ADVECT_DIST,ADVECT_DIST,ADVECT_DIST};
+		__m128 vNN = {-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST,-ADVECT_DIST};
 		
 		for (x=1; x<w/4-2; x+=2)
 		{
