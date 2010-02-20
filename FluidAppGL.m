@@ -185,7 +185,7 @@ void FluidAppGLOnVelClientDisconnect(void *obj, fieldClient *fc)
 	[[self openGLContext] makeCurrentContext];
 	[[self openGLContext] update];
 	r_fluid = fluidCreate(SIMW,SIMH);
-	fluidEnableCL(r_fluid);
+	//fluidEnableCL(r_fluid);
 	[self createDensityClientToHost:@"127.0.0.1" port:3636];
 	[self createVelocityClientToHost:@"127.0.0.1" port:3535];
 	glGenTextures(1, &r_texture);
