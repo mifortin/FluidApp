@@ -242,15 +242,21 @@ void fluidServerOnFrame(fluidServer *s)
 	field *velTmp = fieldServerLock(s->r_velocityServer);
 	field *outVel = fieldClientLock(s->r_velocityClient);
 	
+	
+	x_pthread_mutex_lock(&s->r_mtx);
+	int inVel = ((s->m_velServ & FLUIDSERVER_STAT_MASK) == FLUIDSERVER_SUCCESS);
+	int inDens = ((s->m_densServ & FLUIDSERVER_STAT_MASK) == FLUIDSERVER_SUCCESS);
+	x_pthread_mutex_unlock(&s->r_mtx);
+	
 	if (outVel)
 		fluidVideoVelocityOut(s->r_f, outVel);
 	
-	if (velTmp)
+	if (inVel && velTmp)
 	{
 		fluidVelocityBlendIn(s->r_f, velTmp, s->m_velBlend);
 	}
 		
-	if (tmp)
+	if (inDens && tmp)
 		fluidVideoBlendIn(s->r_f, tmp, s->m_densBlend);
 	
 	fluidAdvance(s->r_f);
