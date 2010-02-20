@@ -7,7 +7,7 @@
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #include <pmmintrin.h>
-#undef __SSE3__
+//#undef __SSE3__
 #endif
 
 #ifdef CELL
@@ -582,8 +582,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				fluidFloatPointer(velX, x*sx + sy*y)[0]
 							+= dzdy *fluidFloatPointer(z, x*sx+ y*sy)[0];
 				
-//				*fluidFloatPointer(velX,x*sx + y*sy)
-//						= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-9,9);
+				*fluidFloatPointer(velX,x*sx + y*sy)
+						= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-9,9);
 			}
 		}
 		
@@ -603,8 +603,8 @@ void fluid_vorticity_apply(fluid *in_f, int y, pvt_fluidMode *mode)
 				fluidFloatPointer(velY, x*sx + sy*y)[0]
 						-= dzdx *fluidFloatPointer(z, x*sx+ y*sy)[0];
 				
-//				*fluidFloatPointer(velY,x*sx + y*sy)
-//						= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
+				*fluidFloatPointer(velY,x*sx + y*sy)
+						= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
 			}
 		}
 #endif

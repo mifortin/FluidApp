@@ -7,7 +7,7 @@
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #include <pmmintrin.h>
-#undef __SSE3__
+//#undef __SSE3__
 #endif
 
 

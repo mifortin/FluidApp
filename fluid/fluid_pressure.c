@@ -3,7 +3,13 @@
  *  FluidApp
  */
 
-#include "x_simd.h"
+#ifdef __SSE3__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+#include <tmmintrin.h>
+//#undef __SSE3__
+#endif
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
@@ -12,7 +18,15 @@
 #include <stdio.h>
 
 
-#undef __SSE3__
+#ifdef CELL
+#include "altivec.h"
+#endif
+
+#ifdef __APPLE_ALTIVEC__
+#ifndef CELL
+#include <ppc_intrinsics.h>
+#endif
+#endif
 
 /** Most basic function used to handle pressure */
 void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
@@ -698,8 +712,8 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 						- *fluidFloatPointer(pressure,(x-1)*sx+y*sy);
 			
 			
-			//*fluidFloatPointer(velX,x*sx + y*sy)
-			//	= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-9,9);
+			*fluidFloatPointer(velX,x*sx + y*sy)
+				= fluidClamp(*fluidFloatPointer(velX,x*sx + y*sy),-9,9);
 			
 			
 		}
@@ -709,8 +723,8 @@ void fluid_applyPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 				-= *fluidFloatPointer(pressure,x*sx+(y+1)*sy)
 					- *fluidFloatPointer(pressure,x*sx+(y-1)*sy);
 			
-			//*fluidFloatPointer(velY,x*sx + y*sy)
-			//	= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
+			*fluidFloatPointer(velY,x*sx + y*sy)
+				= fluidClamp(*fluidFloatPointer(velY,x*sx + y*sy),-9,9);
 		}
 #endif
 	}

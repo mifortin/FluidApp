@@ -34,8 +34,8 @@ void fluid_advection_stam_velocity(fluid *in_f, int y, pvt_fluidMode *mode)
 	float fDataY ## n = fluidFloatPointer(velY, x*sX + y*sY)[n];					\
 																					\
 	/*Find the cell back in time	(keep a -10,10 radius)*/						\
-	float backX ## n = fluidClamp(-timestep * fDataX ## n,-9,9) + fx+n;								\
-	float backY ## n = fluidClamp(-timestep * fDataY ## n,-9,9) + fy;								\
+	float backX ## n = -timestep * fDataX ## n + fx+n;								\
+	float backY ## n = -timestep * fDataY ## n + fy;								\
 																					\
 	int nBackX ## n = (int)backX ## n;												\
 	int nBackY ## n = (int)backY ## n;												\

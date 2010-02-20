@@ -3,15 +3,25 @@
  *  FluidApp
  */
 
-#include "x_simd.h"
+#ifdef __SSE3__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+//#undef __SSE3__
+#endif
+
+
+#ifdef CELL
+#include "altivec.h"
+#endif
+
+//#undef __APPLE_ALTIVEC__
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 #include <stdio.h>
 
 #include <stdio.h>
-
-#undef __SSE3__
 
 void fluid_viscosity(fluid *in_f, int y, pvt_fluidMode *mode)
 {
