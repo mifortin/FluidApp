@@ -12,6 +12,7 @@
 
 #ifdef CELL
 #include "altivec.h"
+#undef __APPLE_ALTIVEC__
 #endif
 
 #include "fluid_macros_2.h"

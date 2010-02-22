@@ -82,6 +82,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_density = fieldCreate(in_width, in_height, 4);
 	toRet->r_density_swap = fieldCreate(in_width, in_height, 4);
 	toRet->r_vidOutput = fieldCreateChar(in_width, in_height, 4);
+	printf("   - Created CPU Buffers\n");
 	
 	//GPU Buffers
 	toRet->gpu_velX_in = GPUFieldCreate(in_width, in_height, 1);
@@ -92,6 +93,8 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->gpu_density = GPUFieldCreate(in_width, in_height, 4);
 	toRet->gpu_dens_tmp = GPUFieldCreate(in_width, in_height, 4);
 	toRet->gpu_pressure = GPUFieldCreate(in_width, in_height, 1);
+	printf("   - Created GPU Buffers\n");
+	
 	int k;
 	toRet->gpu_curBuffer = 0;
 	for (k=0; k<GPU_BUFFERS; k++)
@@ -104,6 +107,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->gpu_fn_viscosity_xy = GPUProgramCreate("viscosity_xy.cl", GPUPROGRAM_FROM_FILE);
 	toRet->gpu_fn_pressure = GPUProgramCreate("pressure.cl", GPUPROGRAM_FROM_FILE);
 	toRet->gpu_fn_advection = GPUProgramCreate("advection.cl", GPUPROGRAM_FROM_FILE);
+	printf("   - Loaded GPU Programs\n");
 	
 	toRet->r_blocker = mpQueueCreate(2);
 	

@@ -59,7 +59,7 @@ struct fieldServerJitMessage
 {
 	uint32_t	sizeInBytes;
 	uint32_t	numAtoms;
-};
+}__attribute((packed));;
 
 struct fieldMsg								//WARNING: LOTS OF UNALIGNED DATA!
 {
@@ -118,7 +118,7 @@ struct fieldServerJitHeader
 {
 	uint32_t	id;
 	uint32_t	size;
-};
+}__attribute((packed));;
 
 #define FIELD_JIT_CHAR		0
 #define FIELD_JIT_LONG		1
@@ -136,7 +136,7 @@ struct fieldServerJitMatrix
 	uint32_t	dimStride[32];
 	uint32_t	dataSize;
 	double		time;
-};
+}__attribute((packed));;
 
 
 struct fieldServerJitLatency
@@ -145,7 +145,7 @@ struct fieldServerJitLatency
 	double client_time;
 	double parsed_header;
 	double parsed_done;
-};
+}__attribute((packed));;
 
 
 #endif

@@ -4,13 +4,13 @@ LIB_HALF=half.ppu.o
 
 LIB_ERROR=error/error_pvt.ppu.o error/error_lst.ppu.o
 
-LIB_FIELD=field/field_pvt.ppu.o field/field_server.ppu.o field/field_client.ppu.o
+LIB_FIELD=field/field_client.ppu.o field/field_msg.ppu.o field/field_pvt.ppu.o field/field_server.ppu.o
 
-LIB_FLUID=fluid/fluid_cpu.ppu.o fluid/fluid_advection_fwd.ppu.o fluid/fluid_advection_fwd2.ppu.o fluid/fluid_advection_stam.ppu.o fluid/fluid_advection_stam2.ppu.o fluid/fluid_advection_repos.ppu.o fluid/fluid_repos.ppu.o fluid/fluid_viscosity.ppu.o fluid/fluid_pressure.ppu.o fluid/fluid_vorticity.ppu.o fluid/fluid_dampen.ppu.o fluid/fluid_visual.ppu.o fluid/fluid_input.ppu.o fluid/fluid_pvt.ppu.o
+LIB_FLUID=fluid/fluid_cpu.ppu.o fluid/fluid_advection_fwd.ppu.o fluid/fluid_advection_fwd2.ppu.o fluid/fluid_advection_stam.ppu.o fluid/fluid_advection_stam2.ppu.o fluid/fluid_advection_repos.ppu.o fluid/fluid_repos.ppu.o fluid/fluid_viscosity.ppu.o fluid/fluid_viscosity_rb.ppu.o fluid/fluid_pressure.ppu.o fluid/fluid_pressure_rb.ppu.o fluid/fluid_vorticity.ppu.o fluid/fluid_dampen.ppu.o fluid/fluid_visual.ppu.o fluid/fluid_input.ppu.o fluid/fluid_pvt.ppu.o fluid/fluid_server.ppu.o fluid/fluid_messenger.ppu.o fluid/fluid_heat.ppu.o fluid/fluid_gpu.ppu.o
 
 LIB_SYS=memory.ppu.o
 
-LIB_MP=mp_mutex.ppu.o mp_queue.ppu.o mp_x.ppu.o mp_taskWorld.ppu.o mp_coherence.ppu.o
+LIB_MP=mp_mutex.ppu.o mp_queue.ppu.o mp_x.ppu.o mp_taskWorld.ppu.o mp_coherence.ppu.o mp_stack.ppu.o
 
 LIB_NET=net/netInStream.ppu.o net/netOutStream.ppu.o net/netClient.ppu.o net/netServer.ppu.o
 

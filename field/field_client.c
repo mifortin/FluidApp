@@ -125,9 +125,10 @@ reconnect:
 		else
 		{
 			struct fieldServerJitLatency latency;
-			netClientGetBinary(c, &latency, sizeof(latency), 10);
+			netClientGetBinary(c, &latency, sizeof(latency), 90);
 			
-			if (latency.id == htonl('JMLP'))
+			if (latency.id == htonl('JMLP')
+				|| latency.id == 'JMLP')
 			{
 				//printf("LATENCY INFO:\n");
 				//printf(" - send: %f\n", latency.client_time);
@@ -136,7 +137,15 @@ reconnect:
 			}
 			else
 			{
-				printf("ERROR: NOT LATENCY!!\n");
+				union {char c[4]; int id; } c2i, c2l;
+				c2i.id = ntohl(latency.id);
+				c2l.id = latency.id;
+				printf("ERROR: NOT LATENCY (%i != %i!!) (%c%c%c%c) || (%c%c%c%c)\n",
+					latency.id, htonl('JMLP'),
+								c2i.c[0], c2i.c[1], c2i.c[2], c2i.c[3],
+								c2l.c[0], c2l.c[1], c2l.c[2], c2l.c[3]);
+				
+				//printf("Sizeof int = %i\n", sizeof(int));
 			}
 		}
 		

@@ -107,7 +107,7 @@ static const x128i x_simd_izero = {0,0,0,0};
 
 //x_mul
 #ifdef __APPLE_ALTIVEC__
-	#define x_mul(a,b) vec_madd(a,b,x_simd_izero)
+	#define x_mul(a,b) vec_madd(a,b,x_simd_zero)
 #elif defined __SSE3__
 	#define x_mul(a,b) _mm_mul_ps(a,b)
 #else

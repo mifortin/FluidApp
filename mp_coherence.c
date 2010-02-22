@@ -422,7 +422,8 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk)
 		CoAtomicAdd32Barrier(o->m_nBlocking, 1);
 	co_pthread_mutex_unlock(&o->m_mutex);
 	
-#else if not defined COHERENCE_TQ
+#elif defined COHERENCE_TQ
+#else
 	co_pthread_mutex_lock_all(&o->m_mutex);
 	
 	//Scan from min->max for a task to obtain...  (loop a bit before blocking)

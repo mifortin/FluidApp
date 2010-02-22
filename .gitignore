@@ -1,6 +1,7 @@
 .DS_Store
 *~.nib
 *~
+._*
 *.mode2
 *.mode2v3
 *.pbxuser
