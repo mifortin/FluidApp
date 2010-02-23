@@ -51,6 +51,7 @@ spu: $(SPU)
 %.spu.exe: %.c
 	@echo "SPU-Compile $<"
 	@spu-gcc $< $(INCLUDE) -Os -o $@
+	spu-gcc -S $< $(INCLUDE)  -Os -o $*.s
 
 %.ppu.o: %.c
 	@echo "PPU-Compile $<"
