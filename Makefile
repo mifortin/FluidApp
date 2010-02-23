@@ -20,7 +20,7 @@ GPGPU=gpgpu/gpgpu.ppu.o gpgpu/gpgpu_field.ppu.o gpgpu/gpgpu_program.ppu.o
 
 PPU= $(LIB_HALF) $(LIB_ERROR) $(LIB_FIELD) $(LIB_FLUID) $(LIB_SYS) $(LIB_MP) $(LIB_NET) $(APP_SERVER) $(GPGPU)
 
-SPU=
+SPU=fluid/fluid_spu.spu.o
 
 INCLUDE= -I$(PWD) -I$(PWD)/field -I$(PWD)/fluid -I$(PWD)/net -I$(PWD)/error -I$(PWD)/gpgpu
 
@@ -44,17 +44,17 @@ ppu: $(PPU)
 spu: $(SPU)
 
 %.spu.o: %.spu.exe
-	@ppu32-embedspu $* $< $@
+	@ppu32-embedspu $(*F) $< $@
 	@echo -n "SPU-Embed $*: "
 	@ls -lhgGd $<
 
 %.spu.exe: %.c
 	@echo "SPU-Compile $<"
-	@spu-gcc $< -oS -o $@
+	@spu-gcc $< $(INCLUDE) -Os -o $@
 
 %.ppu.o: %.c
 	@echo "PPU-Compile $<"
-	@ppu32-gcc -maltivec -DCELL -DLINUX -Wno-multichar -c $< $(INCLUDE) -o $@
+	@ppu32-gcc -maltivec -DCELL -DLINUX -Wno-multichar -c $< $(INCLUDE) -O3 -o $@
 
 clean:
 	rm $(PPU) $(SPU) FluidServer

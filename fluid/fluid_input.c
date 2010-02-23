@@ -45,7 +45,7 @@ void fluid_input_char2dens_scale(fluid *in_f, int y, pvt_fluidMode *mode)
 	int in_w = fieldWidth(v->o);
 	int in_h = fieldHeight(v->o);
 	
-	int out_h = fieldWidth(v->f);
+	int out_h = fieldHeight(v->f);
 	int in_y = y * in_h / out_h;
 	
 	float *f = fluidFloatPointer(fieldData(v->f),y*fieldStrideY(v->f));
@@ -106,7 +106,7 @@ void fluid_input_float2vel_scale(fluid *in_f, int y, pvt_fluidMode *mode)
 	int in_w = fieldWidth(v->velIn);
 	int in_h = fieldHeight(v->velIn);
 	
-	int out_h = fieldWidth(v->velY);
+	int out_h = fieldHeight(v->velY);
 	int in_y = y * in_h / out_h;
 	
 	

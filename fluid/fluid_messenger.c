@@ -170,8 +170,8 @@ int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg)
 			fluidSetViscosity(fm->f, fluidClamp(farg, 0,10));
 		else if (fluidMessengerParse(fm, msg, &curOffset, "vorticity", "f", &farg))
 			fluidSetVorticity(fm->f, fluidClamp(farg,0,10));
-		else if (fluidMessengerParse(fm, msg, &curOffset, "timestep", "f", &farg))
-			fluidSetTimestep(fm->f, fluidClamp(farg,0,1));
+		//else if (fluidMessengerParse(fm, msg, &curOffset, "timestep", "f", &farg))
+		//	fluidSetTimestep(fm->f, fluidClamp(farg,0,1));
 		else if (fluidMessengerParse(fm, msg, &curOffset, "density-fade", "f", &farg))
 			fluidSetDensityFade(fm->f, fluidClamp(farg,0,1));
 		else if (fluidMessengerParse(fm, msg, &curOffset, "velocity-fade", "f", &farg))
@@ -198,7 +198,7 @@ int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg)
 		}
 		else if (fluidMessengerParse(fm, msg, &curOffset, "velocity-blend", "f", &farg))
 		{
-			if (farg >= 0.0f && farg <= 1.0f)
+			if (farg >= 0.0f && farg <= 50.0f)
 				fluidServerVelocityBlend(fm->s, farg);
 		}
 		else if (fluidMessengerParse(fm, msg, &curOffset, "density-blend", "f", &farg))

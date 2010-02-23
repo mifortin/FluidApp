@@ -29,11 +29,49 @@ int main(int argc, char *argv[])
 {
 	x_init();			//Setup exception handling / memory management.
 	
+	int procs = 0;
+	int w = 720;
+	int h = 480;
+	
+	int x;
+	for (x=1; x<argc; x++)
+	{
+		if (strcmp(argv[x], "cpu") == 0)
+		{
+			if (x+1 >= argc)
+				return;
+			
+			x++;
+			procs = atoi(argv[x]);
+		}
+		else if (strcmp(argv[x], "size") == 0)
+		{
+			if (x + 2 >= argc)
+				return;
+			
+			x++;
+			w = atoi(argv[x]);
+			
+			x++;
+			h = atoi(argv[x]);
+		}
+		else
+		{
+			return;
+		}
+	}
+	
+	if (procs <= 0 || w<= 0 || h<= 0 || w%4 != 0)
+	{
+		return;
+	}
+	
 	x_try
-		mpInit(4);		//Start up enough threads for system
+		mpInit(procs);		//Start up enough threads for system
 		
 		printf("\n\nFluid Server Launching\n");
-		r_fluid = fluidCreate(720, 480);
+		printf(" - cpu %i size %i %i", procs, w, h);
+		r_fluid = fluidCreate(w, h);
 		printf(" - Created Fluid\n");
 		r_server = fluidServerCreate(r_fluid);
 		printf(" - Created networking agent\n");
@@ -42,14 +80,26 @@ int main(int argc, char *argv[])
 		printf("Fluid Server Launched!\n");
 		
 		double t1 = x_time();
+		double totalTime = 0;
+		int frames = 0;
 		
 		int done = 0;
 		while (!done)
 		{
 			double t2 = x_time();
-			printf("OnFrame (%f)\n", t2-t1);
-			t1 = t2;
 			fluidServerOnFrame(r_server);
+			
+			frames ++;
+			totalTime += (t2-t1);
+			t1 = t2;
+			
+			if (totalTime > 60.0f)
+			{
+				printf("FPS: %f\n", (float)frames / totalTime);
+				
+				frames = 0;
+				totalTime = 0;
+			}
 			
 			fieldMsg *m;
 			while (m = fluidServerNextMessage(r_server))
