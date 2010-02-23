@@ -30,10 +30,10 @@ int main(int argc, char *argv[])
 	x_init();			//Setup exception handling / memory management.
 	
 	x_try
-		mpInit(1);		//Start up enough threads for system
+		mpInit(4);		//Start up enough threads for system
 		
 		printf("\n\nFluid Server Launching\n");
-		r_fluid = fluidCreate(128, 128);
+		r_fluid = fluidCreate(720, 480);
 		printf(" - Created Fluid\n");
 		r_server = fluidServerCreate(r_fluid);
 		printf(" - Created networking agent\n");

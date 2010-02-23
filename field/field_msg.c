@@ -49,7 +49,7 @@ void fieldMsgReceive(fieldMsg *in_fm, netClient *in_client)
 		in_fm->links[i] = (struct fieldMsgLink*)(in_fm->data + offset);
 		
 		if (in_fm->links[i]->type == 'l')
-			offset += sizeof(char) + sizeof(long);
+			offset += sizeof(char) + sizeof(int);
 		else if (in_fm->links[i]->type == 'f')
 			offset += sizeof(char) + sizeof(float);
 		else if (in_fm->links[i]->type == 's')
@@ -65,8 +65,8 @@ void fieldMsgReceive(fieldMsg *in_fm, netClient *in_client)
 		}
 		else
 		{
-			errorAssert(0, error_net, "Unknown atom (%c) found in Jitter packet!",
-						in_fm->links[i]->type);
+			errorAssert(0, error_net, "Unknown atom (%c)=%i found in Jitter packet!",
+						in_fm->links[i]->type,in_fm->links[i]->type);
 		}
 		
 		errorAssert(offset <= in_fm->header.sizeInBytes

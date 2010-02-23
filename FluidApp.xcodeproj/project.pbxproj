@@ -146,7 +146,6 @@
 		4C9457E610EE779F00D482E6 /* gpgpu_program.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9457E510EE779F00D482E6 /* gpgpu_program.c */; };
 		4C9457E710EE779F00D482E6 /* gpgpu_program.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9457E510EE779F00D482E6 /* gpgpu_program.c */; };
 		4C9457E810EE779F00D482E6 /* gpgpu_program.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9457E510EE779F00D482E6 /* gpgpu_program.c */; };
-		4C94580B10EE7B4300D482E6 /* memory.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C94580A10EE7B4300D482E6 /* memory.m */; };
 		4C94580C10EE7B4300D482E6 /* memory.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C94580A10EE7B4300D482E6 /* memory.m */; };
 		4C94580D10EE7B4300D482E6 /* memory.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C94580A10EE7B4300D482E6 /* memory.m */; };
 		4C94581610EE7CB300D482E6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C94581510EE7CB300D482E6 /* Cocoa.framework */; };
@@ -936,7 +935,6 @@
 				4CFD34F810ED20D100B8FF8A /* gpgpu.c in Sources */,
 				4C94575610EE3DEB00D482E6 /* gpgpu_field.c in Sources */,
 				4C9457E710EE779F00D482E6 /* gpgpu_program.c in Sources */,
-				4C94580B10EE7B4300D482E6 /* memory.m in Sources */,
 				4C87DC4010FA1CF500A23521 /* fluid_heat.c in Sources */,
 				4C8D337D11047D6900EF6539 /* fluid_gpu.c in Sources */,
 				4CF2E8D91118A3B300AE2CD6 /* fluid_messenger.c in Sources */,
@@ -1180,14 +1178,17 @@
 		272D26C10F62DF5F004E794A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "ppc i386 ppc64 x86_64";
 				COPY_PHASE_STRIP = YES;
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_SSE3_EXTENSIONS = NO;
-				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
 				GCC_FAST_MATH = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_PREPROCESSOR_DEFINITIONS = FLUID_SERVER;
 				GCC_STRICT_ALIASING = YES;
 				GCC_UNROLL_LOOPS = YES;
 				INSTALL_PATH = "$(HOME)/bin";
