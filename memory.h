@@ -8,6 +8,7 @@
 
 #include <setjmp.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "error.h"
 
 #ifdef CELL
@@ -54,6 +55,19 @@ void x_init();
 #define x_finally	x_free(__pvt_error);}	\
 						x_setupBuff(__pvt_except_p); \
 						if (__pvt_except_p) _setjmp(*__pvt_except_p);
+
+//Means of allocating data safely (malloc128) - 128-bit aligned malloc
+#ifdef CELL
+static void *malloc128(size_t size)
+{
+	void *tr;
+	if (posix_memalign(&tr, 16, size))
+		return NULL;
+	return tr;
+}
+#else
+#define malloc128(x) malloc(x)
+#endif
 
 //How to raise an exception
 void x_raise(error *e);

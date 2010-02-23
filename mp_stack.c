@@ -38,7 +38,7 @@ mpStack *mpStackCreate(int in_maxSize)
 	mpStack *tr = x_malloc(sizeof(mpStack), mpStackFree);
 	tr->start.data.data = -1;
 	
-	tr->data = malloc(sizeof(mpStackNode)*in_maxSize);
+	tr->data = malloc128(sizeof(mpStackNode)*in_maxSize);
 	
 	int i;
 	for (i=0; i<in_maxSize-1; i++)

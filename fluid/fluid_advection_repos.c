@@ -7,6 +7,7 @@
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
+#include <stdio.h>
 
 //Basic corrector part of predictor-corrector.
 void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
@@ -33,7 +34,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	int curxy = y*sY;
 	
-	float w2 = w/4;
+	int w2 = w/4;
+	//printf("%i %i\n", w2, w);
 	
 	x128f vMin = {-ADVECT_DIST, -ADVECT_DIST, -ADVECT_DIST, -ADVECT_DIST};
 	x128f vMax = {ADVECT_DIST, ADVECT_DIST, ADVECT_DIST, ADVECT_DIST};
@@ -57,7 +59,6 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	u128i offBackX, offBackY, offBackX2, offBackY2;
 	u128f scaleX, scaleY, fwdVelX, fwdVelY;
 	float bZZ, bOZ, bZO, bOO;
-	
 	for (x=0; x<w2; x++)
 	{
 		//Basic...
@@ -120,6 +121,5 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		vDstReposY[x] = x_clamp(backY,x_simd_zero, vH);
 		
 		vX = x_add(vX, v4);
-		
 	}
 }

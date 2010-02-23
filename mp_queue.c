@@ -45,7 +45,7 @@ mpQueue *mpQueueCreate(int maxSize)
 	
 	mpQueue *toRet = x_malloc(sizeof(mpQueue), mpQueueFree);
 	
-	toRet->r_queueData = malloc(sizeof(void*) * maxSize);
+	toRet->r_queueData = malloc128(sizeof(void*) * maxSize);
 	toRet->m_queueSize = maxSize;
 	
 	toRet->m_readerPos = 0;

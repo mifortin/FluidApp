@@ -25,7 +25,7 @@ struct memory_pvt
 //Replacement allocator
 void *x_malloc(int size, x_dealloc in_d)
 {
-	memory_pvt *toRet = malloc(size + sizeof(memory_pvt));
+	memory_pvt *toRet = malloc128(size + sizeof(memory_pvt));
 	
 	if (toRet == NULL)
 		x_raise(errorCreate(NULL, error_memory, "Out of memory!"));

@@ -127,7 +127,7 @@ netOutStream *netOutStreamCreate(netClient *in_client, int in_buffSize)
 	
 	netOutStream *o = x_malloc(sizeof(netOutStream), netOutStreamOnFree);
 	
-	o->r_buffer = malloc(in_buffSize);
+	o->r_buffer = malloc128(in_buffSize);
 	o->nBuffSize = in_buffSize;
 	o->nBuffStart = 0;
 	o->nBuffEnd = 0;

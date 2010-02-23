@@ -226,9 +226,9 @@ void mpInit(int in_workers)
 	g_mpTaskWorld->r_sendQueue = mpQueueCreate(in_workers * 4);
 	g_mpTaskWorld->r_receiveQueue = mpQueueCreate(in_workers * 4);
 	
-	g_mpTaskWorld->rr_threads = malloc(sizeof(pthread_t)*in_workers);
+	g_mpTaskWorld->rr_threads = malloc128(sizeof(pthread_t)*in_workers);
 	
-	g_mpTaskWorld->r_comms = malloc(sizeof(mpTaskWorldCommunication)*in_workers*4);
+	g_mpTaskWorld->r_comms = malloc128(sizeof(mpTaskWorldCommunication)*in_workers*4);
 	
 	int i;
 	
@@ -252,8 +252,8 @@ void mpInit(int in_workers)
 		g_mpTaskWorld->ps3_send = mpQueueCreate(numSPEs*4);
 		g_mpTaskWorld->ps3_recv = mpQueueCreate(numSPEs*4);
 		
-		g_mpTaskWorld->ps3_threads = malloc(sizeof(pthread_t)*numSPEs);
-		g_mpTaskWorld->ps3_comms = malloc(sizeof(mpTaskWorldCommunication)
+		g_mpTaskWorld->ps3_threads = malloc128(sizeof(pthread_t)*numSPEs);
+		g_mpTaskWorld->ps3_comms = malloc128(sizeof(mpTaskWorldCommunication)
 										*numSPEs*4);
 		
 		g_mpTaskWorld->ps3_workers = numSPEs;

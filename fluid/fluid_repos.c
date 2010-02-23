@@ -9,8 +9,7 @@
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"
 #include <math.h>
-
-
+#include <string.h>
 
 //Simple repositioning of the data
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)

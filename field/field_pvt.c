@@ -51,7 +51,7 @@ field *fieldCreate(int in_width, int in_height, int in_components)
 {
 	int numData = in_width * in_height * in_components * sizeof(float);
 	
-	field *toRet = fieldFromFloatData(malloc(numData),	in_width, in_height,
+	field *toRet = fieldFromFloatData(malloc128(numData),	in_width, in_height,
 									  in_components * sizeof(float),
 									  in_components * sizeof(float)*in_width,
 									  in_components);
@@ -96,7 +96,7 @@ field *fieldCreateChar(int in_width, int in_height, int in_components)
 {
 	int numData = in_width * in_height * in_components * sizeof(unsigned char);
 	
-	field *toRet = fieldFromCharData(malloc(numData),	in_width, in_height,
+	field *toRet = fieldFromCharData(malloc128(numData),	in_width, in_height,
 									  in_components * sizeof(unsigned char),
 									  in_components * sizeof(unsigned char)*in_width,
 									  in_components);

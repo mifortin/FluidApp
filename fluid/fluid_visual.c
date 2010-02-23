@@ -3,17 +3,7 @@
  *  FluidApp
  */
 
-#ifdef __SSE3__
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#include <pmmintrin.h>
-//#undef __SSE3__
-#endif
-
-#ifdef CELL
-#include "altivec.h"
-#undef __APPLE_ALTIVEC__
-#endif
+#include "x_simd.h"
 
 #include "fluid_macros_2.h"
 #include "fluid_cpu.h"

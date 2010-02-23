@@ -54,7 +54,7 @@ spu: $(SPU)
 
 %.ppu.o: %.c
 	@echo "PPU-Compile $<"
-	@ppu32-gcc -maltivec -DCELL -DLINUX -Wno-multichar -c $< $(INCLUDE) -O3 -o $@
+	@ppu32-gcc -maltivec -DCELL -DLINUX -Wno-multichar -c $< $(INCLUDE) -O3 -ffast-math -funroll-loops -mtune=G5 -ftree-vectorize -o $@
 
 clean:
 	rm $(PPU) $(SPU) FluidServer

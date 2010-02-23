@@ -141,7 +141,7 @@ netInStream *netInStreamCreate(netClient *in_client, int in_buffSize)
 	o->r_client = in_client;
 	x_retain(in_client);
 	
-	o->r_buffer = malloc(in_buffSize);
+	o->r_buffer = malloc128(in_buffSize);
 	o->nBuffSize = in_buffSize;
 	o->nBuffStart = 0;
 	o->nBuffEnd = 0;
