@@ -27,6 +27,9 @@ struct fluidServer
 	float m_densBlend, m_velBlend;
 	
 	char m_densServ, m_densClient, m_velServ, m_velClient;
+	
+	double pTime;
+	
 };
 
 
@@ -202,6 +205,7 @@ fluidServer *fluidServerCreate(fluid *in_f)
 	fluidServer *r = x_malloc(sizeof(fluidServer), fluidServerOnFree);
 	memset(r, 0, sizeof(fluidServer));
 	r->r_f = in_f;
+	r->pTime = x_time();
 	x_retain(in_f);
 	
 	r->m_densServ = FLUIDSERVER_PENDING;
@@ -242,6 +246,16 @@ void fluidServerOnFrame(fluidServer *s)
 	field *velTmp = fieldServerLock(s->r_velocityServer);
 	field *outVel = fieldClientLock(s->r_velocityClient);
 	
+	double t = x_time();
+	float dt =  (float)(t - s->pTime);
+	s->pTime = t;
+	
+	if (dt < 0.0001f)
+		dt = 0.0001f;
+	else if (dt > 1.0f)
+		dt = 1.0f;
+	
+	fluidSetTimestep(s->r_f, dt);
 	
 	x_pthread_mutex_lock(&s->r_mtx);
 	int inVel = ((s->m_velServ & FLUIDSERVER_STAT_MASK) == FLUIDSERVER_SUCCESS);
