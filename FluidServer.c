@@ -17,13 +17,21 @@
 #include "field.h"
 #include "mpx.h"
 
-volatile int tmp = 0;
-
-#define SERVER_PORT		"2045"
-
 fluid *r_fluid;
 fluidServer *r_server;
 fluidMessenger *r_messenger;
+
+int usage()
+{
+	printf(	"FluidServer   cpu 4   size 512 512\n"
+			"==================================\n"
+			"cpu tells number of cores to use\n"
+			"    for heavy work.  Use less if\n"
+			"    Max is running on same machine\n"
+			"size is resolution of simulation.\n"
+			"     width must be multiple of 32.\n");
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -39,7 +47,7 @@ int main(int argc, char *argv[])
 		if (strcmp(argv[x], "cpu") == 0)
 		{
 			if (x+1 >= argc)
-				return;
+				return usage();
 			
 			x++;
 			procs = atoi(argv[x]);
@@ -47,7 +55,7 @@ int main(int argc, char *argv[])
 		else if (strcmp(argv[x], "size") == 0)
 		{
 			if (x + 2 >= argc)
-				return;
+				return usage();
 			
 			x++;
 			w = atoi(argv[x]);
@@ -57,13 +65,13 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			return;
+			return usage();
 		}
 	}
 	
-	if (procs <= 0 || w<= 0 || h<= 0 || w%4 != 0)
+	if (procs <= 0 || w<= 0 || h<= 0 || w%32 != 0)
 	{
-		return;
+		return usage();
 	}
 	
 	x_try
@@ -140,4 +148,6 @@ int main(int argc, char *argv[])
 	x_finally
 	
 	mpTerminate();
+	
+	return 0;
 }

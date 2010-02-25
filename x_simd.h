@@ -40,6 +40,8 @@ typedef union {x128f v; float f[4];}		u128f;
 
 static const x128f x_simd_zero = {0,0,0,0};
 static const x128i x_simd_izero = {0,0,0,0};
+
+static const x128f x_simd_one = {1,1,1,1};
 	
 //x_madd
 #ifdef __APPLE_ALTIVEC__

@@ -56,7 +56,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	x128f vW = {w-1.01f,w-1.01f,w-1.01f,w-1.01f};
 	x128f vH = {h-1.01f,h-1.01f,h-1.01f,h-1.01f};
 	
-	u128i offBackX, offBackY, offBackX2, offBackY2;
+	u128i offBackX, offBackY, offBackX2, offBackY2, d1, d2, d3, d4;
 	u128f scaleX, scaleY, fwdVelX, fwdVelY;
 	float bZZ, bOZ, bZO, bOO;
 	for (x=0; x<w2; x++)
@@ -87,21 +87,26 @@ void fluid_advection_mccormack_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		offBackX2.v = x_iadd(offBackX.v, vsX);
 		offBackY2.v = x_iadd(offBackY.v, vsY);
 		
+		d1.v = x_iadd(offBackX.v, offBackY.v);
+		d2.v = x_iadd(offBackX2.v, offBackY.v);
+		d3.v = x_iadd(offBackX.v, offBackY2.v);
+		d4.v = x_iadd(offBackX2.v, offBackY2.v);
+		
 		int i;
 		for (i=0; i<4; i++)
 		{
-			bZZ = fluidFloatPointer(srcVelX, offBackX.i[i] + offBackY.i[i])[0];
-			bOZ = fluidFloatPointer(srcVelX, offBackX2.i[i] + offBackY.i[i])[0];
-			bZO = fluidFloatPointer(srcVelX, offBackX.i[i] + offBackY2.i[i])[0];
-			bOO = fluidFloatPointer(srcVelX, offBackX2.i[i] + offBackY2.i[i])[0];
+			bZZ = fluidFloatPointer(srcVelX, d1.i[i])[0];
+			bOZ = fluidFloatPointer(srcVelX, d2.i[i])[0];
+			bZO = fluidFloatPointer(srcVelX, d3.i[i])[0];
+			bOO = fluidFloatPointer(srcVelX, d4.i[i])[0];
 			
 			fwdVelX.f[i] = fluidLinearInterpolation(scaleX.f[i], scaleY.f[i],bZZ, bOZ, bZO, bOO);
 			
 			
-			bZZ = fluidFloatPointer(srcVelY, offBackX.i[i] + offBackY.i[i])[0];
-			bOZ = fluidFloatPointer(srcVelY, offBackX2.i[i] + offBackY.i[i])[0];
-			bZO = fluidFloatPointer(srcVelY, offBackX.i[i] + offBackY2.i[i])[0];
-			bOO = fluidFloatPointer(srcVelY, offBackX2.i[i] + offBackY2.i[i])[0];
+			bZZ = fluidFloatPointer(srcVelY, d1.i[i])[0];
+			bOZ = fluidFloatPointer(srcVelY, d2.i[i])[0];
+			bZO = fluidFloatPointer(srcVelY, d3.i[i])[0];
+			bOO = fluidFloatPointer(srcVelY, d4.i[i])[0];
 			fwdVelY.f[i] = fluidLinearInterpolation(scaleX.f[i], scaleY.f[i],bZZ, bOZ, bZO, bOO);
 		}
 		
