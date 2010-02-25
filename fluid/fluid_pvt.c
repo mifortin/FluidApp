@@ -136,6 +136,9 @@ fluid *fluidCreate(int in_width, int in_height)
 	
 	toRet->accelerator = ACCEL_CPU;
 	
+	toRet->m_pressureAccuracy = 20;
+	toRet->m_viscosityAccuracy = 20;
+	
 	toRet->flags = 0;
 	
 	int i;
@@ -193,6 +196,17 @@ void fluidSetGravityMagnitude(fluid *f, float v)
 void fluidSetTemperatureMagnitude(fluid *f, float v)
 {
 	f->m_heatSpeed = v;
+}
+
+
+void fluidSetPressureAccuracy(fluid *f, float v)
+{
+	f->m_pressureAccuracy = v;
+}
+
+void fluidSetViscosityAccuracy(fluid *f, float v)
+{
+	f->m_viscosityAccuracy = v;
 }
 
 void fluidFreeSurfaceNone(fluid *f)

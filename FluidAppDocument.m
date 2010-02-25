@@ -34,12 +34,6 @@
 		[ib_sld_vorticity setFloatValue:f];
 		[ib_txt_vorticity setFloatValue:f];
 	}
-	else if (strcmp(fieldCharPtr(m, 0), "timestep") == 0)
-	{
-		float f = fluidClamp(fieldFloat(m, 1),0,1);
-		[ib_sld_timestep setFloatValue:f];
-		[ib_txt_timestep setFloatValue:f];
-	}
 	else if (strcmp(fieldCharPtr(m, 0), "density-fade") == 0)
 	{
 		float f = fluidClamp(fieldFloat(m, 1),0,1);
@@ -51,6 +45,14 @@
 		float f = fluidClamp(fieldFloat(m, 1),0,1);
 		[ib_sld_fadeVelocity setFloatValue:f];
 		[ib_txt_fadeVelocity setFloatValue:f];
+	}
+	else if (strcmp(fieldCharPtr(m, 0), "pressure-quality") == 0)
+	{
+		[ib_sld_pressureQuality setFloatValue:fieldFloat(m, 1)];
+	}
+	else if (strcmp(fieldCharPtr(m, 0), "viscosity-quality") == 0)
+	{
+		[ib_sld_viscosityQuality setFloatValue:fieldFloat(m, 1)];
 	}
 	else if (strcmp(fieldCharPtr(m, 0), "gravity-direction") == 0)
 	{
@@ -243,11 +245,20 @@ void handler(void *o, fieldMsg *m)
 	[ib_glView setVorticity:v];
 }
 
-- (IBAction)onChangeTimestep:(id)value
+- (IBAction)onChangePressureQuality:(id)value
 {
-	float v = [value floatValue];
-	[ib_txt_timestep setFloatValue:v];
-	[ib_glView setTimestep:v];
+	[ib_txt_pressureQuality setStringValue:
+		[NSString stringWithFormat:@"%i%%", [value intValue]]];
+	
+	[ib_glView setPressureQuality:[value floatValue]];
+}
+
+- (IBAction)onChangeViscosityQuality:(id)value
+{
+	[ib_txt_viscosityQuality setStringValue:
+		[NSString stringWithFormat:@"%i%%", [value intValue]]];
+	
+	[ib_glView setViscosityQuality:[value floatValue]];
 }
 
 - (IBAction)onChangeFadeDensity:(id)value

@@ -234,56 +234,65 @@ void fluid_reposVel(fluid *in_f, int y, pvt_fluidMode *mode)
 	int sX = fieldStrideX(data->reposX);
 	int sY = fieldStrideY(data->reposX);
 	
-	int dX = fieldStrideX(data->src);
-	int dY = fieldStrideY(data->src);
+	x128i vsX = {sX, sX, sX, sX};
+	x128i vsY = {sY, sY, sY, sY};
 	
-	float *reposX = fieldData(data->reposX);
-	float *reposY = fieldData(data->reposY);
+	x128f *reposX = (x128f*)fluidFloatPointer(fieldData(data->reposX), y*sY);
+	x128f *reposY = (x128f*)fluidFloatPointer(fieldData(data->reposY), y*sY);
 	float *srcX = fieldData(data->src);
-	float *dstX = fieldData(data->dst);
+	x128f *dstX = (x128f*)fluidFloatPointer(fieldData(data->dst), y*sY);
 	float *srcY = fieldData(data->src2);
-	float *dstY = fieldData(data->dst2);
+	x128f *dstY = (x128f*)fluidFloatPointer(fieldData(data->dst2), y*sY);
 	
-	for (x=0; x<w; x++)
+	int w2 = w/4;
+	
+	u128i offBackX, offBackY, offX2, offY2;
+	u128f scaleX, scaleY, dx, dy;
+	
+	for (x=0; x<w2; x++)
 	{
-		float fReposX = fluidFloatPointer(reposX, x*sX + y*sY)[0];
-		float fReposY = fluidFloatPointer(reposY, x*sX + y*sY)[0];
+		x128f fReposX = reposX[x];
+		x128f fReposY = reposY[x];
 		
-		float *fDstX = fluidFloatPointer(dstX, x*dX + y*dY);
-		float *fDstY = fluidFloatPointer(dstY, x*dX + y*dY);
+		x128i inBackX = x_ftoi(fReposX);
+		x128i inBackY = x_ftoi(fReposY);
 		
-		int inBackX = (int)fReposX;
-		int inBackY = (int)fReposY;
+		x128f nBackX = x_itof(inBackX);
+		x128f nBackY = x_itof(inBackY);
 		
-		float nBackX = (float)(inBackX);
-		float nBackY = (float)(inBackY);
+		scaleX.v = x_sub(fReposX, nBackX);
+		scaleY.v = x_sub(fReposY, nBackY);
 		
-		float scaleX = fReposX - nBackX;
-		float scaleY = fReposY - nBackY;
+		offBackX.v = x_imul(inBackX, vsX);
+		offBackY.v = x_imul(inBackY, vsY);
+		offX2.v = x_iadd(offBackX.v, vsX);
+		offY2.v = x_iadd(offBackY.v, vsY);
 		
-		int offBackX = inBackX * dX;
-		int offBackY = inBackY * dY;
-		int offX2 = offBackX + dX;
-		int offY2 = offBackY + dY;
+		int i;
+		for (i=0; i<4; i++)
+		{
+			float *bZZ = fluidFloatPointer(srcX, offBackX.i[i] + offBackY.i[i]);
+			float *bOZ = fluidFloatPointer(srcX, offX2.i[i] + offBackY.i[i]);
+			float *bZO = fluidFloatPointer(srcX, offBackX.i[i] + offY2.i[i]);
+			float *bOO = fluidFloatPointer(srcX, offX2.i[i] + offY2.i[i]);
+			
+			//For each component, do standard advection!
+			dx.f[i] = fluidLinearInterpolation(scaleX.f[i], scaleY.f[i],
+											bZZ[0], bOZ[0], bZO[0], bOO[0]);
+			
+			
+			bZZ = fluidFloatPointer(srcY, offBackX.i[i] + offBackY.i[i]);
+			bOZ = fluidFloatPointer(srcY, offX2.i[i] + offBackY.i[i]);
+			bZO = fluidFloatPointer(srcY, offBackX.i[i] + offY2.i[i]);
+			bOO = fluidFloatPointer(srcY, offX2.i[i] + offY2.i[i]);
+			
+			//For each component, do standard advection!
+			dy.f[i] = fluidLinearInterpolation(scaleX.f[i], scaleY.f[i],
+											bZZ[0], bOZ[0], bZO[0], bOO[0]);
+		}
 		
-		float *bZZ = fluidFloatPointer(srcX, offBackX + offBackY);
-		float *bOZ = fluidFloatPointer(srcX, offX2 + offBackY);
-		float *bZO = fluidFloatPointer(srcX, offBackX + offY2);
-		float *bOO = fluidFloatPointer(srcX, offX2 + offY2);
-		
-		//For each component, do standard advection!
-		fDstX[0] = fluidLinearInterpolation(scaleX, scaleY,
-										bZZ[0], bOZ[0], bZO[0], bOO[0]);
-		
-		
-		bZZ = fluidFloatPointer(srcY, offBackX + offBackY);
-		bOZ = fluidFloatPointer(srcY, offX2 + offBackY);
-		bZO = fluidFloatPointer(srcY, offBackX + offY2);
-		bOO = fluidFloatPointer(srcY, offX2 + offY2);
-		
-		//For each component, do standard advection!
-		fDstY[0] = fluidLinearInterpolation(scaleX, scaleY,
-										bZZ[0], bOZ[0], bZO[0], bOO[0]);
+		dstX[x] = dx.v;
+		dstY[x] = dy.v;
 	}
 }
 

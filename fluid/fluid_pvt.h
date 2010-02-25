@@ -259,6 +259,10 @@ struct fluid
 	float m_fadeVel;
 	float m_fadeDens;
 	
+	//Accuracy of pressure and viscosity
+	int m_pressureAccuracy;
+	int m_viscosityAccuracy;
+	
 	//Flags (toggles for switches, and so forth)
 	unsigned int flags;
 	

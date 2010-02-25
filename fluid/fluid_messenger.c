@@ -214,6 +214,22 @@ int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg)
 		{
 			fluidServerVelocityClient(fm->s, ch, ix);
 		}
+		else if (fluidMessengerParse(fm, msg, &curOffset, "pressure-accuracy", "f", &farg))
+		{
+			if (farg < 0)	farg = 0;
+			if (farg > 100)	farg = 100;
+			int a = (int)farg*40/100;
+			fluidSetPressureAccuracy(fm->f, a);
+			if (a < 1) a = 1;
+		}
+		else if (fluidMessengerParse(fm, msg, &curOffset, "viscosity-accuracy", "f", &farg))
+		{
+			if (farg < 0)	farg = 0;
+			if (farg > 100)	farg = 100;
+			int a = (int)farg*40/100;
+			if (a < 1)	a = 1;
+			fluidSetViscosityAccuracy(fm->f, a);
+		}
 		else
 		{
 			do {

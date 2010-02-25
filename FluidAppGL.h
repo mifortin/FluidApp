@@ -56,6 +56,9 @@
 - (void)setGravityMagnitude:(float)in_grav;
 - (void)setTemperatureMagnitude:(float)in_temp;
 
+- (void)setPressureQuality:(float)in_q;
+- (void)setViscosityQuality:(float)in_v;
+
 - (void)noFreeSurfaces;
 - (void)simpleFreeSurfaces;
 

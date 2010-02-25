@@ -40,6 +40,10 @@ void fluidSetGravityVector(fluid *f, float x, float y);
 void fluidSetGravityMagnitude(fluid *f, float v);
 void fluidSetTemperatureMagnitude(fluid *f, float v);
 
+//Accuracy
+void fluidSetPressureAccuracy(fluid *f, float v);
+void fluidSetViscosityAccuracy(fluid *f, float v);
+
 //Set up vorticity (2 modes of computation)
 void fluidVorticityQuick(fluid *f);
 void fluidVorticityAccurate(fluid *f);

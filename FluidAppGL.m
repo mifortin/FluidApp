@@ -516,6 +516,21 @@ void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 	fluidSetTemperatureMagnitude(r_fluid, in_temp);
 }
 
+
+- (void)setPressureQuality:(float)in_q
+{
+	int a = (int)in_q * 40 / 100;
+	if (a <= 0) a = 1;
+	fluidSetPressureAccuracy(r_fluid, a);
+}
+
+- (void)setViscosityQuality:(float)in_q
+{
+	int a = (int)in_q * 40 / 100;
+	if (a <= 0) a = 1;
+	fluidSetViscosityAccuracy(r_fluid, a);
+}
+
 - (void)noFreeSurfaces
 {
 	fluidFreeSurfaceNone(r_fluid);

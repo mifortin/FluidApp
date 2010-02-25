@@ -24,8 +24,11 @@
 	IBOutlet NSSlider		*ib_sld_vorticity;
 	IBOutlet NSTextField	*ib_txt_vorticity;
 	
-	IBOutlet NSSlider		*ib_sld_timestep;
-	IBOutlet NSTextField	*ib_txt_timestep;
+	IBOutlet NSSlider		*ib_sld_pressureQuality;
+	IBOutlet NSTextField	*ib_txt_pressureQuality;
+	
+	IBOutlet NSSlider		*ib_sld_viscosityQuality;
+	IBOutlet NSTextField	*ib_txt_viscosityQuality;
 	
 	IBOutlet NSSlider		*ib_sld_fadeDensity;
 	IBOutlet NSTextField	*ib_txt_fadeDensity;
@@ -42,9 +45,11 @@
 
 - (IBAction)onChangeViscosity:(id)value;
 - (IBAction)onChangeVorticity:(id)value;
-- (IBAction)onChangeTimestep:(id)value;
 - (IBAction)onChangeFadeDensity:(id)value;
 - (IBAction)onChangeFadeVelocity:(id)value;
+
+- (IBAction)onChangePressureQuality:(id)value;
+- (IBAction)onChangeViscosityQuality:(id)value;
 
 - (IBAction)onChangeFreeSurface:(id)value;
 

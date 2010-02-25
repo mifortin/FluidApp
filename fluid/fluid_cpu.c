@@ -632,12 +632,14 @@ void fluidAdvance_cpu(fluid *in_f)
 	fluidTaskDampen(in_f, in_f->r_velocityY, in_f->m_fadeVel);
 	fluidTaskTemperature(in_f);
 	
-	fluidTaskViscosity(in_f, 20);
+	fluidTaskViscosity(in_f, in_f->m_viscosityAccuracy);
 	
 	if (in_f->flags & FLUID_SIMPLEFREE)
-		fluidTaskPressure(in_f, 20, in_f->r_density);
+		fluidTaskPressure(in_f, in_f->m_pressureAccuracy, in_f->r_density);
 	else
-		fluidTaskPressure(in_f, 20, NULL);
+		fluidTaskPressure(in_f, in_f->m_pressureAccuracy, NULL);
+	
+	//printf("%i %i\n", in_f->m_viscosityAccuracy, in_f->m_pressureAccuracy);
 	
 	/*fluidTaskAddNptForwardAdvection(in_f);
 	fluidTaskAdvectDensity(in_f);/**/
