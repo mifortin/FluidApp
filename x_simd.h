@@ -203,7 +203,7 @@ static inline x128i x_imul(x128i a, x128i b)
 #ifdef __APPLE_ALTIVEC__
 	#define x_ftoi(f)		vec_cts(f, 0)
 #elif defined __SSE3__
-	#define x_ftoi(f)		_mm_cvtps_epi32(f)
+	#define x_ftoi(f)		_mm_cvttps_epi32(f)
 #else
 	static inline x128i x_ftoi(x128f f)
 	{

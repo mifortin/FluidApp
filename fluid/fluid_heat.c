@@ -14,13 +14,13 @@ void fluid_force_heat(fluid *in_f, int y, pvt_fluidMode *mode)
 {
 	struct temperature *t = &mode->temperature;
 	
-	int w = fieldWidth(t->density);
+	int w = fieldWidth(t->density)/4;
 	
 	float *f = fluidFloatPointer(fieldData(t->density),y*fieldStrideY(t->density));
 	int c = fieldComponents(t->density);
 	
-	float *vx = fluidFloatPointer(fieldData(t->velX),y*fieldStrideY(t->velX));
-	float *vy = fluidFloatPointer(fieldData(t->velY),y*fieldStrideY(t->velY));
+	x128f *vx = (x128f*)fluidFloatPointer(fieldData(t->velX),y*fieldStrideY(t->velX));
+	x128f *vy = (x128f*)fluidFloatPointer(fieldData(t->velY),y*fieldStrideY(t->velY));
 	
 	float alpha = t->alpha;
 	float beta = t->beta;
@@ -29,10 +29,51 @@ void fluid_force_heat(fluid *in_f, int y, pvt_fluidMode *mode)
 	float upX = t->upX;
 	float upY = t->upY;
 	
-	int x;
-	for (x=0; x<w; x++)
+	float right = beta * upX;
+	float left = alpha * upX - right * ambient;
+	
+	x128f vLeftX = {left, left, left, left};
+	x128f vRightX = {right, right, right, right};
+	
+	right = beta * upY;
+	left = alpha * upY - right * ambient;
+	
+	x128f vLeftY = (x128f){left, left, left, left};
+	x128f vRightY = (x128f){right, right, right, right};
+	
+	x128f colorDiff[8];
+	
+	int x,o,s,l;
+	for (x=0; x<w;)
 	{
-		vx[x] += alpha * upX + beta*(f[x*c]-f[x*c+2]-ambient) * upX;
-		vy[x] += alpha * upY + beta*(f[x*c]-f[x*c+2]-ambient) * upY;
+		s = x;
+		o = 0;
+		for (l=0;l<8;l++, x++, o++)
+		{
+			x128f fRed = {	f[4*x*c], f[4*x*c+c],f[4*x*c+2*c],f[4*x*c+3*c]};
+			x128f fBlue = {f[4*x*c+2], f[4*x*c+c+2],f[4*x*c+2*c+2],f[4*x*c+3*c+2]};
+			
+			colorDiff[o] = x_sub(fRed, fBlue);
+		}
+		
+		x = s;
+		o = 0;
+		for (l=0;l<8;l++, x++, o++)
+		{
+			x128f prodX = x_mul(colorDiff[o], vRightX);
+			x128f sumX = x_add(prodX, vLeftX);
+			
+			vx[x] = x_add(vx[x], sumX);
+		}
+		
+		x = s;
+		o = 0;
+		for (l=0;l<8;l++, x++, o++)
+		{
+			x128f prodY = x_mul(colorDiff[o], vRightY);
+			x128f sumY = x_add(prodY, vLeftY);
+			
+			vy[x] = x_add(vy[x], sumY);
+		}
 	}
 }

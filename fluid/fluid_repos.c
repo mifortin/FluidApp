@@ -38,7 +38,9 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	u128f scaleX, scaleY;
 	
 	for (x=0; x<w2; x++)
-	{
+	{	
+		int constDstOffset = 4*x*dX + y*dY;
+		
 		x128f fReposX = reposX[x];
 		x128f fReposY = reposY[x];
 		
@@ -64,7 +66,7 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		int i;
 		for (i=0; i<4; i++)
 		{
-			x128f *fDst = (x128f*)fluidFloatPointer(dst, (4*x+i)*dX + y*dY);
+			x128f *fDst = (x128f*)fluidFloatPointer(dst, constDstOffset + i*dX);
 			
 			x128f *bZZ = (x128f*)fluidFloatPointer(src, d1.i[i]);
 			x128f *bOZ = (x128f*)fluidFloatPointer(src, d2.i[i]);
@@ -74,6 +76,8 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 			x128f vSx = {scaleX.f[i], scaleX.f[i], scaleX.f[i], scaleX.f[i]};
 			x128f vSy = {scaleY.f[i], scaleY.f[i], scaleY.f[i], scaleY.f[i]};
 			
+			x128f oneMx = x_sub(x_simd_one, vSx);
+			
 			int c;
 			for (c=0; c<dC/4; c++)
 			{
@@ -81,13 +85,13 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 				fDst[c] = x_madd(
 							x_sub(x_simd_one, vSy),
 							x_madd(
-								x_sub(x_simd_one, vSx),
+								oneMx,
 								bZZ[c],
 								x_mul(vSx, bOZ[c])),
 							x_mul(
 								vSy,
 								x_madd(
-									x_sub(x_simd_one, vSx),
+									oneMx,
 									bZO[c],
 									x_mul(vSx,bOO[c]))));
 			}
