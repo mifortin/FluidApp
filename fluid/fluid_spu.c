@@ -163,8 +163,9 @@ void genViscosity(int w,		vector float vAlpha,
 }
 
 
-void genPressureBorder(int w,	vector float *vPressureDest,
-								vector float *vPressureSrc)
+void genPressureBorder(const int w,
+								vector float *vPressureDest,
+								const vector float *vPressureSrc)
 {
 	int x;
 	for (x=0; x<w; x++)
@@ -174,12 +175,13 @@ void genPressureBorder(int w,	vector float *vPressureDest,
 }
 
 
-void genPressure(int w,	vector float *vPressure,
-						vector float *vPressureN,
-						vector float *vPressureP,
-						vector float *vVelX,
-						vector float *vVelYN,
-						vector float *vVelYP)
+void genPressure(const int w,
+						vector float *vPressure,
+						const vector float *vPressureN,
+						const vector float *vPressureP,
+						const vector float *vVelX,
+						const vector float *vVelYN,
+						const vector float *vVelYP)
 {
 	vector float div4 = {0.25f, 0.25f, 0.25f, 0.25f};
 		
@@ -244,11 +246,12 @@ void genPressure(int w,	vector float *vPressure,
 }
 
 
-void pressureApply(int w,	vector float *vVelX,
+void pressureApply(const int w,
+							vector float *vVelX,
 							vector float *vVelY,
-							vector float *vPressure,
-							vector float *vPressureN,
-							vector float *vPressureP)
+							const vector float *vPressure,
+							const vector float *vPressureN,
+							const vector float *vPressureP)
 {
 	vector unsigned int leftMask = {0x00000000,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF};
 	vector unsigned int rightMask = {0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0x00000000};
@@ -288,11 +291,99 @@ void pressureApply(int w,	vector float *vVelX,
 }
 
 
+void dma_start()
+{
+	int tag = 1;
+	int i;
+	int w = context.width * 16;
+	for (i=0; i< FLUID_BUFFERS; i++)
+	{
+		if (context.commands[i] == COMMAND_STALL)
+			mfc_get((void*)dat[i], (unsigned int)context.addresses[i], w, tag, 0, 0);
+	}
+	
+	mfc_write_tag_mask(1 << tag);
+	mfc_read_tag_status_all();
+	
+	for (i=0; i < FLUID_BUFFERS; i++)
+	{
+		if (context.commands[i] == COMMAND_DELAY)
+			mfc_get((void*)dat[i], (unsigned int)context.addresses[i], w, tag, 0, 0);
+		else if (context.commands[i] == COMMAND_WRITE)
+			mfc_put((void*)dat[i], (unsigned int)context.addresses[i], w, tag, 0, 0);
+	}
+}
+
+
+void dma_end()
+{
+	int tag = 1;
+	mfc_write_tag_mask(1 << tag);
+	mfc_read_tag_status_all();
+}
+
+
 int main(unsigned long long spu_id __attribute__ ((unused)), unsigned long long argv)
 {
-	genPressure(480,
-				&dat[0][0].vf, &dat[0][1].vf, &dat[0][2].vf,
-				&dat[0][3].vf, &dat[0][4].vf, &dat[0][5].vf);
+	//Load up basic data...
+	int tag = 1;
+	mfc_get((void*)&context, (unsigned int)argv, sizeof(context), tag, 0,0);
+	mfc_write_tag_mask(1 << tag);
+	mfc_read_tag_status_all();
+	
+	dma_start();
+
+	switch (context.cmd)
+	{
+	case CMD_PRESSURE:
+		genPressure(context.width,
+					&dat[context.args[0]][0].vf,
+					&dat[context.args[1]][0].vf,
+					&dat[context.args[2]][0].vf,
+					&dat[context.args[3]][0].vf,
+					&dat[context.args[4]][0].vf,
+					&dat[context.args[5]][0].vf);
+		break;
+		
+	case CMD_PRESSURE_B:
+		genPressureBorder(context.width,
+					&dat[context.args[0]][0].vf,
+					&dat[context.args[1]][0].vf);
+		break;
+		
+	case CMD_PRESSURE_APPLY:
+		pressureApply(context.width,
+					&dat[context.args[0]][0].vf,
+					&dat[context.args[1]][0].vf,
+					&dat[context.args[2]][0].vf,
+					&dat[context.args[3]][0].vf,
+					&dat[context.args[4]][0].vf);
+		break;
+		
+	case CMD_VISCOSITY:
+		genViscosity(context.width,
+					(vector float)
+						{context.alpha,context.alpha,context.alpha,context.alpha},
+					(vector float)
+						{context.beta,context.beta,context.beta,context.beta},
+					&dat[context.args[0]][0].vf,
+					&dat[context.args[1]][0].vf,
+					&dat[context.args[2]][0].vf,
+					&dat[context.args[3]][0].vf,
+					&dat[context.args[4]][0].vf,
+					&dat[context.args[5]][0].vf);
+		break;
+		
+	case CMD_VISCOSITY_B:
+		genViscosityBorder(context.width,
+					&dat[context.args[0]][0].vf,
+					&dat[context.args[1]][0].vf,
+					&dat[context.args[2]][0].vf,
+					&dat[context.args[3]][0].vf);
+		break;
+	}
+
+	dma_end();
 
 	return 0;
 }
