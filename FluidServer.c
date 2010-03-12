@@ -9,6 +9,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
+#include <signal.h>
 
 #include "net.h"
 #include "fluid.h"
@@ -35,6 +36,12 @@ int usage()
 
 int main(int argc, char *argv[])
 {
+	struct sigaction s;
+	memset(&s, 0, sizeof(s));
+	s.sa_mask = SIGPIPE;
+	s.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE, &s, NULL);
+	
 	x_init();			//Setup exception handling / memory management.
 	
 	int procs = 0;

@@ -32,14 +32,14 @@ void fluid_force_heat(fluid *in_f, int y, pvt_fluidMode *mode)
 	float right = beta * upX;
 	float left = alpha * upX - right * ambient;
 	
-	x128f vLeftX = {left, left, left, left};
-	x128f vRightX = {right, right, right, right};
+	const x128f vLeftX = {left, left, left, left};
+	const x128f vRightX = {right, right, right, right};
 	
 	right = beta * upY;
 	left = alpha * upY - right * ambient;
 	
-	x128f vLeftY = (x128f){left, left, left, left};
-	x128f vRightY = (x128f){right, right, right, right};
+	const x128f vLeftY = (x128f){left, left, left, left};
+	const x128f vRightY = (x128f){right, right, right, right};
 	
 	x128f colorDiff[8];
 	
@@ -48,10 +48,11 @@ void fluid_force_heat(fluid *in_f, int y, pvt_fluidMode *mode)
 	{
 		s = x;
 		o = 0;
+		float *f2 = f+4*x*c;
 		for (l=0;l<8;l++, x++, o++)
 		{
-			x128f fRed = {	f[4*x*c], f[4*x*c+c],f[4*x*c+2*c],f[4*x*c+3*c]};
-			x128f fBlue = {f[4*x*c+2], f[4*x*c+c+2],f[4*x*c+2*c+2],f[4*x*c+3*c+2]};
+			x128f fRed = {	f2[0], f2[c],f2[2*c],f2[3*c]};
+			x128f fBlue = {f2[2], f2[c+2],f2[2*c+2],f2[3*c+2]};
 			
 			colorDiff[o] = x_sub(fRed, fBlue);
 		}

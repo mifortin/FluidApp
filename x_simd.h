@@ -9,6 +9,8 @@
 #ifndef X_SIMD_H
 #define X_SIMD_H
 
+#include <math.h>
+
 //Get the needed libraries
 #ifdef __APPLE_ALTIVEC__
 	#ifdef CELL
@@ -124,7 +126,7 @@ static const x128f x_simd_one = {1,1,1,1};
 #endif
 
 //x_imul
-static inline x128i x_imul(x128i a, x128i b)
+static inline x128i x_imul(const x128i a, const x128i b)
 {
 	u128i ai, bi, ri;
 	
@@ -137,6 +139,20 @@ static inline x128i x_imul(x128i a, x128i b)
 	ri.i[3] = ai.i[3] * bi.i[3];
 	
 	return ri.v;
+}
+
+//x_any_lt
+static inline int x_all_lt(const x128f a, const x128f b)
+{
+	u128f ai, bi;
+	
+	ai.v = a;
+	bi.v = b;
+	
+	return		ai.f[0] < bi.f[0]
+			&&	ai.f[1] < bi.f[1]
+			&&	ai.f[2] < bi.f[2]
+			&&	ai.f[3] < bi.f[3];
 }
 
 //x_min
@@ -222,6 +238,20 @@ static inline x128i x_imul(x128i a, x128i b)
 	{
 		return (x128f)
 			{i.a, i.b, i.c, i.d};
+	}
+#endif
+
+//x_abs
+#ifdef __APPLE_ALTIVEC__
+	#define x_abs(x) vec_abs(x)
+#elif defined __SSE3__
+	static const x128i x_float32signMask =
+						{0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF};
+	#define x_abs(x) _mm_and_ps(x, (x128f)x_float32signMask)
+#else
+	static inline x128f x_abs(const x128f x)
+	{
+		return (x128f){fabs(x.a), fabs(x.b), fabs(x.c), fabs(x.d)};
 	}
 #endif
 

@@ -84,21 +84,21 @@ void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode)
 		float *vPressureRow = fluidFloatPointer(pressure, y*sy);
 		
 		x128f *vPressure = (x128f*)vPressureRow;
-		x128f *vVelX = (x128f*)fluidFloatPointer(velX, y*sy);
+		const x128f *vVelX = (x128f*)fluidFloatPointer(velX, y*sy);
 		
-		x128f *vPressureN = (x128f*)fluidFloatPointer(pressure, (y+1)*sy);
-		x128f *vVelYN = (x128f*)fluidFloatPointer(velY, (y+1)*sy);
+		const x128f *vPressureN = (x128f*)fluidFloatPointer(pressure, (y+1)*sy);
+		const x128f *vVelYN = (x128f*)fluidFloatPointer(velY, (y+1)*sy);
 		
-		x128f *vPressureP = (x128f*)fluidFloatPointer(pressure, (y-1)*sy);
-		x128f *vVelYP = (x128f*)fluidFloatPointer(velY, (y-1)*sy);
+		const x128f *vPressureP = (x128f*)fluidFloatPointer(pressure, (y-1)*sy);
+		const x128f *vVelYP = (x128f*)fluidFloatPointer(velY, (y-1)*sy);
 		
-		x128f div4 = {1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f};
+		const x128f div4 = {1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f, 1.0f/4.0f};
 #endif
 	
 #ifdef __APPLE_ALTIVEC__
 		//int myTempVariable = __mfspr( 1023 );
 		
-		vector float vZero = {0,0,0,0};
+		const vector float vZero = {0,0,0,0};
 		
 		vec_dstst(vPressure, 0x01000001, 0);
 		vec_dst(vVelX, 0x01000001, 1);

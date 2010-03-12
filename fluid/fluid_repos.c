@@ -23,7 +23,6 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	
 	int dX = fieldStrideX(data->src);
 	int dY = fieldStrideY(data->src);
-	int dC = fieldComponents(data->src);
 	
 	x128i vdX = {dX, dX, dX, dX};
 	x128i vdY = {dY, dY, dY, dY};
@@ -37,10 +36,11 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 	u128i offBackX, offBackY, offX2, offY2, d1, d2, d3, d4;
 	u128f scaleX, scaleY;
 	
+	int constDstOffset = y*dY;
+	x128f *fDst = (x128f*)fluidFloatPointer(dst, constDstOffset);
+	
 	for (x=0; x<w2; x++)
-	{	
-		int constDstOffset = 4*x*dX + y*dY;
-		
+	{
 		x128f fReposX = reposX[x];
 		x128f fReposY = reposY[x];
 		
@@ -63,39 +63,85 @@ void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 		d3.v = x_iadd(offBackX.v, offY2.v);
 		d4.v = x_iadd(offX2.v, offY2.v);
 		
-		int i;
-		for (i=0; i<4; i++)
-		{
-			x128f *fDst = (x128f*)fluidFloatPointer(dst, constDstOffset + i*dX);
-			
-			x128f *bZZ = (x128f*)fluidFloatPointer(src, d1.i[i]);
-			x128f *bOZ = (x128f*)fluidFloatPointer(src, d2.i[i]);
-			x128f *bZO = (x128f*)fluidFloatPointer(src, d3.i[i]);
-			x128f *bOO = (x128f*)fluidFloatPointer(src, d4.i[i]);
-			
-			x128f vSx = {scaleX.f[i], scaleX.f[i], scaleX.f[i], scaleX.f[i]};
-			x128f vSy = {scaleY.f[i], scaleY.f[i], scaleY.f[i], scaleY.f[i]};
-			
-			x128f oneMx = x_sub(x_simd_one, vSx);
-			
-			int c;
-			for (c=0; c<dC/4; c++)
-			{
-				//For each component, do standard advection!
-				fDst[c] = x_madd(
-							x_sub(x_simd_one, vSy),
-							x_madd(
-								oneMx,
-								bZZ[c],
-								x_mul(vSx, bOZ[c])),
-							x_mul(
-								vSy,
-								x_madd(
-									oneMx,
-									bZO[c],
-									x_mul(vSx,bOO[c]))));
-			}
-		}
+		
+		x128f vSx_0 = {scaleX.f[0], scaleX.f[0], scaleX.f[0], scaleX.f[0]};
+		x128f vSy_0 = {scaleY.f[0], scaleY.f[0], scaleY.f[0], scaleY.f[0]};
+		
+		x128f vSx_1 = {scaleX.f[1], scaleX.f[1], scaleX.f[1], scaleX.f[1]};
+		x128f vSy_1 = {scaleY.f[1], scaleY.f[1], scaleY.f[1], scaleY.f[1]};
+		
+		x128f vSx_2 = {scaleX.f[2], scaleX.f[2], scaleX.f[2], scaleX.f[2]};
+		x128f vSy_2 = {scaleY.f[2], scaleY.f[2], scaleY.f[2], scaleY.f[2]};
+		
+		x128f vSx_3 = {scaleX.f[3], scaleX.f[3], scaleX.f[3], scaleX.f[3]};
+		x128f vSy_3 = {scaleY.f[3], scaleY.f[3], scaleY.f[3], scaleY.f[3]};
+		
+		
+		x128f oneMx_0 = x_sub(x_simd_one, vSx_0);
+		x128f oneMy_0 = x_sub(x_simd_one, vSy_0);
+		
+		x128f oneMx_1 = x_sub(x_simd_one, vSx_1);
+		x128f oneMy_1 = x_sub(x_simd_one, vSy_1);
+		
+		x128f oneMx_2 = x_sub(x_simd_one, vSx_2);
+		x128f oneMy_2 = x_sub(x_simd_one, vSy_2);
+		
+		x128f oneMx_3 = x_sub(x_simd_one, vSx_3);
+		x128f oneMy_3 = x_sub(x_simd_one, vSy_3);
+		
+		
+		x128f *bZZ_0 = (x128f*)fluidFloatPointer(src, d1.i[0]);
+		x128f *bOZ_0 = (x128f*)fluidFloatPointer(src, d2.i[0]);
+		x128f *bZO_0 = (x128f*)fluidFloatPointer(src, d3.i[0]);
+		x128f *bOO_0 = (x128f*)fluidFloatPointer(src, d4.i[0]);
+		
+		x128f *bZZ_1 = (x128f*)fluidFloatPointer(src, d1.i[1]);
+		x128f *bOZ_1 = (x128f*)fluidFloatPointer(src, d2.i[1]);
+		x128f *bZO_1 = (x128f*)fluidFloatPointer(src, d3.i[1]);
+		x128f *bOO_1 = (x128f*)fluidFloatPointer(src, d4.i[1]);
+		
+		x128f *bZZ_2 = (x128f*)fluidFloatPointer(src, d1.i[2]);
+		x128f *bOZ_2 = (x128f*)fluidFloatPointer(src, d2.i[2]);
+		x128f *bZO_2 = (x128f*)fluidFloatPointer(src, d3.i[2]);
+		x128f *bOO_2 = (x128f*)fluidFloatPointer(src, d4.i[2]);
+		
+		x128f *bZZ_3 = (x128f*)fluidFloatPointer(src, d1.i[3]);
+		x128f *bOZ_3 = (x128f*)fluidFloatPointer(src, d2.i[3]);
+		x128f *bZO_3 = (x128f*)fluidFloatPointer(src, d3.i[3]);
+		x128f *bOO_3 = (x128f*)fluidFloatPointer(src, d4.i[3]);
+		
+		
+		x128f vSxMulOZ_0 = x_mul(vSx_0, bOZ_0[0]);
+		x128f vSxMulOO_0 = x_mul(vSx_0, bOO_0[0]);
+		x128f vSxMulZZ_0 = x_madd(oneMx_0, bZZ_0[0], vSxMulOZ_0);
+		x128f vSxMulZO_0 = x_madd(oneMx_0, bZO_0[0], vSxMulOO_0);
+		
+		x128f vSxMulOZ_1 = x_mul(vSx_1, bOZ_1[0]);
+		x128f vSxMulOO_1 = x_mul(vSx_1, bOO_1[0]);
+		x128f vSxMulZZ_1 = x_madd(oneMx_1, bZZ_1[0], vSxMulOZ_1);
+		x128f vSxMulZO_1 = x_madd(oneMx_1, bZO_1[0], vSxMulOO_1);
+		
+		x128f vSxMulOZ_2 = x_mul(vSx_2, bOZ_2[0]);
+		x128f vSxMulOO_2 = x_mul(vSx_2, bOO_2[0]);
+		x128f vSxMulZZ_2 = x_madd(oneMx_2, bZZ_2[0], vSxMulOZ_2);
+		x128f vSxMulZO_2 = x_madd(oneMx_2, bZO_2[0], vSxMulOO_2);
+		
+		x128f vSxMulOZ_3 = x_mul(vSx_3, bOZ_3[0]);
+		x128f vSxMulOO_3 = x_mul(vSx_3, bOO_3[0]);
+		x128f vSxMulZZ_3 = x_madd(oneMx_3, bZZ_3[0], vSxMulOZ_3);
+		x128f vSxMulZO_3 = x_madd(oneMx_3, bZO_3[0], vSxMulOO_3);
+		
+		
+		x128f vSYO_0 = x_mul(vSy_0, vSxMulZO_0);
+		x128f vSYO_1 = x_mul(vSy_1, vSxMulZO_1);
+		x128f vSYO_2 = x_mul(vSy_2, vSxMulZO_2);
+		x128f vSYO_3 = x_mul(vSy_3, vSxMulZO_3);
+		
+		//For each component, do standard advection!
+		fDst[4*x+0] = x_madd(oneMy_0, vSxMulZZ_0, vSYO_0);
+		fDst[4*x+1] = x_madd(oneMy_1, vSxMulZZ_1, vSYO_1);
+		fDst[4*x+2] = x_madd(oneMy_2, vSxMulZZ_2, vSYO_2);
+		fDst[4*x+3] = x_madd(oneMy_3, vSxMulZZ_3, vSYO_3);
 	}
 }
 
@@ -163,12 +209,15 @@ void fluid_reposVel(fluid *in_f, int y, pvt_fluidMode *mode)
 				//For each component, do standard advection!
 				dest[counter].f[i] = fluidLinearInterpolation(scaleX.f[i], scaleY.f[i],
 												bZZ[0], bOZ[0], bZO[0], bOO[0]);
-				
-				
-				bZZ = fluidFloatPointer(srcY, d1.i[i]);
-				bOZ = fluidFloatPointer(srcY, d2.i[i]);
-				bZO = fluidFloatPointer(srcY, d3.i[i]);
-				bOO = fluidFloatPointer(srcY, d4.i[i]);
+			}
+			
+			
+			for (i=0; i<4; i++)
+			{
+				float *bZZ = fluidFloatPointer(srcY, d1.i[i]);
+				float *bOZ = fluidFloatPointer(srcY, d2.i[i]);
+				float *bZO = fluidFloatPointer(srcY, d3.i[i]);
+				float *bOO = fluidFloatPointer(srcY, d4.i[i]);
 				
 				//For each component, do standard advection!
 				dest[counter+1].f[i] = fluidLinearInterpolation(scaleX.f[i], scaleY.f[i],

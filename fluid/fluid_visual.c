@@ -13,23 +13,23 @@ void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 {
 	struct video *v = &mode->video;
 	
-	int w = fieldWidth(v->f);
+	const int w = fieldWidth(v->f);
 	
-	float *f = fluidFloatPointer(fieldData(v->f),y*fieldStrideY(v->f));
-	int c = fieldComponents(v->f);
+	const float *f = fluidFloatPointer(fieldData(v->f),y*fieldStrideY(v->f));
+	const int c = fieldComponents(v->f);
 	unsigned char *o = fieldCharData(v->o) + y*fieldStrideY(v->o);
 	
 #ifdef __APPLE_ALTIVEC__
 	int x;
-	w = w * c / (4*4);
+	const int w2 = w * c / (4*4);
 	
-	vector float *vf = (vector float*)f;
+	const vector float *vf = (vector float*)f;
 	vector signed char *vo = (vector signed char*)o;
 	
-	vector short min = {0,0,0,0,0,0,0,0};
-	vector short max = {255,255,255,255,255,255,255,255};
+	const vector short min = {0,0,0,0,0,0,0,0};
+	const vector short max = {255,255,255,255,255,255,255,255};
 	
-	for (x=0; x<w; x++)
+	for (x=0; x<w2; x++)
 	{
 		vector int i1 = vec_cts(vf[x*4+0], 8);
 		vector int i2 = vec_cts(vf[x*4+1], 8);
@@ -45,14 +45,14 @@ void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 	}
 #elif __SSE3__
 	int x;
-	w = w * c / (4*4);
+	const int w2 = w * c / (4*4);
 	
-	__m128 *vf = (__m128*)f;
+	const __m128 *vf = (__m128*)f;
 	__m128i *vo = (__m128i*)o;
 	
-	__m128 max = {255,255,255,255};
+	const __m128 max = {255,255,255,255};
 	
-	for (x=0; x<w; x++)
+	for (x=0; x<w2; x++)
 	{
 		__m128i i1 = _mm_cvtps_epi32(_mm_mul_ps(vf[x*4+0],max));
 		__m128i i2 = _mm_cvtps_epi32(_mm_mul_ps(vf[x*4+1],max));
