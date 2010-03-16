@@ -88,6 +88,90 @@ unsigned char clamp(float f)
 	return (unsigned char)f;
 }
 
+
+void decompressRow(int w, int stride, int *tmp, unsigned char *out_d,
+								int **io_indices, int **io_data)
+{
+	int *indices = *io_indices;
+	int *data = *io_data;
+	
+	//Decompress some uchar data...
+	int s = data[0];
+	int e = data[1];
+	
+	int si = 0;
+	
+	int i;
+	int c;
+	for (i=0; i<indices[0]; i++)
+	{
+		int se = indices[i+1];
+		int ed = data[i+2];
+		
+		for (c=si; c<se; c++)
+		{
+			out_d[c*stride] = (((se - c) * s + (c - si) * ed) / (se-si));
+		}
+		
+		si = se;
+		s = ed;
+	}
+	
+	for (c=si; c<w; c++)
+	{
+		out_d[c*stride] = (((w - c) * s + (c - si) * e) / (w-si));
+	}
+	
+	*io_data += 2 + indices[0];
+	*io_indices += 1 + indices[0];
+}
+
+
+void compressRow(int w, int s, int *tmp, unsigned char *in_d,
+								int **io_indices, int **io_data,
+								int *out_indices, int *out_data)
+{
+	//Compress some uchar data...
+	int *indices = *io_indices;
+	int *data = *io_data;
+	
+	int x;
+	for (x=1; x<w-1; x++)
+	{
+		tmp[x] = (int)in_d[(x-1)*s] - (int)in_d[(x+1)*s];
+	}
+	tmp[0] = tmp[1];
+	tmp[w-1] = tmp[w-2];
+	
+	data[0] = in_d[0];
+	data[1] = in_d[(w-1)*s];
+	
+	indices[0] = 0;
+	
+	int curv = 0;
+	for (x=1; x<w-1; x++)
+	{
+		curv += (int)tmp[x-1] - (int)tmp[x+1];
+		
+		if (x > 1 && abs(curv) > 10)
+		{
+			curv = (int)tmp[x-1] - (int)tmp[x+1];
+			
+			data[2+indices[0]] = in_d[x*s];
+			indices[0]++;
+			indices[indices[0]] = x;
+		}
+	}
+	
+	
+	*out_indices = 1+indices[0];
+	*out_data = 2+indices[0];
+	
+	*io_data += 2 + indices[0];
+	*io_indices += 1 + indices[0];
+}
+
+
 - (IBAction)onMenuFormatImageCompress:(id)in_src
 {
 	if (m_focus == nil)		return;
@@ -125,6 +209,7 @@ unsigned char clamp(float f)
 	printf("Uncompressed image size: %ikb (32bit: %ikb)\n", w*h*bpp/1024, w*h*4*bpp/1024);
 	int *indices = malloc(sizeof(int)*w*h);
 	float *data = malloc(sizeof(float)*w*h*bpp);
+	int *iData = malloc(sizeof(int)*w*h*bpp);
 	
 	float *deriv = malloc(sizeof(float)*w*h);
 	float *curv = malloc(sizeof(float)*w*h);
@@ -438,6 +523,105 @@ unsigned char clamp(float f)
 		}
 	}*/
 	
+	float c[6] = {0,0,0,0,0,0};
+	
+	int *dc = iData;
+	int *ic = indices;
+	
+	int *dce = iData;
+	int *ice = indices;
+	
+	unsigned char *yuv = malloc(w*h*3);
+	
+	int totId = 0, totDa = 0;
+	
+	for (y=0; y<h; y++)
+	{
+		for (x=0; x<w; x++)
+		{
+			unsigned char Y = 
+					clamp
+						(	0.299f*(float)s[0+x*bpp+y*bpp*w]
+						+	0.587f*(float)s[1+x*bpp+y*bpp*w]
+						+	0.144f*(float)s[2+x*bpp+y*bpp*w]);
+			unsigned char Pb =  
+					clamp
+						(	-0.14713*0.5f/0.436f*s[0+x*bpp+y*bpp*w]
+						-	0.28886*0.5f/0.436f*s[1+x*bpp+y*bpp*w]
+						+	0.436*0.5f/0.436f*s[2+x*bpp+y*bpp*w]
+						+	128.0f);
+			unsigned char Pr = 
+					clamp
+						(	0.601f*0.5f/0.436f*s[0+x*bpp+y*bpp*w]
+						-	0.51499f*0.5f/0.436f*s[1+x*bpp+y*bpp*w]
+						-	0.10001f*0.5f/0.436f*s[2+x*bpp+y*bpp*w]
+						+	128.0f);
+			
+//			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
+//			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
+//											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
+//			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
+
+			yuv[x*3+0] = Y;
+			yuv[x*3+1] = Pb;
+			yuv[x*3+2] = Pr;
+			
+//			d[0+x*bpp + y*bpp*w] = 0;
+//			d[1+x*bpp + y*bpp*w] = Pb;
+//			d[2+x*bpp + y*bpp*w] = Pr;
+
+			//d[x*bpp + y*bpp*w] = 0;
+		}
+		
+		for (x=0; x<w; x++)
+		{
+			if (x!= 0 && x != w-1)
+			{
+				deriv[0+x*6] = s[0+(x+1)*bpp+y*bpp*w]-s[0+(x-1)*bpp+y*bpp*w];
+				deriv[1+x*6] = s[1+(x+1)*bpp+y*bpp*w]-s[1+(x-1)*bpp+y*bpp*w];
+				deriv[2+x*6] = s[2+(x+1)*bpp+y*bpp*w]-s[2+(x-1)*bpp+y*bpp*w];
+				deriv[3+x*6] = yuv[(x+1)*3+0] - yuv[(x-1)*3+0];
+				deriv[4+x*6] = yuv[(x+1)*3+1] - yuv[(x-1)*3+1];
+				deriv[5+x*6] = yuv[(x+1)*3+2] - yuv[(x-1)*3+2];
+			}
+			else
+			{
+				deriv[x] = 0;
+			}
+		}
+		
+		for (x=1; x<w-1; x++)
+		{
+			for (z=0; z<6; z++)
+			{
+				c[z] += fabs(deriv[z+(x+1)*6] - deriv[z+(x-1)*6]);
+			}
+		}
+
+		int countId=0, countDa=0;
+		compressRow(w, 3, (int*)curv, yuv, &ic, &dc, &countId, &countDa);
+		decompressRow(w, 3, (int*)curv, yuv, &ice, &dce);
+		totId += countId;
+		totDa += countDa;
+		
+		for (x=1; x<w-1; x++)
+		{
+			unsigned char Y = yuv[x*3+0];
+			unsigned char Pb = yuv[x*3+1];
+			unsigned char Pr = yuv[x*3+2];
+			
+			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
+			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
+											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
+			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
+		}
+	}
+	
+	printf(" R:%0.0f\n G:%0.0f\n B:%0.0f\n Y:%0.0f\n U:%0.0f\n V:%0.0f\n RGB:%0.0f\n YUV:%0.0f\n",
+			c[0], c[1], c[2], c[3], c[4], c[5],
+			c[0] + c[1] + c[2], c[3] + c[4] + c[5]);
+	printf(" IDs:%i\n DA:%i\n", totId, totDa);
+	
 	[NSBundle loadNibNamed:@"FluidZip_Window" owner:self];
 	[r_windows addObject:i_window];
 	[i_window release];
@@ -450,6 +634,8 @@ unsigned char clamp(float f)
 	free(data);
 	free(curv);
 	free(deriv);
+	free(iData);
+	free(yuv);
 	
 	[i2 release];
 	[cpy release];
