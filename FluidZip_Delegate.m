@@ -570,9 +570,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 //											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
 //			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
 
-			yuv[x*3+0] = Y;
-			yuv[x*3+1] = Pb;
-			yuv[x*3+2] = Pr;
+			yuv[x*3+y*w*3+0] = Y;
+			yuv[x*3+y*w*3+1] = Pb;
+			yuv[x*3+y*w*3+2] = Pr;
 			
 //			d[0+x*bpp + y*bpp*w] = 0;
 //			d[1+x*bpp + y*bpp*w] = Pb;
@@ -630,9 +630,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		
 		for (x=1; x<w-1; x++)
 		{
-			unsigned char Y = yuv[x*3+0];
-			unsigned char Pb = yuv[x*3+1];
-			unsigned char Pr = yuv[x*3+2];
+			unsigned char Y = yuv[x*3+y*w*3+0];
+			unsigned char Pb = yuv[x*3+y*w*3+1];
+			unsigned char Pr = yuv[x*3+y*w*3+2];
 			
 			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
 			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
@@ -698,6 +698,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 //		}
 //	}
 
+//	bpp = 3;
+//	s = yuv;
+
 	for (y=0; y<h; y++)
 	{
 		for (x=0; x<w; x++)
@@ -738,7 +741,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 			if (x == 0 && (y == 0 || y == h-1))	dp = 999;
 			if (y == 0 && (x == 0 || x == w-1)) dp = 999;
 			
-			if (dp > 16)
+			if (dp > 4)
 			{
 				cX[numPts] = x;
 				cY[numPts] = y;
@@ -894,6 +897,45 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		
 		printf("DONE: %f %%\n", 100.0f*(float)y/(float)h);
 	}
+	
+	int minError = 0;
+	int maxError = 0;
+	for (y=0; y<h; y++)
+	{
+		for (x=0; x<w; x++)
+		{
+			for (z=0; z<bpp; z++)
+			{
+				int error = d[z+x*bpp+y*bpp*w] - s[z+x*bpp+y*bpp*w];
+				
+				if (minError > error)
+					minError = error;
+				
+				if (maxError < error)
+					maxError = error;
+				
+				//d[z+x*bpp+y*bpp*w] = (error + 200)/2;
+			}
+		}
+	}
+	
+	printf("ERROR BOUNDS: %i %i\n", minError, maxError);
+	
+//	for (y=0; y<h; y++)
+//	{
+//		
+//		for (x=1; x<w-1; x++)
+//		{
+//			unsigned char Y = d[x*3+y*w*3+0];
+//			unsigned char Pb = d[x*3+y*w*3+1];
+//			unsigned char Pr = d[x*3+y*w*3+2];
+//			
+//			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
+//			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
+//											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
+//			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
+//		}
+//	}
 	
 	[NSBundle loadNibNamed:@"FluidZip_Window" owner:self];
 	[r_windows addObject:i_window];
