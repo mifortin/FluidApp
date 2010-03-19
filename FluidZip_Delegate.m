@@ -149,11 +149,12 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	indices[0] = 0;
 	
 	int curv = 0;
+	int prevRow = 0;
 	for (x=1; x<w-1; x++)
 	{
-		curv += (int)tmp[x-1] - (int)tmp[x+1];
+		curv = (int)tmp[x-1] - (int)tmp[x+1];
 		
-		if (x > 1 && abs(curv) > 10)
+		if (abs(curv) > 4)
 		{
 			curv = (int)tmp[x-1] - (int)tmp[x+1];
 			
@@ -161,6 +162,10 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 			indices[0]++;
 			indices[indices[0]] = x;
 		}
+		if (x > 1 && abs(curv) > 4)
+			prevRow = 1;
+		else
+			prevRow = 0;
 	}
 	
 	
@@ -211,8 +216,8 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	float *data = malloc(sizeof(float)*w*h*bpp);
 	int *iData = malloc(sizeof(int)*w*h*bpp);
 	
-	float *deriv = malloc(sizeof(float)*w*h);
-	float *curv = malloc(sizeof(float)*w*h);
+	float *deriv = malloc(sizeof(float)*w*h*bpp);
+	float *curv = malloc(sizeof(float)*w*h*bpp);
 	
 	
 	//First, clean up the input?
@@ -535,8 +540,11 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	
 	int totId = 0, totDa = 0;
 	
+	int diff[9] = {0};
+	
 	for (y=0; y<h; y++)
 	{
+		
 		for (x=0; x<w; x++)
 		{
 			unsigned char Y = 
@@ -599,10 +607,26 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		}
 
 		int countId=0, countDa=0;
-		compressRow(w, 3, (int*)curv, yuv, &ic, &dc, &countId, &countDa);
-		decompressRow(w, 3, (int*)curv, yuv, &ice, &dce);
+		compressRow(w, 3, (int*)curv, yuv+2, &ic, &dc, &countId, &countDa);
+		decompressRow(w, 3, (int*)curv, yuv+2, &ice, &dce);
 		totId += countId;
 		totDa += countDa;
+		
+		
+		for (x=0; x<w-1;x++)
+		{
+			int d = abs(yuv[1+x*3] - yuv[1+(x-1)*3]);
+			
+			if (d>=128)			diff[0]++;
+			else if (d>=64)		diff[1]++;
+			else if (d>=32)		diff[2]++;
+			else if (d>=16)		diff[3]++;
+			else if (d>=8)		diff[4]++;
+			else if (d>=4)		diff[5]++;
+			else if (d>=2)		diff[6]++;
+			else if (d>=1)		diff[7]++;
+			else				diff[8]++;
+		}
 		
 		for (x=1; x<w-1; x++)
 		{
@@ -622,6 +646,255 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 			c[0] + c[1] + c[2], c[3] + c[4] + c[5]);
 	printf(" IDs:%i\n DA:%i\n", totId, totDa);
 	
+	for (x=0; x<9; x++)
+		printf("DIFF %i: %i\n",x, diff[x]);
+		
+	
+	short *cX = malloc(w*h*sizeof(short));
+	short *cY = malloc(w*h*sizeof(short));
+	unsigned char *cd = malloc(w*h*bpp*sizeof(unsigned char));
+	int numPts = 0;
+	
+	//See if we can get more spatially distant points...
+//	for (y=0; y<h; y++)
+//	{
+//		for (x=0; x<w; x++)
+//		{
+//			for (z=0; z<bpp; z++)
+//			{
+//				if (x==0 || y == 0 || x == w-1 || y == h-1)
+//					deriv[z + x*bpp + y*bpp*w] = 0;
+//				else
+//				{
+//					deriv[z + x*bpp + y*bpp*w] = 
+//						(	 s[z + (x-1)*bpp + y*bpp*w]
+//							-s[z + (x+1)*bpp + y*bpp*w]
+//							+s[z + x*bpp + (y-1)*bpp*w]
+//							-s[z + x*bpp + (y+1)*bpp*w])/2;
+//				}
+//				
+//				d[z + x*bpp + y*bpp*w] = s[z + x*bpp + y*bpp*w];
+//			}
+//		}
+//	}
+	
+//	for (y=0; y<h; y++)
+//	{
+//		for (x=0; x<w; x++)
+//		{
+//			for (z=0; z<bpp; z++)
+//			{
+//				if (x==0 || y == 0 || x == w-1 || y == h-1)
+//					curv[z + x*bpp + y*bpp*w] = 0;
+//				else
+//				{
+//					curv[z + x*bpp + y*bpp*w] = 
+//						(	 deriv[z + (x-1)*bpp + y*bpp*w]
+//							-deriv[z + (x+1)*bpp + y*bpp*w]
+//							+deriv[z + x*bpp + (y-1)*bpp*w]
+//							-deriv[z + x*bpp + (y+1)*bpp*w])/2;
+//				}
+//			}
+//		}
+//	}
+
+	for (y=0; y<h; y++)
+	{
+		for (x=0; x<w; x++)
+		{
+			for (z=0; z<bpp; z++)
+			{
+				if (x==0 || y == 0 || x == w-1 || y == h-1)
+					curv[z + x*bpp + y*bpp*w] = 0;
+				else
+				{
+					curv[z + x*bpp + y*bpp*w] = 
+						(	 s[z + (x-1)*bpp + y*bpp*w]
+							+s[z + (x+1)*bpp + y*bpp*w]
+							+s[z + x*bpp + (y-1)*bpp*w]
+							+s[z + x*bpp + (y+1)*bpp*w]
+							-4*s[z + x*bpp + y*bpp*w])/4;
+				}
+				
+				//d[z + x*bpp + y*bpp*w] = s[z + x*bpp + y*bpp*w];
+			}
+		}
+	}
+	
+	//printf("%x\n", d);
+	
+	for (y=0; y<h; y++)
+	{
+		for (x=0; x<w; x++)
+		{
+			float dp = 0;
+			for (z=0; z<bpp; z++)
+			{
+				d[z + x*bpp + y*bpp*w] = clamp(abs(curv[z + x*bpp + y*bpp*w]));
+				
+				dp += abs(curv[z + x*bpp + y*bpp*w]);
+			}
+			
+			if (x == 0 && (y == 0 || y == h-1))	dp = 999;
+			if (y == 0 && (x == 0 || x == w-1)) dp = 999;
+			
+			if (dp > 16)
+			{
+				cX[numPts] = x;
+				cY[numPts] = y;
+				for (z=0; z<bpp; z++)
+				{
+					cd[numPts*bpp + z] = s[z+x*bpp + y*bpp*w] & 0xFF;
+					//d[z + x*bpp + y*bpp*w] = 0;
+				}
+				
+				numPts++;
+			}
+			else
+			{
+				for (z=0; z<bpp; z++)
+				{
+					//d[z + x*bpp + y*bpp*w] = 255;
+				}
+			}
+		}
+	}
+	//printf("%x\n", d);
+	
+	printf("%i points\n", numPts);
+	
+#define CLOSEST_PTS		4
+	
+	//Now - for the work of piecing it all together... (stupid algo!)
+	int minStart = 0;
+	for (y=0; y<h; y++)
+	{
+		for (x=0; x<w; x++)
+		{
+			int p[CLOSEST_PTS];
+			float d2[CLOSEST_PTS];
+			
+			int dZ = -1;
+			
+			for (z=0; z<CLOSEST_PTS; z++)
+			{
+				d2[z] = 99999;
+			}
+			
+			//Find 'n' closest points...
+			int minDist = 999999;
+			for (z=minStart; z<numPts && dZ == -1 && y + 10 > cY[z]; z++)
+			{
+				int dd = (cX[z]-x)*(cX[z]-x) + (cY[z]-y)*(cY[z]-y);
+				
+				int maxDiff = 0;
+				int maxBy = -1;
+				
+				int k;
+				for (k=0; k<CLOSEST_PTS; k++)
+				{
+					if (d2[k] - dd > maxDiff)
+					{
+						maxDiff = d2[k]-dd;
+						maxBy = k;
+					}
+				}
+				
+				if (maxBy >= 0)
+				{
+					d2[maxBy] = dd;
+					p[maxBy] = z;
+					
+					if (dd == 0)
+						dZ = maxBy;
+				
+					if (dd < minDist)
+						minDist = dd;
+				
+				}
+				
+				if (y-10 > cY[z])	minStart = z;
+				
+			}
+			
+			if (dZ != -1)
+			{
+				for (z=0; z<bpp; z++)
+				{
+					d[z+x*bpp+y*bpp*w] = cd[z+p[dZ]*bpp];
+				}
+			}
+			else
+			{
+				//Do simple Monte-Carlo to rebuild the image from key-points...
+				float summed = 0;
+				float maxDist = 0;
+				float total[8] = {0,0,0,0,0,0,0,0};
+				for (z=0; z<CLOSEST_PTS; z++)
+				{
+					if (d2[z] != 99999)
+					{
+						d2[z] = sqrtf(d2[z]);
+						
+						if (d2[z] <= 0.001f)
+							d2[z] = 10000.0f;
+						else
+							d2[z] = 1.0f/d2[z];
+					}
+				}
+				
+				for (z=0; z<CLOSEST_PTS; z++)
+				{
+					if (d2[z] != 99999)
+					{
+						int k;
+						summed += (d2[z]);
+						for (k=0; k<bpp; k++)
+							total[k] += (float)(cd[k+p[z]*bpp]) * (d2[z]);
+					}
+				}
+				
+				if (x != 0)
+				{
+					summed += 1.0f;
+					
+					int k;
+					for (k=0; k<bpp; k++)
+						total[k] += (float)(d[k+(x-1)*bpp+y*bpp*w]);
+				}
+				
+				if (y != 0)
+				{
+					summed += 1.0f;
+					
+					int k;
+					for (k=0; k<bpp; k++)
+						total[k] += (float)(d[k+x*bpp+(y-1)*bpp*w]);
+				}
+				
+				for (z=0; z<bpp; z++)
+				{
+					if (isinf(summed) || isinf(total[z])
+						|| isnan(summed) || isinf(total[z])
+						|| total[z] < 0 || summed < 0)
+					{
+						printf("DEBUG TIME\n");
+					}
+					d[z+x*bpp+y*bpp*w] = clamp(total[z]/summed);
+				}
+					
+//				if (d[0+x*bpp+y*bpp*w] == 0
+//						&& d[1+x*bpp+y*bpp*w] == 0
+//						&& d[2+x*bpp+y*bpp*w] == 0)
+//				{
+//					printf("ZERO\n");
+//				}
+			}
+		}
+		
+		printf("DONE: %f %%\n", 100.0f*(float)y/(float)h);
+	}
+	
 	[NSBundle loadNibNamed:@"FluidZip_Window" owner:self];
 	[r_windows addObject:i_window];
 	[i_window release];
@@ -636,6 +909,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	free(deriv);
 	free(iData);
 	free(yuv);
+	free(cX);
+	free(cY);
+	free(cd);
 	
 	[i2 release];
 	[cpy release];
