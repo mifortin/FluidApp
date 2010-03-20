@@ -45,7 +45,7 @@ GPUField *GPUFieldCreate_pvt(int in_width, int in_height, int in_planes,
 		cl_if.image_channel_order = CL_RGBA;
 	else
 		errorRaise(error_create, "Unable to create object with %i planes", in_planes);
-	cl_if.image_channel_data_type = CL_FLOAT;
+	cl_if.image_channel_data_type = CL_HALF_FLOAT;
 	
 	cl_int err;
 	ret->r_handle = clCreateImage2D(c, flags, &cl_if,

@@ -23,31 +23,22 @@ kernel void main(	read_only image2d_t in_velX,
 	
 	//Top/bottom (simply negate)
 	float4 prevVel, nextVel;
-	if (p.y == 0)
-		prevVel = -curVel;
-	else
-		prevVel = read_imagef(in_velX, s, p-shiftY);
-	
-	if (p.y == get_image_height(in_velX)-1)
-		nextVel = -curVel;
-	else
-		nextVel = read_imagef(in_velX, s, p+shiftY);
+
+	prevVel = read_imagef(in_velX, s, p-shiftY);
+
+
+	nextVel = read_imagef(in_velX, s, p+shiftY);
 	
 	//Left and right are special...
 	float4 leftVel, rightVel;
-	if (p.x == 0)
-		leftVel.x = -curVel.x;
-	else
-		leftVel.x = read_imagef(in_velX, s, p-shiftX).w;
-	
-	if (p.x == get_image_width(in_velX)-1)
-		rightVel.w = -curVel.w;
-	else
-		rightVel.w = read_imagef(in_velX, s, p+shiftX).x;
-	
-	//Assume compiler is somewhat smart...
+
+	leftVel.x = read_imagef(in_velX, s, p-shiftX).w;
 	leftVel.yzw = curVel.xyz;
+
+	rightVel.w = read_imagef(in_velX, s, p+shiftX).x;
 	rightVel.xyz = curVel.yzw;
+	leftVel += rightVel;
+	
 	
 	//And do the kernel...
 	curVel = (curVel*alpha + prevVel + nextVel + leftVel + rightVel)*beta;
@@ -61,32 +52,24 @@ kernel void main(	read_only image2d_t in_velX,
 	curVel = read_imagef(in_velY, s, p);
 	
 	//Top/bottom (simply negate)
-	if (p.y == 0)
-		prevVel = -curVel;
-	else
-		prevVel = read_imagef(in_velY, s, p-shiftY);
-	
-	if (p.y == get_image_height(in_velY)-1)
-		nextVel = -curVel;
-	else
-		nextVel = read_imagef(in_velY, s, p+shiftY);
+
+	prevVel = read_imagef(in_velY, s, p-shiftY);
+
+
+	nextVel = read_imagef(in_velY, s, p+shiftY);
 	
 	//Left and right are special...
-	if (p.x == 0)
-		leftVel.x = -curVel.x;
-	else
-		leftVel.x = read_imagef(in_velY, s, p-shiftX).w;
-	
-	if (p.x == get_image_width(in_velY)-1)
-		rightVel.w = -curVel.w;
-	else
-		rightVel.w = read_imagef(in_velY, s, p+shiftX).x;
+
+	leftVel.x = read_imagef(in_velY, s, p-shiftX).w;
+
+
+	rightVel.w = read_imagef(in_velY, s, p+shiftX).x;
 	
 	//Assume compiler is somewhat smart...
 	leftVel.yzw = curVel.xyz;
 	rightVel.xyz = curVel.yzw;
 	
 	//And do the kernel...
-	curVel = (curVel*alpha + prevVel + nextVel + leftVel + rightVel)*beta;
+	curVel = (curVel*alpha + prevVel + nextVel + leftVel)*beta;
 	write_imagef(out_velY, p, curVel);
 }

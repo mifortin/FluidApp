@@ -115,8 +115,10 @@ void fluidAdvance_gpu(fluid *f)
 	}
 	
 	//Now; do the work as expected except on the GPU
-	fluidGPUViscosity_xy(f, 20);
-	fluidGPUPressure(f, 20);
+	fluidGPUViscosity_xy(f, 10);
+	fluidGPUPressure(f, 10);
+	fluidGPUAdvection(f);
 	
 	GPGPU_Finish();
+	
 }

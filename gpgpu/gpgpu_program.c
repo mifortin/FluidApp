@@ -122,7 +122,13 @@ void GPUProgramExecute(GPUProgram *p,  GPUField *d)
 	size_t dim[] = {d->m_width, d->m_height};
 	cl_int err;
 	
-	err = clEnqueueNDRangeKernel(GPGPU_OpenCLCommandQueue_pvt(), p->r_execution, 2, NULL, dim, NULL, 0, NULL, NULL);
+	size_t wgs[2] = {24,16};
+//	err = clGetKernelWorkGroupInfo(	p->r_execution, GPGPU_OpenCLDevice_pvt(),
+//									CL_KERNEL_WORK_GROUP_SIZE, sizeof(wgs),
+//									&wgs[1], NULL);
+//	printf("WGS: %i\n", wgs[0]);
+	
+	err = clEnqueueNDRangeKernel(GPGPU_OpenCLCommandQueue_pvt(), p->r_execution, 2, NULL, dim, wgs, 0, NULL, NULL);
 	
 	errorAssert(err == CL_SUCCESS, error_create,
 				"Failed executing kernel (%i)!", err);
