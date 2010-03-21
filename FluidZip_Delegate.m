@@ -648,12 +648,141 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	
 	for (x=0; x<9; x++)
 		printf("DIFF %i: %i\n",x, diff[x]);
-		
 	
-	short *cX = malloc(w*h*sizeof(short));
-	short *cY = malloc(w*h*sizeof(short));
-	unsigned char *cd = malloc(w*h*bpp*sizeof(unsigned char));
-	int numPts = 0;
+	//For the first row, display field statistics (lossless)
+	
+	short *sdr = (short*)deriv;
+	for (y=0; y<h; y++)
+	{
+		for (x=0; x<w; x++)
+		{
+			for (z=0; z<bpp; z++)
+			{
+				if (x==0)
+					sdr[z + x*bpp + y*bpp*w] = s[z + x*bpp + y*bpp*w];
+				else
+				{
+					sdr[z + x*bpp + y*bpp*w] = 
+							 s[z + x*bpp + y*bpp*w]
+							-s[z + (x-1)*bpp + y*bpp*w];
+				}
+				
+				//d[z + x*bpp + y*bpp*w] = clamp(scv[z + x*bpp + y*bpp*w]&0xFF);
+			}
+		}
+	}
+	
+	short *scv = (short*)curv;
+	//int sbpp = bpp;
+	int sbpp = 3;
+	s = yuv;
+	
+	for (y=0; y<h; y++)
+	{
+		for (x=0; x<w; x++)
+		{
+			for (z=0; z<bpp; z++)
+			{
+				if (x==0)
+					scv[z + x*bpp + y*bpp*w] = s[z + x*sbpp + y*sbpp*w];
+				else
+				{
+					scv[z + x*bpp + y*bpp*w] = s[z + x*sbpp + y*sbpp*w] - s[z + (x-1)*sbpp + y*sbpp*w];
+//							 s[z + x*bpp + y*bpp*w]
+//							-s[z + (x-1)*bpp + y*bpp*w];
+					
+					if (scv[z + x*bpp + y*bpp*w] & 0x100)	//2's complemented?
+					{
+						scv[z + x*bpp + y*bpp*w] = -scv[z + x*bpp + y*bpp*w];
+						scv[z + x*bpp + y*bpp*w] |= 0x100;
+					}
+				}
+				
+				d[z + x*bpp + y*bpp*w] = clamp(scv[z + x*bpp + y*bpp*w]&0xFF);
+			}
+		}
+	}
+	
+	int b;
+	unsigned short bit = 0x01;
+	int byteEst = 0;
+	for (b=0; b<9; b++)
+	{
+		printf("\n%i (%x): ", b, bit);
+		
+		int bin1 = 0;
+		int bin2 = 0;
+		int bin3 = 0;
+		int bin4p = 0;
+		
+		int maxVal = 0;
+		
+		int isNumb = scv[1] & bit;
+		int count = 0;
+		
+		int curBit = 0;
+		
+		for (x=0; x<w*h; x++)
+		{
+			if ((scv[x*bpp+1] & bit) == isNumb)
+				count ++;
+			else
+			{
+				if (isNumb)	isNumb = 1;
+//				printf("%i[%i] ", isNumb, count);
+				
+				if (count == 1)	bin1++;
+				else if (count==2)	bin2++;
+				else if (count==3)	bin3++;
+				else	bin4p++;
+				
+				if (count > maxVal) maxVal = count;
+				
+				curBit += 1;
+				
+				isNumb = scv[x*bpp+1] &bit;
+				count = 1;
+			}
+		}
+		if (isNumb)	isNumb = 1;
+//		printf("%i[%i] ", isNumb, count);
+		if (count > maxVal) maxVal = count;
+		if (count == 1)	bin1++;
+		else if (count==2)	bin2++;
+		else if (count==3)	bin3++;
+		else	bin4p++;
+		
+		curBit += 1;
+		
+		int numBits = 1;
+		int bitNeeded = 1;
+		while (maxVal > bitNeeded+1)
+		{
+			bitNeeded = bitNeeded << 1;
+			numBits++;
+		}
+		
+		if (curBit * numBits >= w*h)
+			byteEst += w*h;
+		else
+			byteEst += curBit * numBits;
+		
+		byteEst+=4;	//Overhead...
+		
+		printf("(%i %i %i | %i / %i = %i %%)", bin1, bin2, bin3,
+												bin1+bin2+bin3, bin4p,
+												100*bin4p / (bin1+bin2+bin3 +bin4p));
+		
+		bit = bit << 1;
+		printf("\n");
+	}
+	
+	printf("C: %i U: %i\n", byteEst, w*h*8);
+	
+	//short *cX = malloc(w*h*sizeof(short));
+//	short *cY = malloc(w*h*sizeof(short));
+//	unsigned char *cd = malloc(w*h*bpp*sizeof(unsigned char));
+//	int numPts = 0;
 	
 	//See if we can get more spatially distant points...
 //	for (y=0; y<h; y++)
@@ -701,7 +830,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 //	bpp = 3;
 //	s = yuv;
 
-	for (y=0; y<h; y++)
+	/*for (y=0; y<h; y++)
 	{
 		for (x=0; x<w; x++)
 		{
@@ -854,10 +983,10 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 					{
 						d2[z] = sqrtf(d2[z]);
 						
-						/*if (d2[z] <= 0.001f)
-							d2[z] = 10000.0f;
-						else
-							d2[z] = 1.0f/d2[z];*/
+						//if (d2[z] <= 0.001f)
+						//	d2[z] = 10000.0f;
+						//else
+						//	d2[z] = 1.0f/d2[z];
 						summed += (d2[z]);
 					}
 				}
@@ -919,7 +1048,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		}
 		
 		printf("DONE: %f %%\n", 100.0f*(float)y/(float)h);
-	}
+	}*/
 	
 	int minError = 0;
 	int maxError = 0;
@@ -927,9 +1056,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	{
 		for (x=0; x<w; x++)
 		{
-			for (z=0; z<bpp; z++)
+			for (z=0; z<sbpp; z++)
 			{
-				int error = d[z+x*bpp+y*bpp*w] - s[z+x*bpp+y*bpp*w];
+				int error = d[z+x*bpp+y*bpp*w] - s[z+x*sbpp+y*sbpp*w];
 				
 				if (minError > error)
 					minError = error;
@@ -977,9 +1106,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	free(deriv);
 	free(iData);
 	free(yuv);
-	free(cX);
-	free(cY);
-	free(cd);
+//	free(cX);
+//	free(cY);
+//	free(cd);
 	
 	[i2 release];
 	[cpy release];

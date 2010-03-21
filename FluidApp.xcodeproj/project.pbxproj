@@ -151,6 +151,21 @@
 		4C94581610EE7CB300D482E6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C94581510EE7CB300D482E6 /* Cocoa.framework */; };
 		4C94583D10EE871400D482E6 /* viscosity.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4C94583C10EE871400D482E6 /* viscosity.cl */; };
 		4C94583E10EE871400D482E6 /* viscosity.cl in Sources */ = {isa = PBXBuildFile; fileRef = 4C94583C10EE871400D482E6 /* viscosity.cl */; };
+		4C95D8D81156AD2D0084CA22 /* bitstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C95D8D71156AD2D0084CA22 /* bitstream.c */; };
+		4C95D8D91156AD2D0084CA22 /* bitstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C95D8D71156AD2D0084CA22 /* bitstream.c */; };
+		4C95D8DA1156AD2D0084CA22 /* bitstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C95D8D71156AD2D0084CA22 /* bitstream.c */; };
+		4C95D8DB1156AD2D0084CA22 /* bitstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C95D8D71156AD2D0084CA22 /* bitstream.c */; };
+		4C95D8DC1156AD2D0084CA22 /* bitstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C95D8D71156AD2D0084CA22 /* bitstream.c */; };
+		4C95D8FF1156BF160084CA22 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DE10E0F9D5B540013795C /* memory.c */; };
+		4C95D9001156BF160084CA22 /* memory.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C94580A10EE7B4300D482E6 /* memory.m */; };
+		4C95D9031156BF260084CA22 /* error_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18BB10F6700DF0023F24B /* error_pvt.c */; };
+		4C95D9041156BF260084CA22 /* error_lst.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C72961110C1E9AD001A515D /* error_lst.c */; };
+		4C95D9071156BF3C0084CA22 /* mp_mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C8B36380F9E9F2D005D64F4 /* mp_mutex.c */; };
+		4C95D9081156BF3C0084CA22 /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
+		4C95D9091156BF3C0084CA22 /* mp_x.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9530FD86C3500B2B86D /* mp_x.c */; };
+		4C95D90A1156BF3C0084CA22 /* mp_taskWorld.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */; };
+		4C95D90B1156BF3C0084CA22 /* mp_coherence.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C54726A1003A3EF0069EB93 /* mp_coherence.c */; };
+		4C95D90C1156BF3C0084CA22 /* mp_stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C6E8EF6111B32D000431481 /* mp_stack.c */; };
 		4C9955C8102219A900C1AD6F /* FluidAppGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C9955C7102219A900C1AD6F /* FluidAppGL.m */; };
 		4C9F2CA91065A87300651C4B /* fluid_viscosity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F2CA81065A87300651C4B /* fluid_viscosity.c */; };
 		4C9F2CAA1065A87300651C4B /* fluid_viscosity.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F2CA81065A87300651C4B /* fluid_viscosity.c */; };
@@ -336,6 +351,8 @@
 		4C94580A10EE7B4300D482E6 /* memory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = memory.m; sourceTree = "<group>"; };
 		4C94581510EE7CB300D482E6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C94583C10EE871400D482E6 /* viscosity.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = viscosity.cl; sourceTree = "<group>"; };
+		4C95D8D61156A5350084CA22 /* bitstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitstream.h; sourceTree = "<group>"; };
+		4C95D8D71156AD2D0084CA22 /* bitstream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitstream.c; sourceTree = "<group>"; };
 		4C9955C6102219A900C1AD6F /* FluidAppGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidAppGL.h; sourceTree = "<group>"; };
 		4C9955C7102219A900C1AD6F /* FluidAppGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidAppGL.m; sourceTree = "<group>"; };
 		4C9F2CA81065A87300651C4B /* fluid_viscosity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fluid_viscosity.c; sourceTree = "<group>"; };
@@ -525,6 +542,7 @@
 		29B97314FDCFA39411CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				4C95D8D51156A3E10084CA22 /* bitstream */,
 				4CFD34F510ED20A400B8FF8A /* gpgpu */,
 				4CF0309210E649E3009FF567 /* SIMD */,
 				4C91C57E10CEEF0400FC4080 /* Resources */,
@@ -679,6 +697,15 @@
 				4C8D337A11047D6900EF6539 /* fluid_gpu.c */,
 			);
 			name = GPU;
+			sourceTree = "<group>";
+		};
+		4C95D8D51156A3E10084CA22 /* bitstream */ = {
+			isa = PBXGroup;
+			children = (
+				4C95D8D61156A5350084CA22 /* bitstream.h */,
+				4C95D8D71156AD2D0084CA22 /* bitstream.c */,
+			);
+			path = bitstream;
 			sourceTree = "<group>";
 		};
 		4CC5E7260F697C1300CE7928 /* lagrange */ = {
@@ -943,6 +970,7 @@
 				4CF137F111231F0200A34095 /* fluid_pressure_rb.c in Sources */,
 				4CF13826112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
 				4C51E64E1129DA4000C54F93 /* fluid_server.c in Sources */,
+				4C95D8DA1156AD2D0084CA22 /* bitstream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -965,6 +993,7 @@
 				4C0B4ACA1004230700C7C081 /* netClient.c in Sources */,
 				4C6E8EF9111B32D000431481 /* mp_stack.c in Sources */,
 				4CBF5EB41120B46300A4E997 /* Test_Pipeline.c in Sources */,
+				4C95D8D91156AD2D0084CA22 /* bitstream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -975,6 +1004,17 @@
 				4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */,
 				4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */,
 				4C1BA69A0FBC709800A74684 /* FluidZip_Window.m in Sources */,
+				4C95D8FF1156BF160084CA22 /* memory.c in Sources */,
+				4C95D9001156BF160084CA22 /* memory.m in Sources */,
+				4C95D8DB1156AD2D0084CA22 /* bitstream.c in Sources */,
+				4C95D9031156BF260084CA22 /* error_pvt.c in Sources */,
+				4C95D9041156BF260084CA22 /* error_lst.c in Sources */,
+				4C95D9071156BF3C0084CA22 /* mp_mutex.c in Sources */,
+				4C95D9081156BF3C0084CA22 /* mp_queue.c in Sources */,
+				4C95D9091156BF3C0084CA22 /* mp_x.c in Sources */,
+				4C95D90A1156BF3C0084CA22 /* mp_taskWorld.c in Sources */,
+				4C95D90B1156BF3C0084CA22 /* mp_coherence.c in Sources */,
+				4C95D90C1156BF3C0084CA22 /* mp_stack.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1045,6 +1085,7 @@
 				4CF137F211231F0200A34095 /* fluid_pressure_rb.c in Sources */,
 				4CF13827112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
 				4C51E64D1129DA4000C54F93 /* fluid_server.c in Sources */,
+				4C95D8D81156AD2D0084CA22 /* bitstream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1115,6 +1156,7 @@
 				4CF137F311231F0200A34095 /* fluid_pressure_rb.c in Sources */,
 				4CF13825112325CF00A34095 /* fluid_viscosity_rb.c in Sources */,
 				4C51E64C1129DA4000C54F93 /* fluid_server.c in Sources */,
+				4C95D8DC1156AD2D0084CA22 /* bitstream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1248,7 +1290,6 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INFOPLIST_FILE = "FluidZip-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
@@ -1271,7 +1312,6 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INFOPLIST_FILE = "FluidZip-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
