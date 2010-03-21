@@ -726,6 +726,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	
 	//printf("%x\n", d);
 	
+	int skip = 0;
 	for (y=0; y<h; y++)
 	{
 		for (x=0; x<w; x++)
@@ -741,17 +742,28 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 			if (x == 0 && (y == 0 || y == h-1))	dp = 999;
 			if (y == 0 && (x == 0 || x == w-1)) dp = 999;
 			
+			d[0 + x*bpp + y*bpp*w] = 0;
 			if (dp > 4)
 			{
-				cX[numPts] = x;
-				cY[numPts] = y;
-				for (z=0; z<bpp; z++)
-				{
-					cd[numPts*bpp + z] = s[z+x*bpp + y*bpp*w] & 0xFF;
-					//d[z + x*bpp + y*bpp*w] = 0;
-				}
+				//d[0 + x*bpp + y*bpp*w] = 255;
+//				if (dp == 999)	skip = 0;
+//				else
+//				{
+//					
+//				}
 				
-				numPts++;
+				if (skip == 0)
+				{
+					cX[numPts] = x;
+					cY[numPts] = y;
+					for (z=0; z<bpp; z++)
+					{
+						cd[numPts*bpp + z] = s[z+x*bpp + y*bpp*w];
+						//d[z + x*bpp + y*bpp*w] = 0;
+					}
+					
+					numPts++;
+				}
 			}
 			else
 			{
@@ -764,10 +776,13 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	}
 	//printf("%x\n", d);
 	
-	printf("%i points\n", numPts);
+	printf("%i points (out of %i) = %i%%\n", numPts, w*h, 100*numPts/(w*h));
 	
-#define CLOSEST_PTS		4
-	
+#define CLOSEST_PTS		2
+
+	float natE = 2.718281828459045f;
+	//float weight1 = 1.0f;
+	float weight1 = (1.0f/(sqrtf(3.1415962f))) * powf(natE, -1);
 	//Now - for the work of piecing it all together... (stupid algo!)
 	int minStart = 0;
 	for (y=0; y<h; y++)
@@ -786,7 +801,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 			
 			//Find 'n' closest points...
 			int minDist = 999999;
-			for (z=minStart; z<numPts && dZ == -1 && y + 10 > cY[z]; z++)
+			for (z=minStart; z<numPts && dZ == -1 && y + 20 > cY[z]; z++)
 			{
 				int dd = (cX[z]-x)*(cX[z]-x) + (cY[z]-y)*(cY[z]-y);
 				
@@ -816,7 +831,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 				
 				}
 				
-				if (y-10 > cY[z])	minStart = z;
+				if (y-20 > cY[z])	minStart = z;
 				
 			}
 			
@@ -839,10 +854,11 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 					{
 						d2[z] = sqrtf(d2[z]);
 						
-						if (d2[z] <= 0.001f)
+						/*if (d2[z] <= 0.001f)
 							d2[z] = 10000.0f;
 						else
-							d2[z] = 1.0f/d2[z];
+							d2[z] = 1.0f/d2[z];*/
+						summed += (d2[z]);
 					}
 				}
 				
@@ -851,29 +867,36 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 					if (d2[z] != 99999)
 					{
 						int k;
-						summed += (d2[z]);
+						float weight = summed - d2[z];
+						//float weight = 1.0f/(d2[z]+10.0f);
+						//float weight = (1.0f/(sqrtf(3.1415962f))) * powf(natE, -d2[z]*d2[z]);
+						maxDist += weight;
 						for (k=0; k<bpp; k++)
-							total[k] += (float)(cd[k+p[z]*bpp]) * (d2[z]);
+						{
+							total[k] += (float)(cd[k+p[z]*bpp]) * weight;
+							//total[k] += (float)(cd[k+p[z]*bpp]) * (20-d2[z]);
+						}
 					}
 				}
 				
-				if (x != 0)
-				{
-					summed += 1.0f;
-					
-					int k;
-					for (k=0; k<bpp; k++)
-						total[k] += (float)(d[k+(x-1)*bpp+y*bpp*w]);
-				}
-				
-				if (y != 0)
-				{
-					summed += 1.0f;
-					
-					int k;
-					for (k=0; k<bpp; k++)
-						total[k] += (float)(d[k+x*bpp+(y-1)*bpp*w]);
-				}
+//				if (x != 0)
+//				{
+//					
+//					maxDist += weight1;
+//					
+//					int k;
+//					for (k=0; k<bpp; k++)
+//						total[k] += (float)(d[k+(x-1)*bpp+y*bpp*w])*weight1;
+//				}
+//				
+//				if (y != 0)
+//				{
+//					maxDist += weight1;
+//					
+//					int k;
+//					for (k=0; k<bpp; k++)
+//						total[k] += (float)(d[k+x*bpp+(y-1)*bpp*w])*weight1;
+//				}
 				
 				for (z=0; z<bpp; z++)
 				{
@@ -883,7 +906,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 					{
 						printf("DEBUG TIME\n");
 					}
-					d[z+x*bpp+y*bpp*w] = clamp(total[z]/summed);
+					d[z+x*bpp+y*bpp*w] = clamp(total[z]/maxDist + 0.5f);
 				}
 					
 //				if (d[0+x*bpp+y*bpp*w] == 0
@@ -916,6 +939,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 				
 				//d[z+x*bpp+y*bpp*w] = (error + 200)/2;
 			}
+			
+			if (bpp > 3)
+				d[x*bpp+y*bpp*w+3] = 255;
 		}
 	}
 	
