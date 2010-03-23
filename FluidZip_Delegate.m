@@ -5,12 +5,32 @@
 
 #import "FluidZip_Delegate.h"
 
+#include "bitstream.h"
 
 @implementation FluidZip_Delegate
 
 - (void)awakeFromNib
 {
 	r_windows = [[NSMutableArray alloc] initWithCapacity:10];
+	
+	BitStream *tmp = bitStreamCreate(256);
+	
+	int i;
+	//for (i=0; i<20; i++)
+	{
+		bitStreamPush(tmp, 2375, 12);
+		bitStreamPush(tmp, 375, 10);
+	}
+	
+	bitStreamReset(tmp);
+	
+	//for (i=0; i<20; i++)
+	{
+		printf("2375 = %i\n",  bitStreamRead(tmp, 12));
+		printf("375 = %i\n",  bitStreamRead(tmp, 10));
+	}
+	
+	x_free(tmp);
 }
 
 - (void)dealloc
@@ -547,32 +567,36 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		
 		for (x=0; x<w; x++)
 		{
+//			s[0+x*bpp+y*bpp*w] = s[0+x*bpp+y*bpp*w] & 0xFC;
+//			s[1+x*bpp+y*bpp*w] = s[1+x*bpp+y*bpp*w] & 0xFC;
+//			s[2+x*bpp+y*bpp*w] = s[2+x*bpp+y*bpp*w] & 0xFC;
+		
 			unsigned char Y = 
 					clamp
 						(	0.299f*(float)s[0+x*bpp+y*bpp*w]
 						+	0.587f*(float)s[1+x*bpp+y*bpp*w]
-						+	0.144f*(float)s[2+x*bpp+y*bpp*w]);
+						+	0.144f*(float)s[2+x*bpp+y*bpp*w] + 0.5f);
 			unsigned char Pb =  
 					clamp
 						(	-0.14713*0.5f/0.436f*s[0+x*bpp+y*bpp*w]
 						-	0.28886*0.5f/0.436f*s[1+x*bpp+y*bpp*w]
 						+	0.436*0.5f/0.436f*s[2+x*bpp+y*bpp*w]
-						+	128.0f);
+						+	128.5f);
 			unsigned char Pr = 
 					clamp
 						(	0.601f*0.5f/0.436f*s[0+x*bpp+y*bpp*w]
 						-	0.51499f*0.5f/0.436f*s[1+x*bpp+y*bpp*w]
 						-	0.10001f*0.5f/0.436f*s[2+x*bpp+y*bpp*w]
-						+	128.0f);
+						+	128.5f);
 			
 //			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
 //			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
 //											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
 //			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
 
-			yuv[x*3+y*w*3+0] = Y;
-			yuv[x*3+y*w*3+1] = Pb;
-			yuv[x*3+y*w*3+2] = Pr;
+			yuv[x*3+y*w*3+0] = Y & 0xFC;
+			yuv[x*3+y*w*3+1] = Pb & 0xFC;
+			yuv[x*3+y*w*3+2] = Pr & 0xFC;
 			
 //			d[0+x*bpp + y*bpp*w] = 0;
 //			d[1+x*bpp + y*bpp*w] = Pb;
@@ -673,9 +697,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	}
 	
 	short *scv = (short*)curv;
-	//int sbpp = bpp;
-	int sbpp = 3;
-	s = yuv;
+	int sbpp = bpp;
+	//int sbpp = 3;
+	//s = yuv;
 	
 	for (y=0; y<h; y++)
 	{
@@ -717,14 +741,14 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		
 		int maxVal = 0;
 		
-		int isNumb = scv[1] & bit;
+		int isNumb = scv[0] & bit;
 		int count = 0;
 		
 		int curBit = 0;
 		
 		for (x=0; x<w*h; x++)
 		{
-			if ((scv[x*bpp+1] & bit) == isNumb)
+			if ((scv[x*bpp+0] & bit) == isNumb)
 				count ++;
 			else
 			{
@@ -740,7 +764,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 				
 				curBit += 1;
 				
-				isNumb = scv[x*bpp+1] &bit;
+				isNumb = scv[x*bpp+0] &bit;
 				count = 1;
 			}
 		}
@@ -1050,6 +1074,28 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		printf("DONE: %f %%\n", 100.0f*(float)y/(float)h);
 	}*/
 	
+	field *f = fieldCreateChar(w,h,bpp);
+	unsigned char *fd = fieldCharData(f);
+	memcpy(fd, yuv, w*h*bpp);
+	
+	BitStream *bs = bitStreamCreate(w*h*bpp*2+h*8*bpp);
+	
+	double d1 = x_time();
+	for (y=0; y<h; y++)
+		bitStreamEncodeField(bs, f, curv, y);
+	printf("ENCODE SIZE %i = %f\n", bitStreamSize(bs), x_time() - d1);
+	
+	bitStreamReset(bs);
+	
+	d1 = x_time();
+	for (y=0; y<h; y++)
+		bitStreamDecodeField(bs, f, curv, y);
+	printf("DECODE SIZE %i = %f\n", bitStreamSize(bs), x_time() - d1);
+	printf("ORIGINAL SIZE %i\n", w*h*bpp);
+	printf("GAIN: %i\n", 100* bitStreamSize(bs)/ (w*h*bpp));
+	
+	memcpy(d, fd, w*h*bpp);
+	
 	int minError = 0;
 	int maxError = 0;
 	for (y=0; y<h; y++)
@@ -1075,23 +1121,24 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	}
 	
 	printf("ERROR BOUNDS: %i %i\n", minError, maxError);
+	printf("sizeof(long int) = %i\n", (int)sizeof(long int));
 	
-//	for (y=0; y<h; y++)
-//	{
-//		
-//		for (x=1; x<w-1; x++)
-//		{
-//			unsigned char Y = d[x*3+y*w*3+0];
-//			unsigned char Pb = d[x*3+y*w*3+1];
-//			unsigned char Pr = d[x*3+y*w*3+2];
-//			
-//			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
-//			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
-//											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
-//			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
-//		}
-//	}
-	
+	for (y=0; y<h; y++)
+	{
+		
+		for (x=1; x<w-1; x++)
+		{
+			unsigned char Y = d[x*3+y*w*3+0];
+			unsigned char Pb = d[x*3+y*w*3+1];
+			unsigned char Pr = d[x*3+y*w*3+2];
+			
+			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f + 0.5f);
+			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
+											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f + 0.5f);
+			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f + 0.5f);
+		}
+	}
+//	
 	[NSBundle loadNibNamed:@"FluidZip_Window" owner:self];
 	[r_windows addObject:i_window];
 	[i_window release];
