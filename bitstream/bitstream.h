@@ -27,6 +27,10 @@ int bitStreamSize(BitStream *bs);
 void bitStreamEncodeField(BitStream *bs, field *f, void *buff, int r);
 void bitStreamDecodeField(BitStream *bs, field *f, void *buff, int r);
 
+//	Alternate encoder based on FELICS - faster & simpler!
+void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r);
+void bitStreamDecodeFelics(BitStream *bs, field *f, void *buff, int r);
+
 //	Next, is the header which describes the field...
 void bitStreamEncodeFieldHeader(BitStream *bs, field *f);
 void bitStreamDecodeFieldHeader(BitStream *bs, int *w, int *h, int *c);

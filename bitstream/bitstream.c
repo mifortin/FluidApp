@@ -76,16 +76,20 @@ static int bitMask[32] =
 void bitStreamPush(BitStream *bs, int val, int bits)
 {
 	unsigned int tp = (val & bitMask[bits]) << (sizeof(int)*8 - bits);
-	tp = tp >> (bs->curBit);
+	//tp = tp >> (bs->curBit);
 	
-	unsigned int *d = (unsigned int*)(bs->r_dat + bs->numBit);
+	unsigned int L = tp >> (bs->curBit);
+	unsigned int R = tp << (32-bs->curBit);
+	
+	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
 
-	d[0] |= tp;
+	d[0] |= L;
 	
 	bs->curBit += bits;
-	while (bs->curBit >= 8)
+	if (bs->curBit >= 32)
 	{
-		bs->curBit-=8;
+		d[1] |= R;
+		bs->curBit-=32;
 		bs->numBit++;
 	}
 	
@@ -324,6 +328,251 @@ void bitStreamDecodeField(BitStream *bs, field *f, void *buff, int r)
 				}
 				
 				d[c+x*nc] = d[c+(x-1)*nc]-b[x];
+			}
+		}
+	}
+}
+
+#define M	16
+#define R	5
+
+void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
+{
+	if (!fieldIsCharData(f))
+		return;
+	
+	short *b = (short*)buff;
+	int w = fieldWidth(f);
+	int nc = fieldComponents(f);
+	int offY = fieldStrideY(f)*r;
+	unsigned char *d = fieldCharData(f)+offY;
+	
+	if (r == 0)
+	{
+		int x,c;
+		
+		for (c=0; c<nc; c++)
+		{
+			b[c] = d[c];
+			
+			bitStreamPush(bs, 0xFFFFFF, b[c]/M);
+			
+			bitStreamPush(bs, b[c] - M * (b[c]/M), R);
+		}
+		
+		for (x=nc; x<w*nc; x++)
+		{
+			b[x] = d[x-nc] - d[x];
+			
+			b[x] *= 2;
+			if (b[x] < 0)
+				b[x] = -b[x]-1;
+		
+			bitStreamPush(bs, 0xFFFFFF, b[x]/M);
+			
+			bitStreamPush(bs, b[x] - M * (b[x]/M), R);
+		}
+	}
+	else
+	{
+		int x,c;
+		
+		for (c=0; c<nc; c++)
+		{
+			b[c] = d[c];
+			
+			bitStreamPush(bs, 0xFFFFFF, b[c]/M);
+			
+			bitStreamPush(bs, b[c] - M * (b[c]/M), R);
+		}
+		
+		for (x=nc; x<w*nc; x++)
+		{
+			int up = b[x];
+			int left = b[x-nc];
+			b[x] = d[x-nc] - d[x];
+			
+			b[x] = b[x] << 1;
+			if (b[x] < 0)
+				b[x] = -b[x]-1;
+				
+			int cur = b[x];
+			
+			if (left < up)
+			{
+				int a = left;
+				left = up;
+				up = a;
+			}
+			
+			int d = left - up;
+			
+			int numBits = 1;
+			int mask = 1;
+			while (d > mask)
+			{
+				numBits++;
+				mask = mask << 1;
+				mask |= 1;
+			}
+			
+			int mid = (left+up) >> 1;		//Div 2
+			int start = mid - (mask >> 1);
+			
+			if (left == up)
+			{
+				start = left;
+				mask = 0;
+				numBits = 0;
+			}
+			
+			if (cur >= start && cur <= start+mask && numBits < b[x]/M + R)
+			{
+				//bitStreamPush(bs, 0, 1);//	- implied in next statement
+				
+				bitStreamPush(bs, cur - start, numBits+1);	//Adds in a zero
+			}
+			else
+			{
+				//bitStreamPush(bs, 1, 1);//	- implied in next statement
+		
+				bitStreamPush(bs, 0xFFFFFFF, b[x]/M+1);
+				
+				bitStreamPush(bs, b[x] - M * (b[x]/M), R);
+			}
+		}
+	}
+}
+
+
+void bitStreamDecodeFelics(BitStream *bs, field *f, void *buff, int r)
+{
+	if (!fieldIsCharData(f))
+		return;
+	
+	short *b = (short*)buff;
+	int w = fieldWidth(f);
+	int nc = fieldComponents(f);
+	int offY = fieldStrideY(f)*r;
+	unsigned char *d = fieldCharData(f)+offY;
+	
+	if (r == 0)
+	{
+		int x,c;
+		
+		for (c=0; c<nc; c++)
+		{
+			int r = 0;
+			while (bitStreamRead(bs, 1))
+				r++;
+			
+			b[c] = M*r + bitStreamRead(bs, R-1);
+			d[c] = b[c];
+		}
+		
+		for (x=1; x<w; x++)
+		{
+			for (c=0; c<nc; c++)
+			{
+				int r = 0;
+				while (bitStreamRead(bs, 1))
+					r++;
+				
+				b[x*nc + c] = M*r + bitStreamRead(bs, R-1);
+				
+				int decode = b[x*nc+c];
+			
+				if (decode & 0x1)
+					decode = -(decode+1)/2;
+				else
+					decode = decode/2;
+				
+				d[x*nc+c] = d[(x-1)*nc+c] - decode;
+			}
+		}
+	}
+	else
+	{
+		int x,c;
+		
+		for (c=0; c<nc; c++)
+		{
+			int r = 0;
+			while (bitStreamRead(bs, 1))
+				r++;
+			
+			b[c] = M*r + bitStreamRead(bs, R-1);
+			d[c] = b[c];
+		}
+		
+		for (x=1; x<w; x++)
+		{
+			for (c=0; c<nc; c++)
+			{
+				int up = b[x*nc + c];
+				int left = b[(x-1)*nc + c];
+				
+				if (left < up)
+				{
+					int a = left;
+					left = up;
+					up = a;
+				}
+				
+				int dist = left - up;
+				
+				int numBits = 1;
+				int mask = 1;
+				while (dist > mask)
+				{
+					numBits++;
+					mask = mask << 1;
+					mask |= 1;
+				}
+				
+				int mid = (left+up)/2;
+				int start = mid - mask/2;
+				
+				if (left == up)
+				{
+					start = left;
+					mask = 0;
+					numBits = 0;
+				}
+				
+				if (0==bitStreamRead(bs, 1))
+				{
+					if (numBits == 0)
+						b[x*nc+c] = start;
+					else
+						b[x*nc+c] = bitStreamRead(bs, numBits) + start;
+				
+					int decode = b[x*nc+c];
+				
+					if (decode & 0x1)
+						decode = -(decode+1)/2;
+					else
+						decode = decode/2;
+					
+					d[x*nc+c] = d[(x-1)*nc+c] - decode;
+				}
+				else
+				{
+					int r = 0;
+					while (bitStreamRead(bs, 1))
+						r++;
+					
+					b[x*nc + c] = M*r + bitStreamRead(bs, R-1);
+					
+					int decode = b[x*nc+c];
+				
+					if (decode & 0x1)
+						decode = -(decode+1)/2;
+					else
+						decode = decode/2;
+					
+					d[x*nc+c] = d[(x-1)*nc+c] - decode;
+				}
 			}
 		}
 	}
