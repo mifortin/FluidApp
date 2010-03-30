@@ -365,6 +365,7 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			bitStreamPushExact(bs, b[c] - M * (b[c]/M), R);
 		}
 		
+		
 		for (x=nc; x<lamt; x++)
 		{
 			b[x] = d[x-nc] - d[x];
@@ -372,6 +373,10 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			b[x] *= 2;
 			if (b[x] < 0)
 				b[x] = -b[x]-1;
+		}
+		
+		for (x=nc; x<lamt; x++)
+		{
 		
 			bitStreamPushOne(bs, b[x]/M);
 			
