@@ -76,7 +76,6 @@ static int bitMask[32] =
 void bitStreamPush(BitStream *bs, int val, int bits)
 {
 	unsigned int tp = (val & bitMask[bits]) << (sizeof(int)*8 - bits);
-	//tp = tp >> (bs->curBit);
 	
 	unsigned int L = tp >> (bs->curBit);
 	unsigned int R = tp << (32-bs->curBit);
@@ -92,25 +91,6 @@ void bitStreamPush(BitStream *bs, int val, int bits)
 		bs->curBit-=32;
 		bs->numBit++;
 	}
-	
-//	int cBit = 0x00000001;
-//	int sa = 0;
-//	
-//	int k;
-//	for (k=0; k< bits; k++)
-//	{
-//		bs->r_dat[bs->numBit] |= ((val & cBit) >> sa)*bs->rot;
-//		
-//		cBit = cBit << 1;
-//		sa++;
-//		bs->rot = bs->ro t << 1;
-//		if (bs->rot == 0)
-//		{
-//			bs->rot = 1;
-//			bs->numBit = bs->numBit + 1;
-//			bs->r_dat[bs->numBit] = 0;
-//		}
-//	}
 }
 
 int bitStreamRead(BitStream *bs, int bits)
@@ -129,25 +109,6 @@ int bitStreamRead(BitStream *bs, int bits)
 	}
 	
 	return toRet;
-
-//	int cBit = 0x00000001;
-//	
-//	int toRet = 0;
-//	int k;
-//	for (k=0; k<bits; k++)
-//	{
-//		toRet |= cBit * ((bs->r_dat[bs->numBit] & bs->rot) ? 1:0);
-//	
-//		cBit = cBit << 1;
-//		bs->rot = bs->rot << 1;
-//		if (bs->rot == 0)
-//		{
-//			bs->rot = 1;
-//			bs->numBit = bs->numBit + 1;
-//		}
-//	}
-//	
-//	return toRet;
 }
 
 
@@ -407,14 +368,8 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			
 			int d = left - up;
 			
-			int numBits = 1;
-			int mask = 1;
-			while (d > mask)
-			{
-				numBits++;
-				mask = mask << 1;
-				mask |= 1;
-			}
+			int numBits = 32 - __builtin_clz(d);		// # of leading 0 bits...
+			int mask = ~(0xFFFFFFFF << numBits);
 			
 			int mid = (left+up) >> 1;		//Div 2
 			int start = mid - (mask >> 1);
@@ -521,14 +476,8 @@ void bitStreamDecodeFelics(BitStream *bs, field *f, void *buff, int r)
 				
 				int dist = left - up;
 				
-				int numBits = 1;
-				int mask = 1;
-				while (dist > mask)
-				{
-					numBits++;
-					mask = mask << 1;
-					mask |= 1;
-				}
+				int numBits = 32 - __builtin_clz(dist);		// # of leading 0 bits...
+				int mask = ~(0xFFFFFFFF << numBits);
 				
 				int mid = (left+up)/2;
 				int start = mid - mask/2;
