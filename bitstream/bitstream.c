@@ -9,9 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "x_simd.h"
+
 struct BitStream
 {
-	unsigned char *r_dat;
+	unsigned int *r_dat;
 	int numByte;
 	int numBit;
 	
@@ -62,14 +64,14 @@ int bitStreamSize(BitStream *bs)
 }
 
 
-static void bitStreamPushOne(BitStream *bs, int bits)
+static void bitStreamPushOne(BitStream *bs, const int bits)
 {
 	unsigned int tp = (~(0xFFFFFFFF << bits)) << (sizeof(int)*8 - bits);
 	
 	unsigned int L = tp >> (bs->curBit);
 	unsigned int R = tp << (32-bs->curBit);
 	
-	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
+	unsigned int *d = (bs->r_dat + bs->numBit);
 
 	d[0] |= L;
 	
@@ -84,14 +86,14 @@ static void bitStreamPushOne(BitStream *bs, int bits)
 
 
 
-static void bitStreamPushExact(BitStream *bs, int val, int bits)
+static void bitStreamPushExact(BitStream *bs, const int val, const int bits)
 {
 	unsigned int tp = (val) << (sizeof(int)*8 - bits);
 	
 	unsigned int L = tp >> (bs->curBit);
 	unsigned int R = tp << (32-bs->curBit);
 	
-	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
+	unsigned int *d = (bs->r_dat + bs->numBit);
 
 	d[0] |= L;
 	
@@ -112,7 +114,7 @@ void bitStreamPush(BitStream *bs, int val, int bits)
 	unsigned int L = tp >> (bs->curBit);
 	unsigned int R = tp << (32-bs->curBit);
 	
-	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
+	unsigned int *d = (bs->r_dat + bs->numBit);
 
 	d[0] |= L;
 	
@@ -340,13 +342,15 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 	if (!fieldIsCharData(f))
 		return;
 	
-	short *b = (short*)buff;
 	int w = fieldWidth(f);
 	int nc = fieldComponents(f);
 	int offY = fieldStrideY(f)*r;
 	unsigned char *d = fieldCharData(f)+offY;
 	
 	const int lamt = w*nc;
+	
+	short *bp = (short*)buff + r*lamt - lamt;
+	short *b = (short*)buff + r*lamt;
 	
 	if (r == 0)
 	{
@@ -387,28 +391,82 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			bitStreamPushExact(bs, cur - M * (cur/M), R);
 		}
 		
-		for (x=nc; x<lamt; x++)
+		
+#ifdef __APPLE_ALTIVEC__
+		vector short *vb = (vector short*)b;
+		vector unsigned char *vd = (vector unsigned char*)d;
+		
+		for (x=nc; x<16; x++)
 		{
-			int up = b[x];
-			int left = b[x-nc];
 			int bx = d[x-nc] - d[x];
-			
 			bx = bx * 2;
 			if (bx < 0)
 				bx = -bx-1;
+
+			b[x] = bx;
+		}
+		
+		vector short n1 = {-1,-1,-1,-1,-1,-1,-1,-1};
+		vector short one = {1,1,1,1,1,1,1,1};
+		vector short zero = {0,0,0,0,0,0,0,0};
+		vector unsigned char pmuteH = {	0x00, 0x10, 0x00, 0x11,
+										0x00, 0x12, 0x00, 0x13,
+										0x00, 0x14, 0x00, 0x15,
+										0x00, 0x16, 0x00, 0x17};
+		vector unsigned char pmuteL = {	0x00, 0x18, 0x00, 0x19,
+										0x00, 0x1A, 0x00, 0x1B,
+										0x00, 0x1C, 0x00, 0x1D,
+										0x00, 0x1E, 0x00, 0x1F};
+		for (x=1; x<lamt/16; x++)
+		{
+			vector unsigned char left = vec_sld(vd[x-1], vd[x], 16-3);
+			
+			vector short bx = vec_sub(vec_perm(zero,left,pmuteH), vec_perm(zero,vd[x],pmuteH));
+			bx = vec_sl(bx, one);
+			
+			vector short mask = vec_cmplt(bx, zero);
+			
+			vector short mn1 = vec_sub(vec_abs(bx), n1);
+			
+			vb[x*2+0] = vec_sel(bx, mn1, mask);
+			
+			bx = vec_sub(vec_perm(zero,left,pmuteL), vec_perm(zero,vd[x],pmuteL));
+			bx = vec_sl(bx, one);
+			
+			mask = vec_cmplt(bx, zero);
+			
+			mn1 = vec_sub(vec_abs(bx), n1);
+			
+			vb[x*2+1] = vec_sel(bx, mn1, mask);
+		}
+#else
+		for (x=nc; x<lamt; x++)
+		{
+			int bx = d[x-nc] - d[x];
+			bx = bx * 2;
+			if (bx < 0)
+				bx = -bx-1;
+
+			b[x] = bx;
+		}
+#endif
+		
+		for (x=nc; x<lamt; x++)
+		{
+			int up = bp[x];
+			int left = b[x-nc];
+			int bx = b[x];
 			
 			const int cur = bx;
-			b[x] = bx;
 			
 			if (left < up)
 			{
 				int a = left;
 				left = up;
 				up = a;
-				
-				goto elseClause;
 			}
-			else if (left == up)
+			
+			if (left == up)
 			{
 				if (cur == left)
 					bitStreamPushExact(bs, 0, 1);
@@ -422,7 +480,6 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			else
 			{
 				int d;
-elseClause:
 				d = left - up;
 				
 				int numBits = 32 - __builtin_clz(d);		// # of leading 0 bits...
