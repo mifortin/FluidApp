@@ -61,21 +61,10 @@ int bitStreamSize(BitStream *bs)
 	return bs->numBit;
 }
 
-static int bitMask[32] =
-{	0x0,
-	0x1,		0x3,		0x7,		0xF,
-	0x1F,		0x3F,		0x7F,		0xFF,
-	0x1FF,		0x3FF,		0x7FF,		0xFFF,
-	0x1FFF,		0x3FFF,		0x7FFF,		0xFFFF,
-	
-	0x1FFFF,	0x3FFFF,	0x7FFFF,	0xFFFFF,
-	0x1FFFFF,	0x3FFFFF,	0x7FFFFF,	0xFFFFFF,
-	0x1FFFFFF,	0x3FFFFFF,	0x7FFFFFF,	0xFFFFFFF,
-	0x1FFFFFFF,	0x3FFFFFFF,	0x7FFFFFFF};
 
-void bitStreamPush(BitStream *bs, int val, int bits)
+static void bitStreamPushOne(BitStream *bs, int bits)
 {
-	unsigned int tp = (val & bitMask[bits]) << (sizeof(int)*8 - bits);
+	unsigned int tp = (~(0xFFFFFFFF << bits)) << (sizeof(int)*8 - bits);
 	
 	unsigned int L = tp >> (bs->curBit);
 	unsigned int R = tp << (32-bs->curBit);
@@ -89,22 +78,71 @@ void bitStreamPush(BitStream *bs, int val, int bits)
 	{
 		d[1] |= R;
 		bs->curBit-=32;
-		bs->numBit++;
+		bs->numBit = bs->numBit + 1;
 	}
 }
 
+
+
+static void bitStreamPushExact(BitStream *bs, int val, int bits)
+{
+	unsigned int tp = (val) << (sizeof(int)*8 - bits);
+	
+	unsigned int L = tp >> (bs->curBit);
+	unsigned int R = tp << (32-bs->curBit);
+	
+	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
+
+	d[0] |= L;
+	
+	bs->curBit += bits;
+	if (bs->curBit >= 32)
+	{
+		d[1] |= R;
+		bs->curBit-=32;
+		bs->numBit = bs->numBit + 1;
+	}
+}
+
+
+void bitStreamPush(BitStream *bs, int val, int bits)
+{
+	unsigned int tp = (val & (~(0xFFFFFFFF << bits))) << (sizeof(int)*8 - bits);
+	
+	unsigned int L = tp >> (bs->curBit);
+	unsigned int R = tp << (32-bs->curBit);
+	
+	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
+
+	d[0] |= L;
+	
+	bs->curBit += bits;
+	if (bs->curBit >= 32)
+	{
+		d[1] |= R;
+		bs->curBit-=32;
+		bs->numBit = bs->numBit + 1;
+	}
+}
+
+
 int bitStreamRead(BitStream *bs, int bits)
 {
-	unsigned int *d = (unsigned int*)(bs->r_dat + bs->numBit);
+	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
+	
+	int rbits = bits - (32 - bs->curBit);
 	
 	int toRet = ((d[0] << (bs->curBit))
 						>> (sizeof(unsigned int)*8-bits))
-							& bitMask[bits];
+							& (~(0xFFFFFFFF << bits));
 	
 	bs->curBit += bits;
-	while (bs->curBit >= 8)
+	if (bs->curBit >= 32)
 	{
-		bs->curBit-=8;
+		if (rbits > 0)
+			toRet = (d[1] >> (sizeof(unsigned int)*8-rbits)) | (toRet);
+							
+		bs->curBit-=32;
 		bs->numBit++;
 	}
 	
@@ -308,6 +346,8 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 	int offY = fieldStrideY(f)*r;
 	unsigned char *d = fieldCharData(f)+offY;
 	
+	const int lamt = w*nc;
+	
 	if (r == 0)
 	{
 		int x,c;
@@ -316,12 +356,12 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 		{
 			b[c] = d[c];
 			
-			bitStreamPush(bs, 0xFFFFFF, b[c]/M);
+			bitStreamPushOne(bs, b[c]/M);
 			
-			bitStreamPush(bs, b[c] - M * (b[c]/M), R);
+			bitStreamPushExact(bs, b[c] - M * (b[c]/M), R);
 		}
 		
-		for (x=nc; x<w*nc; x++)
+		for (x=nc; x<lamt; x++)
 		{
 			b[x] = d[x-nc] - d[x];
 			
@@ -329,9 +369,9 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			if (b[x] < 0)
 				b[x] = -b[x]-1;
 		
-			bitStreamPush(bs, 0xFFFFFF, b[x]/M);
+			bitStreamPushOne(bs, b[x]/M);
 			
-			bitStreamPush(bs, b[x] - M * (b[x]/M), R);
+			bitStreamPushExact(bs, b[x] - M * (b[x]/M), R);
 		}
 	}
 	else
@@ -340,61 +380,74 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 		
 		for (c=0; c<nc; c++)
 		{
-			b[c] = d[c];
+			const int cur = b[c] = d[c];
 			
-			bitStreamPush(bs, 0xFFFFFF, b[c]/M);
+			bitStreamPushOne(bs, cur/M);
 			
-			bitStreamPush(bs, b[c] - M * (b[c]/M), R);
+			bitStreamPushExact(bs, cur - M * (cur/M), R);
 		}
 		
-		for (x=nc; x<w*nc; x++)
+		for (x=nc; x<lamt; x++)
 		{
 			int up = b[x];
 			int left = b[x-nc];
-			b[x] = d[x-nc] - d[x];
+			int bx = d[x-nc] - d[x];
 			
-			b[x] = b[x] << 1;
-			if (b[x] < 0)
-				b[x] = -b[x]-1;
-				
-			int cur = b[x];
+			bx = bx * 2;
+			if (bx < 0)
+				bx = -bx-1;
+			
+			const int cur = bx;
+			b[x] = bx;
 			
 			if (left < up)
 			{
 				int a = left;
 				left = up;
 				up = a;
-			}
-			
-			int d = left - up;
-			
-			int numBits = 32 - __builtin_clz(d);		// # of leading 0 bits...
-			int mask = ~(0xFFFFFFFF << numBits);
-			
-			int mid = (left+up) >> 1;		//Div 2
-			int start = mid - (mask >> 1);
-			
-			if (left == up)
-			{
-				start = left;
-				mask = 0;
-				numBits = 0;
-			}
-			
-			if (cur >= start && cur <= start+mask && numBits < b[x]/M + R)
-			{
-				//bitStreamPush(bs, 0, 1);//	- implied in next statement
 				
-				bitStreamPush(bs, cur - start, numBits+1);	//Adds in a zero
+				goto elseClause;
+			}
+			else if (left == up)
+			{
+				if (cur == left)
+					bitStreamPushExact(bs, 0, 1);
+				else
+				{
+					bitStreamPushOne(bs, cur/M+1);
+					
+					bitStreamPushExact(bs, cur - M * (cur/M), R);
+				}
 			}
 			else
 			{
-				//bitStreamPush(bs, 1, 1);//	- implied in next statement
-		
-				bitStreamPush(bs, 0xFFFFFFF, b[x]/M+1);
+				int d;
+elseClause:
+				d = left - up;
 				
-				bitStreamPush(bs, b[x] - M * (b[x]/M), R);
+				int numBits = 32 - __builtin_clz(d);		// # of leading 0 bits...
+				unsigned int mask = 0xFFFFFFFF >> (32-numBits);
+				
+				int mid = (left+up) /2;		//Div 2
+				int start = mid - (mask /2);
+			
+				int cmStart = cur-start;
+				if (cmStart >= 0 && cmStart <= mask && numBits*M < cur + R*M)
+				{
+					//bitStreamPush(bs, 0, 1);//	- implied in next statement
+					
+					bitStreamPushExact(bs, cmStart, numBits+1);	//Adds in a zero
+				}
+				else
+				{
+					//bitStreamPush(bs, 1, 1);//	- implied in next statement
+			
+					bitStreamPushOne(bs, cur/M+1);
+					
+					bitStreamPushExact(bs, cur - M * (cur/M), R);
+				}
 			}
+			
 		}
 	}
 }
@@ -474,19 +527,23 @@ void bitStreamDecodeFelics(BitStream *bs, field *f, void *buff, int r)
 					up = a;
 				}
 				
-				int dist = left - up;
-				
-				int numBits = 32 - __builtin_clz(dist);		// # of leading 0 bits...
-				int mask = ~(0xFFFFFFFF << numBits);
-				
-				int mid = (left+up)/2;
-				int start = mid - mask/2;
+				int mask, numBits, start;
 				
 				if (left == up)
 				{
 					start = left;
 					mask = 0;
 					numBits = 0;
+				}
+				else
+				{
+					int dist = left - up;
+					
+					numBits = 32 - __builtin_clz(dist);		// # of leading 0 bits...
+					mask = ~(0xFFFFFFFF << numBits);
+					
+					int mid = (left+up)/2;
+					start = mid - mask/2;
 				}
 				
 				if (0==bitStreamRead(bs, 1))
