@@ -361,6 +361,7 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			bitStreamPushExact(bs, cur - M * (cur/M), R);
 		}
 		
+		x=nc;
 		
 #ifdef __APPLE_ALTIVEC__
 		vector short *vb = (vector short*)b;
@@ -405,7 +406,7 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 			
 			mask = vec_cmplt(bx, zero);
 			
-			mn1 = vec_sub(vec_abs(bx), n1);
+			mn1 = vec_sub(vec_sub(zero,bx), n1);
 			
 			vb[x*2+1] = vec_sel(bx, mn1, mask);
 		}
@@ -427,12 +428,7 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 		{
 			int up = bp[x];
 			int left = b[x-nc];
-			int bx = d[x-nc] - d[x];
-			bx = bx * 2;
-			if (bx < 0)
-				bx = -bx-1;
-
-			b[x] = bx;
+			int bx = b[x];
 			
 			const int cur = bx;
 			
@@ -496,26 +492,11 @@ bscontinue_alti:
 			i++;
 			vector short vbx = vb[i];
 			
-//			vbx = vec_sl(vbx, (vector short){1,1,1,1,1,1,1,1});
-//			
-//			vector short mask = vec_cmplt(vbx, (vector short){0,0,0,0,0,0,0,0});
-//			
-//			vector short inv = vec_sub((vector short){0,0,0,0,0,0,0,0}, vbx);
-//			
-//			inv = vec_sub(inv, (vector short){1,1,1,1,1,1,1,1});
-//			
-//			vbx = vec_sel(vbx, inv, mask);
-//			
-//			
 			short *pbx = (short*)&vbx;
-//			vb[i] = vbx;
 			
 			vector short vup = vbp[i];
 			
-			//vector short vleft = (vector short){b[x-nc], b[x-nc+1], b[x-nc+2], b[x-nc+3],
-			//								b[x-nc+4], b[x-nc+5], b[x-nc+6], b[x-nc+7]};
-			
-			vector short vleft = vec_sld(vb[i-1], vb[i], 10);
+			vector short vleft = vec_sld(vb[i-1], vb[i], 10);	//16 - 6 (HARDCODED)
 			
 			vector short mask = vec_cmplt(vleft, vup);
 			
@@ -563,16 +544,22 @@ bscontinue_alti:
 			vector short cmp1 = vec_cmplt(vcmStart, (vector short){0,0,0,0,0,0,0,0});
 			vector short cmp2 = vec_cmpgt(vcmStart, bitmask);
 			
-			cmp1 = vec_nor(cmp1, cmp2);
+			vector short cmp3left = vec_sl(numBits, (vector short){4,4,4,4,4,4,4,4});
+			vector short cmp3right = vec_add(vbx,(vector short){R*M,R*M,R*M,R*M,R*M,R*M,R*M,R*M});
 			
-			short *cmpRes = (short*)&cmp1;
+			vector short cmp3 = vec_cmplt(cmp3left, cmp3right);
+			
+			cmp1 = vec_and(cmp3,vec_nor(cmp1, cmp2));
+			
+			short *cmp = (short*)&cmp1;
 			short *cmStart = (short*)&vcmStart;
 			short *vNumBits = (short*)&numBits;
 			
 			int j;
 			for (j=0; j<8; j++)
 			{
-				if (cmpRes[j] && vNumBits[j]*M < pbx[j] + R*M)
+				
+				if (cmp[j])
 				{
 					//bitStreamPush(bs, 0, 1);//	- implied in next statement
 					
@@ -837,7 +824,8 @@ bscontinue:
 				
 				numBits = 32 - numBits;
 				
-				if (cmStart >= 0 && cmStart <= mask && numBits*M < cur + R*M)
+				int cmp = (cmStart >= 0) && (cmStart <= mask) && (numBits*M < cur + R*M);
+				if (cmp)
 				{
 					//bitStreamPush(bs, 0, 1);//	- implied in next statement
 					
