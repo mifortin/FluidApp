@@ -488,7 +488,7 @@ bscontinue_alti:
 
 		//vector short *vb = (vector short*)b;
 		vector short *vbp = (vector short*)bp;
-		vector short maskBit0 = (vector short){1,1,1,1,1,1,1,1};
+		const vector short maskBit0 = (vector short){1,1,1,1,1,1,1,1};
 		int i = 0;
 		for (; x<lamt-7; x+=8)
 		{
@@ -576,6 +576,15 @@ bscontinue_alti:
 			
 			cmp1 = vec_and(cmp3,vec_nor(cmp1, cmp2));
 			
+			
+			numBits = vec_add(numBits, altivecShortConstant(1));
+//			vector short golumBits = altivecShortConstant(R);
+//			
+//			vector short golumnValue = vec_sub(vbx,
+//							vec_sl(vec_sr(vbx, altivecShortConstant(4)),
+//												altivecShortConstant(4)));
+											
+			
 			short *cmp = (short*)&cmp1;
 			short *cmStart = (short*)&vcmStart;
 			short *vNumBits = (short*)&numBits;
@@ -588,7 +597,7 @@ bscontinue_alti:
 				{
 					//bitStreamPush(bs, 0, 1);//	- implied in next statement
 					
-					bitStreamPushExact(bs, cmStart[j], vNumBits[j]+1);	//Adds in a zero
+					bitStreamPushExact(bs, cmStart[j], vNumBits[j]);	//Adds in a zero
 				}
 				else
 				{
