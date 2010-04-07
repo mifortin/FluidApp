@@ -362,211 +362,215 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 		}
 		
 		
-//#ifdef __APPLE_ALTIVEC__
-//		vector short *vb = (vector short*)b;
-//		vector unsigned char *vd = (vector unsigned char*)d;
-//		
-//		for (x=nc; x<16; x++)
-//		{
-//			int bx = d[x-nc] - d[x];
-//			bx = bx * 2;
-//			if (bx < 0)
-//				bx = -bx-1;
-//
-//			b[x] = bx;
-//		}
-//		
-//		vector short n1 = {-1,-1,-1,-1,-1,-1,-1,-1};
-//		vector short one = {1,1,1,1,1,1,1,1};
-//		vector short zero = {0,0,0,0,0,0,0,0};
-//		vector unsigned char pmuteH = {	0x00, 0x10, 0x00, 0x11,
-//										0x00, 0x12, 0x00, 0x13,
-//										0x00, 0x14, 0x00, 0x15,
-//										0x00, 0x16, 0x00, 0x17};
-//		vector unsigned char pmuteL = {	0x00, 0x18, 0x00, 0x19,
-//										0x00, 0x1A, 0x00, 0x1B,
-//										0x00, 0x1C, 0x00, 0x1D,
-//										0x00, 0x1E, 0x00, 0x1F};
-//		for (x=1; x<lamt/16; x++)
-//		{
-//			vector unsigned char left = vec_sld(vd[x-1], vd[x], 16-3);
-//			
-//			vector short bx = vec_sub(vec_perm(zero,left,pmuteH), vec_perm(zero,vd[x],pmuteH));
-//			bx = vec_sl(bx, one);
-//			
-//			vector short mask = vec_cmplt(bx, zero);
-//			
-//			vector short mn1 = vec_sub(vec_abs(bx), n1);
-//			
-//			vb[x*2+0] = vec_sel(bx, mn1, mask);
-//			
-//			bx = vec_sub(vec_perm(zero,left,pmuteL), vec_perm(zero,vd[x],pmuteL));
-//			bx = vec_sl(bx, one);
-//			
-//			mask = vec_cmplt(bx, zero);
-//			
-//			mn1 = vec_sub(vec_abs(bx), n1);
-//			
-//			vb[x*2+1] = vec_sel(bx, mn1, mask);
-//		}
-//#else
-//		for (x=nc; x<lamt; x++)
-//		{
-//			int bx = d[x-nc] - d[x];
-//			bx = bx * 2;
-//			if (bx < 0)
-//				bx = -bx-1;
-//
-//			b[x] = bx;
-//		}
-//#endif
+#ifdef __APPLE_ALTIVEC__
+		vector short *vb = (vector short*)b;
+		vector unsigned char *vd = (vector unsigned char*)d;
+		
+		for (x=nc; x<16; x++)
+		{
+			int bx = d[x-nc] - d[x];
+			bx = bx * 2;
+			if (bx < 0)
+				bx = -bx-1;
+
+			b[x] = bx;
+		}
+		
+		vector short n1 = {-1,-1,-1,-1,-1,-1,-1,-1};
+		vector short one = {1,1,1,1,1,1,1,1};
+		vector short zero = {0,0,0,0,0,0,0,0};
+		vector unsigned char pmuteH = {	0x00, 0x10, 0x00, 0x11,
+										0x00, 0x12, 0x00, 0x13,
+										0x00, 0x14, 0x00, 0x15,
+										0x00, 0x16, 0x00, 0x17};
+		vector unsigned char pmuteL = {	0x00, 0x18, 0x00, 0x19,
+										0x00, 0x1A, 0x00, 0x1B,
+										0x00, 0x1C, 0x00, 0x1D,
+										0x00, 0x1E, 0x00, 0x1F};
+		for (x=1; x<lamt/16; x++)
+		{
+			vector unsigned char left = vec_sld(vd[x-1], vd[x], 16-3);
+			
+			vector short bx = vec_sub(vec_perm(zero,left,pmuteH), vec_perm(zero,vd[x],pmuteH));
+			bx = vec_sl(bx, one);
+			
+			vector short mask = vec_cmplt(bx, zero);
+			
+			vector short mn1 = vec_sub(vec_abs(bx), n1);
+			
+			vb[x*2+0] = vec_sel(bx, mn1, mask);
+			
+			bx = vec_sub(vec_perm(zero,left,pmuteL), vec_perm(zero,vd[x],pmuteL));
+			bx = vec_sl(bx, one);
+			
+			mask = vec_cmplt(bx, zero);
+			
+			mn1 = vec_sub(vec_abs(bx), n1);
+			
+			vb[x*2+1] = vec_sel(bx, mn1, mask);
+		}
+#else
+		for (x=nc; x<lamt; x++)
+		{
+			int bx = d[x-nc] - d[x];
+			bx = bx * 2;
+			if (bx < 0)
+				bx = -bx-1;
+
+			b[x] = bx;
+		}
+#endif
 
 		x = nc;
 #ifdef __APPLE_ALTIVEC__
-		for (; x<lamt-7; x+=8)
+		for (; x<8; x++)
 		{
-			vector int vbx =
-				{	d[x-nc]		- d[x],
-					d[x-nc+1]	- d[x+1],
-					d[x-nc+2]	- d[x+2],
-					d[x-nc+3]	- d[x+3]	};
-					
-			vector int vbx1 =
-				{	d[x-nc+4]	- d[x+4],
-					d[x-nc+5]	- d[x+5],
-					d[x-nc+6]	- d[x+6],
-					d[x-nc+7]	- d[x+7]	};
+			int up = bp[x];
+			int left = b[x-nc];
+			int bx = d[x-nc] - d[x];
+			bx = bx * 2;
+			if (bx < 0)
+				bx = -bx-1;
+
+			b[x] = bx;
 			
-			vbx = vec_sl(vbx, (vector int){1,1,1,1});
-			vbx1 = vec_sl(vbx1, (vector int){1,1,1,1});
+			const int cur = bx;
 			
-			vector int mask = vec_cmplt(vbx, (vector int){0,0,0,0});
-			vector int mask1 = vec_cmplt(vbx1, (vector int){0,0,0,0});
-			
-			vector int inv = vec_sub((vector int){0,0,0,0}, vbx);
-			vector int inv1 = vec_sub((vector int){0,0,0,0}, vbx1);
-			
-			inv = vec_sub(inv, (vector int){1,1,1,1});
-			inv1 = vec_sub(inv1, (vector int){1,1,1,1});
-			
-			vbx = vec_sel(vbx, inv, mask);
-			vbx1 = vec_sel(vbx1, inv1, mask1);
-			
-			
-			int *pbx = (int*)&vbx;
-			b[x+0] = pbx[0];
-			b[x+1] = pbx[1];
-			b[x+2] = pbx[2];
-			b[x+3] = pbx[3];
-			
-			int *pbx1 = (int*)&vbx1;
-			b[x+4] = pbx1[0];
-			b[x+5] = pbx1[1];
-			b[x+6] = pbx1[2];
-			b[x+7] = pbx1[3];
-			
-			vector int vup = (vector int){bp[x], bp[x+1], bp[x+2], bp[x+3]};
-			vector int vup1 = (vector int){bp[x+4], bp[x+5], bp[x+6], bp[x+7]};
-			
-			vector int vleft = (vector int){b[x-nc], b[x-nc+1], b[x-nc+2], b[x-nc+3]};
-			vector int vleft1 = (vector int){b[x-nc+4], b[x-nc+5], b[x-nc+6], b[x-nc+7]};
-			
-			mask = vec_cmplt(vleft, vup);
-			mask1 = vec_cmplt(vleft1, vup1);
-			
-			vector int vup2 = vec_sel(vup, vleft, mask);
-			vector int vup21 = vec_sel(vup1, vleft1, mask1);
-			
-			vector int vleft2 = vec_sel(vleft, vup, mask);
-			vector int vleft21 = vec_sel(vleft1, vup1, mask1);
-			
-			vector int vd = vec_sub(vleft2, vup2);
-			vector int vd1 = vec_sub(vleft21, vup21);
-			
-			int *pd = (int*)&vd;
-			int *pd1 = (int*)&vd1;
-			
-			vector int numBits = (vector int){	__builtin_clz(pd[0]),
-												__builtin_clz(pd[1]),
-												__builtin_clz(pd[2]),
-												__builtin_clz(pd[3])};
-			vector int numBits1 = (vector int){	__builtin_clz(pd1[0]),
-												__builtin_clz(pd1[1]),
-												__builtin_clz(pd1[2]),
-												__builtin_clz(pd1[3])};
-			
-			vector unsigned int bitmask = (vector unsigned int)
-									{0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF};
-			vector unsigned int bitmask1 = (vector unsigned int)
-									{0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF};
-									
-			bitmask = vec_sr(bitmask, numBits);
-			bitmask1 = vec_sr(bitmask1, numBits1);
-			
-			vector int mid = vec_sr(vec_add(vleft,vup),(vector int){1,1,1,1});
-			vector int mid1 = vec_sr(vec_add(vleft1,vup1),(vector int){1,1,1,1});
-			
-			vector int start = vec_sub(mid,vec_sr(bitmask, (vector int){1,1,1,1}));
-			vector int start1 = vec_sub(mid1,vec_sr(bitmask1, (vector int){1,1,1,1}));
-			
-			mask = vec_cmpeq(vleft, vup);
-			mask1 = vec_cmpeq(vleft1, vup1);
-			
-			start = vec_sel(start, mid, mask);
-			start1 = vec_sel(start1, mid1, mask1);
-			
-			numBits = vec_sel(numBits, (vector int){32,32,32,32}, mask);
-			numBits1 = vec_sel(numBits1, (vector int){32,32,32,32}, mask1);
-			
-			bitmask = vec_sel(bitmask, (vector int){0,0,0,0}, mask);
-			bitmask1 = vec_sel(bitmask1, (vector int){0,0,0,0}, mask1);
-			
-			vector int vcmStart = vec_sub(vbx, start);
-			vector int vcmStart1 = vec_sub(vbx1, start1);
-			
-			numBits = vec_sub((vector int){32,32,32,32}, numBits);
-			numBits1 = vec_sub((vector int){32,32,32,32}, numBits1);
-			
-			
-			// (a >= b && a <= c)
-			// !(a < b || a > c)
-			vector int cmp1 = vec_cmplt(vcmStart, (vector int){0,0,0,0});
-			vector int cmp2 = vec_cmpgt(vcmStart, bitmask);
-			
-			vector int cmp11 = vec_cmplt(vcmStart1, (vector int){0,0,0,0});
-			vector int cmp21 = vec_cmpgt(vcmStart1, bitmask1);
-			
-			cmp1 = vec_nor(cmp1, cmp2);
-			cmp11 = vec_nor(cmp11, cmp21);
-			
-			int *cmpRes = (int*)&cmp1;
-			int *cmStart = (int*)&vcmStart;
-			int *vNumBits = (int*)&numBits;
-			
-			int j;
-			for (j=0; j<4; j++)
+			if (left < up)
 			{
-				if (cmpRes[j] && vNumBits[j]*M < pbx[j] + R*M)
+				int a = left;
+				left = up;
+				up = a;
+				goto bscontinue_alti;
+			}
+			else if (left == up)
+			{
+				if (cur == left)
+					bitStreamPushExact(bs, 0, 1);
+				else
+				{
+					bitStreamPushOne(bs, cur/M+1);
+					
+					bitStreamPushExact(bs, cur - M * (cur/M), R);
+				}
+			}
+			else
+			{
+				int d;
+bscontinue_alti:
+				d = left - up;
+				
+				int numBits = __builtin_clz(d);		// # of leading 0 bits...
+				unsigned int mask = 0xFFFFFFFF >> (numBits);
+				
+				int mid = (left+up) /2;		//Div 2
+				int start = mid - (mask /2);
+			
+				int cmStart = cur-start;
+				
+				numBits = 32 - numBits;
+				
+				if (cmStart >= 0 && cmStart <= mask && numBits*M < cur + R*M)
 				{
 					//bitStreamPush(bs, 0, 1);//	- implied in next statement
 					
-					bitStreamPushExact(bs, cmStart[j], vNumBits[j]+1);	//Adds in a zero
+					bitStreamPushExact(bs, cmStart, numBits+1);	//Adds in a zero
 				}
 				else
 				{
 					//bitStreamPush(bs, 1, 1);//	- implied in next statement
 			
-					bitStreamPushOne(bs, pbx[j]/M+1);
+					bitStreamPushOne(bs, cur/M+1);
 					
-					bitStreamPushExact(bs, pbx[j] - M * (pbx[j]/M), R);
+					bitStreamPushExact(bs, cur - M * (cur/M), R);
 				}
 			}
 			
-			cmpRes = (int*)&cmp11;
-			cmStart = (int*)&vcmStart1;
-			vNumBits = (int*)&numBits1;
+		}
+
+		//vector short *vb = (vector short*)b;
+		vector short *vbp = (vector short*)bp;
+		int i = 0;
+		for (; x<lamt-7; x+=8)
+		{
+			i++;
+			vector short vbx = vb[i];
 			
-			for (j=0; j<4; j++)
+//			vbx = vec_sl(vbx, (vector short){1,1,1,1,1,1,1,1});
+//			
+//			vector short mask = vec_cmplt(vbx, (vector short){0,0,0,0,0,0,0,0});
+//			
+//			vector short inv = vec_sub((vector short){0,0,0,0,0,0,0,0}, vbx);
+//			
+//			inv = vec_sub(inv, (vector short){1,1,1,1,1,1,1,1});
+//			
+//			vbx = vec_sel(vbx, inv, mask);
+//			
+//			
+			short *pbx = (short*)&vbx;
+//			vb[i] = vbx;
+			
+			vector short vup = vbp[i];
+			
+			//vector short vleft = (vector short){b[x-nc], b[x-nc+1], b[x-nc+2], b[x-nc+3],
+			//								b[x-nc+4], b[x-nc+5], b[x-nc+6], b[x-nc+7]};
+			
+			vector short vleft = vec_sld(vb[i-1], vb[i], 10);
+			
+			vector short mask = vec_cmplt(vleft, vup);
+			
+			vector short vup2 = vec_sel(vup, vleft, mask);
+			
+			vector short vleft2 = vec_sel(vleft, vup, mask);
+			
+			vector short vd = vec_sub(vleft2, vup2);
+			
+			short *pd = (short*)&vd;
+			
+			vector short numBits = (vector short){	__builtin_clz(pd[0]),
+													__builtin_clz(pd[1]),
+													__builtin_clz(pd[2]),
+													__builtin_clz(pd[3]),
+													__builtin_clz(pd[4]),
+													__builtin_clz(pd[5]),
+													__builtin_clz(pd[6]),
+													__builtin_clz(pd[7])};
+			
+			vector unsigned short bitmask = (vector unsigned short)
+									{0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF};
+									
+			bitmask = vec_sr(bitmask, numBits);
+			
+			vector short mid = vec_sr(vec_add(vleft,vup),(vector short){1,1,1,1,1,1,1,1});
+			
+			vector short start = vec_sub(mid,vec_sr(bitmask, (vector short){1,1,1,1,1,1,1,1}));
+			
+			mask = vec_cmpeq(vleft, vup);
+			
+			start = vec_sel(start, mid, mask);
+			
+			numBits = vec_sel(numBits, (vector short){32,32,32,32,32,32,32,32}, mask);
+			
+			bitmask = vec_sel(bitmask, (vector short){0,0,0,0,0,0,0,0}, mask);
+			
+			vector short vcmStart = vec_sub(vbx, start);
+			
+			numBits = vec_sub((vector short){32,32,32,32,32,32,32,32}, numBits);
+			
+			
+			// (a >= b && a <= c)
+			// !(a < b || a > c)
+			vector short cmp1 = vec_cmplt(vcmStart, (vector short){0,0,0,0,0,0,0,0});
+			vector short cmp2 = vec_cmpgt(vcmStart, bitmask);
+			
+			cmp1 = vec_nor(cmp1, cmp2);
+			
+			short *cmpRes = (short*)&cmp1;
+			short *cmStart = (short*)&vcmStart;
+			short *vNumBits = (short*)&numBits;
+			
+			int j;
+			for (j=0; j<8; j++)
 			{
 				if (cmpRes[j] && vNumBits[j]*M < pbx[j] + R*M)
 				{
