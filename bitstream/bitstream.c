@@ -302,6 +302,8 @@ void bitStreamDecodeField(BitStream *bs, field *f, void *buff, int r)
 #define M	16
 #define R	5
 
+#define altivecShortConstant(c)	((vector short){c,c,c,c,c,c,c,c})
+
 void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 {
 	if (!fieldIsCharData(f))
@@ -486,6 +488,7 @@ bscontinue_alti:
 
 		//vector short *vb = (vector short*)b;
 		vector short *vbp = (vector short*)bp;
+		vector short maskBit0 = (vector short){1,1,1,1,1,1,1,1};
 		int i = 0;
 		for (; x<lamt-7; x+=8)
 		{
@@ -506,37 +509,59 @@ bscontinue_alti:
 			
 			vector short vd = vec_sub(vleft2, vup2);
 			
-			short *pd = (short*)&vd;
+			vector short masked0;
+			vector short ze0 = vec_cmplt(vd, altivecShortConstant(1));
 			
-			vector short numBits = (vector short){	__builtin_clz(pd[0]),
-													__builtin_clz(pd[1]),
-													__builtin_clz(pd[2]),
-													__builtin_clz(pd[3]),
-													__builtin_clz(pd[4]),
-													__builtin_clz(pd[5]),
-													__builtin_clz(pd[6]),
-													__builtin_clz(pd[7])};
+			vector short ze1 = vec_cmplt(vd, altivecShortConstant(2));
+			
+			vector short masked2;
+			vector short ze2 = vec_cmplt(vd, altivecShortConstant(4));
+			
+			vector short ze3 = vec_cmplt(vd, altivecShortConstant(8));
+			
+			vector short masked4;
+			vector short ze4 = vec_cmplt(vd, altivecShortConstant(16));
+			
+			vector short ze5 = vec_cmplt(vd, altivecShortConstant(32));
+			
+			vector short masked6;
+			vector short ze6 = vec_cmplt(vd, altivecShortConstant(64));
+			
+			vector short ze7 = vec_cmplt(vd, altivecShortConstant(128));
+			
+			vector short ze8 = vec_cmplt(vd, altivecShortConstant(256));
+			
+			masked0 = vec_add(vec_and(ze0, maskBit0), vec_and(ze1, maskBit0));
+			masked2 = vec_add(vec_and(ze2, maskBit0), vec_and(ze3, maskBit0));
+			masked4 = vec_add(vec_and(ze4, maskBit0), vec_and(ze5, maskBit0));
+			masked6 = vec_add(vec_and(ze6, maskBit0), vec_and(ze7, maskBit0));
+			
+			masked0 = vec_add(masked0, masked2);
+			masked4 = vec_add(masked4, masked6);
+			
+			masked0 = vec_add(masked0, masked4);
+			
+			vector short numBits = vec_add(vec_and(ze8, maskBit0),
+									vec_add(masked0,altivecShortConstant(16-9)));
 			
 			vector unsigned short bitmask = (vector unsigned short)
 									{0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF};
 									
 			bitmask = vec_sr(bitmask, numBits);
 			
-			vector short mid = vec_sr(vec_add(vleft,vup),(vector short){1,1,1,1,1,1,1,1});
+			vector short mid = vec_sr(vec_add(vleft,vup),altivecShortConstant(1));
 			
-			vector short start = vec_sub(mid,vec_sr(bitmask, (vector short){1,1,1,1,1,1,1,1}));
+			vector short start = vec_sub(mid,vec_sr(bitmask, altivecShortConstant(1)));
 			
 			mask = vec_cmpeq(vleft, vup);
 			
 			start = vec_sel(start, mid, mask);
 			
-			numBits = vec_sel(numBits, (vector short){32,32,32,32,32,32,32,32}, mask);
-			
-			bitmask = vec_sel(bitmask, (vector short){0,0,0,0,0,0,0,0}, mask);
+			bitmask = vec_sel(bitmask, altivecShortConstant(0), mask);
 			
 			vector short vcmStart = vec_sub(vbx, start);
 			
-			numBits = vec_sub((vector short){32,32,32,32,32,32,32,32}, numBits);
+			numBits = vec_sub(altivecShortConstant(16), numBits);
 			
 			
 			// (a >= b && a <= c)
