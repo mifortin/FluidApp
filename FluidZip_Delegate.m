@@ -1224,8 +1224,8 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 //	for (y=0; y<h; y++)
 //		bitStreamDecodeField(bs, f, curv, y);
 	printf("DECODE SIZE %i = %f\n", bitStreamSize(bs), x_time() - d1);
-	printf("ORIGINAL SIZE %i\n", w*h*bpp);
-	printf("GAIN: %i\n", 100* bitStreamSize(bs)/ (w*h*bpp));
+	printf("ORIGINAL SIZE %i\n", w*h*bpp/4);
+	printf("GAIN: %i\n", 100* bitStreamSize(bs)/ (w*h*bpp/4));
 	
 	memcpy(d, fd, w*h*bpp);
 	
