@@ -13,40 +13,46 @@
 
 struct BitStream
 {
-	unsigned int *r_dat;
+	unsigned int *r_dat[4];
+	u128i numBit;
+	u128i curBit;
+	
 	int numByte;
-	int numBit;
-	
-	int curBit;
-	
-	unsigned char rot;
 };
 
 static void bitStreamFree(void *ptr)
 {
 	BitStream *bs = (BitStream*)ptr;
 	
-	if (bs->r_dat)		free(bs->r_dat);
+	if (bs->r_dat[0])		free(bs->r_dat[0]);
+	if (bs->r_dat[1])		free(bs->r_dat[1]);
+	if (bs->r_dat[2])		free(bs->r_dat[2]);
+	if (bs->r_dat[3])		free(bs->r_dat[3]);
 }
 
 void bitStreamReset(BitStream *bs)
 {
-	bs->rot = 1;
-	bs->numBit = 0;
-	bs->curBit = 0;
+	bs->numBit.v = (x128i){0,0,0,0};
+	bs->curBit.v = (x128i){0,0,0,0};
 }
 
 void bitStreamClear(BitStream *bs)
 {
 	bitStreamReset(bs);
-	memset(bs->r_dat, 0, bs->numByte);
+	memset(bs->r_dat[0], 0, bs->numByte);
+	memset(bs->r_dat[1], 0, bs->numByte);
+	memset(bs->r_dat[2], 0, bs->numByte);
+	memset(bs->r_dat[3], 0, bs->numByte);
 }
 
 BitStream *bitStreamCreate(int in_maxSize)
 {
 	BitStream *r = x_malloc(sizeof(BitStream), bitStreamFree);
 	
-	r->r_dat = malloc(in_maxSize);
+	r->r_dat[0] = malloc(in_maxSize);
+	r->r_dat[1] = malloc(in_maxSize);
+	r->r_dat[2] = malloc(in_maxSize);
+	r->r_dat[3] = malloc(in_maxSize);
 	r->numByte = in_maxSize;
 	
 	bitStreamClear(r);
@@ -57,7 +63,7 @@ BitStream *bitStreamCreate(int in_maxSize)
 
 int bitStreamSize(BitStream *bs)
 {
-	return bs->numBit;
+	return bs->numBit.i[0] + bs->numBit.i[1] + bs->numBit.i[2] + bs->numBit.i[3];
 }
 
 
@@ -65,18 +71,77 @@ static void bitStreamPushExact(BitStream *bs, const int val, const int bits)
 {
 	unsigned int tp = (val) << (sizeof(int)*8 - bits);
 	
-	bs->r_dat[bs->numBit] += tp >> (bs->curBit);
+	bs->r_dat[0][bs->numBit.i[0]] += tp >> (bs->curBit.i[0]);
 	
-	bs->curBit += bits;
-	if (bs->curBit >= 32)
+	bs->curBit.i[0] += bits;
+	if (bs->curBit.i[0] >= 32)
 	{
-		bs->r_dat[ bs->numBit+1] = tp << (32-(bs->curBit-bits));
-		bs->curBit-=32;
-		bs->numBit =  bs->numBit + 1;
+		bs->r_dat[0][ bs->numBit.i[0]+1] = tp << (32-(bs->curBit.i[0]-bits));
+		bs->curBit.i[0]-=32;
+		bs->numBit.i[0] =  bs->numBit.i[0] + 1;
 	}
 //	bs->r_dat[ bs->numBit+1] = tp << (32-(bs->curBit-bits));
 //	bs->numBit += bs->curBit/32;
 //	bs->curBit = bs->curBit%32;
+}
+
+
+#define altivecShortConstant(c)	((vector short){c,c,c,c,c,c,c,c})
+#define altivecIntConstant(c)	((vector int){c,c,c,c})
+
+static void bitStreamPushQuadExact(BitStream *bs, const u128i val, const u128i bits)
+{
+	u128i toPush;
+	
+#ifdef __APPLE_ALTIVEC__
+	toPush.v = vec_sl(val.v, vec_sub(altivecIntConstant(sizeof(int)*8), bits.v));
+	
+	u128i toAssign, assignRight;
+	toAssign.v = vec_sr(toPush.v, bs->curBit.v);
+	assignRight.v = vec_sl(toPush.v, vec_sub(altivecIntConstant(32), bs->curBit.v));
+	
+//	bs->r_dat[0][bs->numBit.i[0]] |= toAssign.i[0];
+//	bs->r_dat[1][bs->numBit.i[1]] |= toAssign.i[1];
+//	bs->r_dat[2][bs->numBit.i[2]] |= toAssign.i[2];
+//	bs->r_dat[3][bs->numBit.i[3]] |= toAssign.i[3];
+//	
+//	bs->r_dat[0][bs->numBit.i[0]+1] = assignRight.i[0];
+//	bs->r_dat[1][bs->numBit.i[1]+1] = assignRight.i[1];
+//	bs->r_dat[2][bs->numBit.i[2]+1] = assignRight.i[2];
+//	bs->r_dat[3][bs->numBit.i[3]+1] = assignRight.i[3];
+	
+	vector int sr = vec_sr(bs->curBit.v, altivecIntConstant(5));
+	bs->numBit.v = vec_add(bs->numBit.v, sr);
+	bs->curBit.v = vec_sub(bs->curBit.v, vec_sl(sr, altivecIntConstant(5)));
+	
+#else
+	toPush.i[0] = val.i[0] << (sizeof(int)*8 - bits.i[0]);
+	toPush.i[1] = val.i[1] << (sizeof(int)*8 - bits.i[1]);
+	toPush.i[2] = val.i[2] << (sizeof(int)*8 - bits.i[2]);
+	toPush.i[3] = val.i[3] << (sizeof(int)*8 - bits.i[3]);
+	
+	bs->r_dat[0][bs->numBit.i[0]] |= toPush.i[0] >> bs->curBit.i[0];
+	bs->r_dat[1][bs->numBit.i[1]] |= toPush.i[1] >> bs->curBit.i[1];
+	bs->r_dat[2][bs->numBit.i[2]] |= toPush.i[2] >> bs->curBit.i[2];
+	bs->r_dat[3][bs->numBit.i[3]] |= toPush.i[3] >> bs->curBit.i[3];
+	
+	bs->curBit.v = x_iadd(bs->curBit.v, bits.v);
+	
+	bs->r_dat[0][bs->numBit.i[0]+1] = toPush.i[0] << (32-(bs->curBit.i[0]-bits.i[0]));
+	bs->r_dat[1][bs->numBit.i[1]+1] = toPush.i[1] << (32-(bs->curBit.i[1]-bits.i[1]));
+	bs->r_dat[2][bs->numBit.i[2]+1] = toPush.i[2] << (32-(bs->curBit.i[2]-bits.i[2]));
+	bs->r_dat[3][bs->numBit.i[3]+1] = toPush.i[3] << (32-(bs->curBit.i[3]-bits.i[3]));
+	
+	bs->numBit.i[0] += bs->curBit.i[0] >> 5;
+	bs->numBit.i[1] += bs->curBit.i[1] >> 5;
+	bs->numBit.i[2] += bs->curBit.i[2] >> 5;
+	bs->numBit.i[3] += bs->curBit.i[3] >> 5;
+	
+	bs->curBit.i[0] -= (bs->curBit.i[0] >> 5) << 5;
+	bs->curBit.i[1] -= (bs->curBit.i[1] >> 5) << 5;
+	bs->curBit.i[2] -= (bs->curBit.i[2] >> 5) << 5;
+	bs->curBit.i[3] -= (bs->curBit.i[3] >> 5) << 5;
+#endif
 }
 
 
@@ -95,22 +160,22 @@ void bitStreamPush(BitStream *bs, int val, int bits)
 
 int bitStreamRead(BitStream *bs, int bits)
 {
-	unsigned int *d = ((unsigned int*)bs->r_dat + bs->numBit);
+	unsigned int *d = ((unsigned int*)bs->r_dat[0] + bs->numBit.i[0]);
 	
-	int rbits = bits - (32 - bs->curBit);
+	int rbits = bits - (32 - bs->curBit.i[0]);
 	
-	int toRet = ((d[0] << (bs->curBit))
+	int toRet = ((d[0] << (bs->curBit.i[0]))
 						>> (sizeof(unsigned int)*8-bits))
 							& (~(0xFFFFFFFF << bits));
 	
-	bs->curBit += bits;
-	if (bs->curBit >= 32)
+	bs->curBit.i[0] += bits;
+	if (bs->curBit.i[0] >= 32)
 	{
 		if (rbits > 0)
 			toRet = (d[1] >> (sizeof(unsigned int)*8-rbits)) | (toRet);
 							
-		bs->curBit-=32;
-		bs->numBit++;
+		bs->curBit.i[0]-=32;
+		bs->numBit.i[0]++;
 	}
 	
 	return toRet;
@@ -302,8 +367,6 @@ void bitStreamDecodeField(BitStream *bs, field *f, void *buff, int r)
 #define M	16
 #define R	5
 
-#define altivecShortConstant(c)	((vector short){c,c,c,c,c,c,c,c})
-#define altivecIntConstant(c)	((vector int){c,c,c,c})
 
 void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 {
@@ -366,509 +429,520 @@ void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 		
 		x=nc;
 		
-#ifdef __APPLE_ALTIVEC__
-		vector short *vb = (vector short*)b;
-		vector unsigned char *vd = (vector unsigned char*)d;
-		
-		for (x=nc; x<16; x++)
-		{
-			int bx = d[x-nc] - d[x];
-			bx = bx * 2;
-			if (bx < 0)
-				bx = -bx-1;
-
-			b[x] = bx;
-		}
-		
-		vector short n1 = {-1,-1,-1,-1,-1,-1,-1,-1};
-		vector short one = {1,1,1,1,1,1,1,1};
-		vector short zero = {0,0,0,0,0,0,0,0};
-		vector unsigned char pmuteH = {	0x00, 0x10, 0x00, 0x11,
-										0x00, 0x12, 0x00, 0x13,
-										0x00, 0x14, 0x00, 0x15,
-										0x00, 0x16, 0x00, 0x17};
-		vector unsigned char pmuteL = {	0x00, 0x18, 0x00, 0x19,
-										0x00, 0x1A, 0x00, 0x1B,
-										0x00, 0x1C, 0x00, 0x1D,
-										0x00, 0x1E, 0x00, 0x1F};
-		for (x=1; x<lamt/16; x++)
-		{
-			vector unsigned char left = vec_sld(vd[x-1], vd[x], 16-3);
-			
-			vector short bx = vec_sub(vec_perm(zero,left,pmuteH), vec_perm(zero,vd[x],pmuteH));
-			bx = vec_sl(bx, one);
-			
-			vector short mask = vec_cmplt(bx, zero);
-			
-			vector short mn1 = vec_sub(vec_abs(bx), n1);
-			
-			vb[x*2+0] = vec_sel(bx, mn1, mask);
-			
-			bx = vec_sub(vec_perm(zero,left,pmuteL), vec_perm(zero,vd[x],pmuteL));
-			bx = vec_sl(bx, one);
-			
-			mask = vec_cmplt(bx, zero);
-			
-			mn1 = vec_sub(vec_sub(zero,bx), n1);
-			
-			vb[x*2+1] = vec_sel(bx, mn1, mask);
-		}
-#else
-		for (x=nc; x<lamt; x++)
-		{
-			int bx = d[x-nc] - d[x];
-			bx = bx * 2;
-			if (bx < 0)
-				bx = -bx-1;
-
-			b[x] = bx;
-		}
-#endif
-
-		x = nc;
-#ifdef __APPLE_ALTIVEC__
-		for (; x<8; x++)
-		{
-			int up = bp[x];
-			int left = b[x-nc];
-			int bx = b[x];
-			
-			const int cur = bx;
-			
-			if (left < up)
-			{
-				int a = left;
-				left = up;
-				up = a;
-				goto bscontinue_alti;
-			}
-			else if (left == up)
-			{
-				if (cur == left)
-					bitStreamPushExact(bs, 0, 1);
-				else
-				{
-					bitStreamPushOne(bs, cur/M+1);
-					
-					bitStreamPushExact(bs, cur - M * (cur/M), R);
-				}
-			}
-			else
-			{
-				int d;
-bscontinue_alti:
-				d = left - up;
-				
-				int numBits = __builtin_clz(d);		// # of leading 0 bits...
-				unsigned int mask = 0xFFFFFFFF >> (numBits);
-				
-				int mid = (left+up) /2;		//Div 2
-				int start = mid - (mask /2);
-			
-				int cmStart = cur-start;
-				
-				numBits = 32 - numBits;
-				
-				if (cmStart >= 0 && cmStart <= mask && numBits*M < cur + R*M)
-				{
-					//bitStreamPush(bs, 0, 1);//	- implied in next statement
-					
-					bitStreamPushExact(bs, cmStart, numBits+1);	//Adds in a zero
-				}
-				else
-				{
-					//bitStreamPush(bs, 1, 1);//	- implied in next statement
-			
-					bitStreamPushOne(bs, cur/M+1);
-					
-					bitStreamPushExact(bs, cur - M * (cur/M), R);
-				}
-			}
-			
-		}
-
-		//vector short *vb = (vector short*)b;
-		vector short *vbp = (vector short*)bp;
-		const vector short maskBit0 = (vector short){1,1,1,1,1,1,1,1};
-		int i = 0;
-		for (; x<lamt-7; x+=8)
-		{
-			i++;
-			vector short vbx = vb[i];
-			
-			short *pbx = (short*)&vbx;
-			
-			vector short vup = vbp[i];
-			
-			vector short vleft = vec_sld(vb[i-1], vb[i], 10);	//16 - 6 (HARDCODED)
-			
-			vector short mask = vec_cmplt(vleft, vup);
-			
-			vector short vup2 = vec_sel(vup, vleft, mask);
-			
-			vector short vleft2 = vec_sel(vleft, vup, mask);
-			
-			vector short vd = vec_sub(vleft2, vup2);
-			
-			vector short masked0;
-			vector short ze0 = vec_cmplt(vd, altivecShortConstant(1));
-			
-			vector short ze1 = vec_cmplt(vd, altivecShortConstant(2));
-			
-			vector short masked2;
-			vector short ze2 = vec_cmplt(vd, altivecShortConstant(4));
-			
-			vector short ze3 = vec_cmplt(vd, altivecShortConstant(8));
-			
-			vector short masked4;
-			vector short ze4 = vec_cmplt(vd, altivecShortConstant(16));
-			
-			vector short ze5 = vec_cmplt(vd, altivecShortConstant(32));
-			
-			vector short masked6;
-			vector short ze6 = vec_cmplt(vd, altivecShortConstant(64));
-			
-			vector short ze7 = vec_cmplt(vd, altivecShortConstant(128));
-			
-			vector short ze8 = vec_cmplt(vd, altivecShortConstant(256));
-			
-			masked0 = vec_add(vec_and(ze0, maskBit0), vec_and(ze1, maskBit0));
-			masked2 = vec_add(vec_and(ze2, maskBit0), vec_and(ze3, maskBit0));
-			masked4 = vec_add(vec_and(ze4, maskBit0), vec_and(ze5, maskBit0));
-			masked6 = vec_add(vec_and(ze6, maskBit0), vec_and(ze7, maskBit0));
-			
-			masked0 = vec_add(masked0, masked2);
-			masked4 = vec_add(masked4, masked6);
-			
-			masked0 = vec_add(masked0, masked4);
-			
-			vector short numBits = vec_add(vec_and(ze8, maskBit0),
-									vec_add(masked0,altivecShortConstant(16-9)));
-			
-			vector unsigned short bitmask = (vector unsigned short)
-									{0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF};
-									
-			bitmask = vec_sr(bitmask, numBits);
-			
-			vector short mid = vec_sr(vec_add(vleft,vup),altivecShortConstant(1));
-			
-			vector short start = vec_sub(mid,vec_sr(bitmask, altivecShortConstant(1)));
-			
-			mask = vec_cmpeq(vleft, vup);
-			
-			start = vec_sel(start, mid, mask);
-			
-			bitmask = vec_sel(bitmask, altivecShortConstant(0), mask);
-			
-			vector short vcmStart = vec_sub(vbx, start);
-			
-			numBits = vec_sub(altivecShortConstant(16), numBits);
-			
-			
-			// (a >= b && a <= c)
-			// !(a < b || a > c)
-			vector short cmp1 = vec_cmplt(vcmStart, altivecShortConstant(0));
-			vector short cmp2 = vec_cmpgt(vcmStart, bitmask);
-			
-			vector short cmp3left = vec_sl(numBits, altivecShortConstant(4));
-			vector short cmp3right = vec_add(vbx,altivecShortConstant(R*M));
-			
-			vector short cmp3 = vec_cmplt(cmp3left, cmp3right);
-			
-			cmp1 = vec_and(cmp3,vec_nor(cmp1, cmp2));
-			
-			
-			numBits = vec_add(numBits, altivecShortConstant(1));
-			vector short golumBits = altivecShortConstant(R);
-			
-			vector short vbxShift4Right = vec_sr(vbx, altivecShortConstant(4));
-			vector short golumnValue = vec_sub(vbx,
-							vec_sl(vbxShift4Right,
-												altivecShortConstant(4)));
-			
-			//Now order the bits...
-			vector short bits = vec_sel(golumBits, numBits, cmp1);
-			vector short ones = vec_sel(vec_sub(altivecShortConstant(31),
-											vec_add(vbxShift4Right, altivecShortConstant(1))),
-										altivecShortConstant(31), cmp1);
-			vector short values = vec_sel(golumnValue, vcmStart, cmp1);
-			
-			//Create two int vectors to store the 1's....
-			vector int numOnesLeft = vec_unpackh(ones);
-			vector int numOnesRight = vec_unpackl(ones);
-			
-			//Setup the masks...
-			vector int oneMaskLeft = vec_sr(altivecIntConstant(0x7FFFFFFF), numOnesLeft);
-			vector int oneMaskRight = vec_sr(altivecIntConstant(0x7FFFFFFF), numOnesRight);
-			
-			//Values - into ints...
-			vector int valuesLeft = vec_unpackh(values);
-			vector int valuesRight = vec_unpackl(values);
-			
-			//bits - into ints
-			vector int bitsLeft = vec_unpackh(bits);
-			vector int bitsRight = vec_unpackl(bits);
-			
-			//Build the 4 vectors consisting of value and number of bits...
-			vector int iValueA, iValueB, iValueC, iValueD;
-			vector int iBitA, iBitB, iBitC, iBitD;
-			
-			
-			iValueA = vec_mergeh(oneMaskLeft, valuesLeft);
-			iValueB = vec_mergel(oneMaskLeft, valuesLeft);
-			
-			iValueC = vec_mergeh(oneMaskRight, valuesRight);
-			iValueD = vec_mergel(oneMaskRight, valuesRight);
-			
-			
-			iBitA = vec_mergeh(numOnesLeft, bitsLeft);
-			iBitB = vec_mergel(numOnesLeft, bitsLeft);
-			
-			iBitC = vec_mergeh(numOnesRight, bitsRight);
-			iBitD = vec_mergel(numOnesRight, bitsRight);
-			
-			//Create 4 shift; each 32-curbit, so we can shift the bits
-			//left...
-			vector int iMask = {0,0xFFFFFFFF,0,0xFFFFFFFF};
-			vector int shiftA = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitA));
-			vector int shiftB = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitB));
-			vector int shiftC = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitC));
-			vector int shiftD = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitD));
-			
-			//Apply the shifts...
-			iValueA = vec_sl(iValueA, shiftA);
-			iValueB = vec_sl(iValueB, shiftB);
-			iValueC = vec_sl(iValueC, shiftC);
-			iValueD = vec_sl(iValueD, shiftD);
-			
-			//Step 2 - shift left and right 2 elements...
-			
-			
-			short *cmp = (short*)&cmp1;
-			short *cmStart = (short*)&vcmStart;
-			short *vNumBits = (short*)&numBits;
-			
-			int j;
-			for (j=0; j<8; j++)
-			{
-				
-				if (cmp[j])
-				{
-					//bitStreamPush(bs, 0, 1);//	- implied in next statement
-					
-					bitStreamPushExact(bs, cmStart[j], vNumBits[j]);	//Adds in a zero
-				}
-				else
-				{
-					//bitStreamPush(bs, 1, 1);//	- implied in next statement
-			
-					bitStreamPushOne(bs, pbx[j]/M+1);
-					
-					bitStreamPushExact(bs, pbx[j] - M * (pbx[j]/M), R);
-				}
-			}
-#else
-		for (; x<lamt-3; x+=4)
-		{
-			int bx1 = d[x-nc] - d[x];
-			int bx2 = d[x-nc+1] - d[x+1];
-			int bx3 = d[x-nc+2] - d[x+2];
-			int bx4 = d[x-nc+3] - d[x+3];
-			
-			bx1 = bx1 * 2;
-			if (bx1 < 0)
-				bx1 = -bx1-1;
-			
-			bx2 = bx2 * 2;
-			if (bx2 < 0)
-				bx2 = -bx2-1;
-				
-			bx3 = bx3 * 2;
-			if (bx3 < 0)
-				bx3 = -bx3-1;
-			
-			bx4 = bx4 * 2;
-			if (bx4 < 0)
-				bx4 = -bx4-1;
-
-			b[x] = bx1;
-			b[x+1] = bx2;
-			
-			b[x+2] = bx3;
-			b[x+3] = bx4;
-			
-			int up1 = bp[x];
-			int up2 = bp[x+1];
-			
-			int left1 = b[x-nc];
-			int left2 = b[x-nc+1];
-			
-			int up3 = bp[x+2];
-			int up4 = bp[x+3];
-			
-			int left3 = b[x-nc+2];
-			int left4 = b[x-nc+3];
-			
-			const int cur1 = bx1;
-			const int cur2 = bx2;
-			const int cur3 = bx3;
-			const int cur4 = bx4;
-			
-			if (left1 < up1)
-			{
-				int a = left1;
-				left1 = up1;
-				up1 = a;
-			}
-			
-			if (left2 < up2)
-			{
-				int a = left2;
-				left2 = up2;
-				up2 = a;
-			}
-			
-			if (left3 < up3)
-			{
-				int a = left3;
-				left3 = up3;
-				up3 = a;
-			}
-			
-			if (left4 < up4)
-			{
-				int a = left4;
-				left4 = up4;
-				up4 = a;
-			}
-			
-			int d1 = left1 - up1;
-			int d2 = left2 - up2;
-			int d3 = left3 - up3;
-			int d4 = left4 - up4;
-			
-			int numBits1 = __builtin_clz(d1);
-			int numBits2 = __builtin_clz(d2);
-			int numBits3 = __builtin_clz(d3);
-			int numBits4 = __builtin_clz(d4);
-			
-			unsigned int mask1 = 0xFFFFFFFF >> numBits1;
-			unsigned int mask2 = 0xFFFFFFFF >> numBits2;
-			unsigned int mask3 = 0xFFFFFFFF >> numBits3;
-			unsigned int mask4 = 0xFFFFFFFF >> numBits4;
-			
-			int mid1 = (left1+up1) /2;
-			int mid2 = (left2+up2) /2;
-			int mid3 = (left3+up3) /2;
-			int mid4 = (left4+up4) /2;
-			
-			int start1 = mid1 - (mask1 /2);
-			int start2 = mid2 - (mask2 /2);
-			int start3 = mid3 - (mask3 /2);
-			int start4 = mid4 - (mask4 /2);
-		
-			
-			if (left1 == up1)
-			{
-				numBits1 = 32;
-				start1 = mid1;
-				mask1 = 0;
-			}
-			
-			if (left2 == up2)
-			{
-				numBits2 = 32;
-				start2 = mid2;
-				mask2 = 0;
-			}
-			
-			if (left3 == up3)
-			{
-				numBits3 = 32;
-				start3 = mid3;
-				mask3 = 0;
-			}
-			
-			if (left4 == up4)
-			{
-				numBits4 = 32;
-				start4 = mid4;
-				mask4 = 0;
-			}
-			
-			
-			int cmStart1 = cur1-start1;
-			int cmStart2 = cur2-start2;
-			int cmStart3 = cur3-start3;
-			int cmStart4 = cur4-start4;
-			
-			numBits1 = 32 - numBits1;
-			numBits2 = 32 - numBits2;
-			numBits3 = 32 - numBits3;
-			numBits4 = 32 - numBits4;
-			
-			if (cmStart1 >= 0 && cmStart1 <= mask1 && numBits1*M < cur1 + R*M)
-			{
-				//bitStreamPush(bs, 0, 1);//	- implied in next statement
-				
-				bitStreamPushExact(bs, cmStart1, numBits1+1);	//Adds in a zero
-			}
-			else
-			{
-				//bitStreamPush(bs, 1, 1);//	- implied in next statement
-		
-				bitStreamPushOne(bs, cur1/M+1);
-				
-				bitStreamPushExact(bs, cur1 - M * (cur1/M), R);
-			}
-			
-			if (cmStart2 >= 0 && cmStart2 <= mask2 && numBits2*M < cur2 + R*M)
-			{
-				//bitStreamPush(bs, 0, 1);//	- implied in next statement
-				
-				bitStreamPushExact(bs, cmStart2, numBits2+1);	//Adds in a zero
-			}
-			else
-			{
-				//bitStreamPush(bs, 1, 1);//	- implied in next statement
-		
-				bitStreamPushOne(bs, cur2/M+1);
-				
-				bitStreamPushExact(bs, cur2 - M * (cur2/M), R);
-			}
-			
-			if (cmStart3 >= 0 && cmStart3 <= mask3 && numBits3*M < cur3 + R*M)
-			{
-				//bitStreamPush(bs, 0, 1);//	- implied in next statement
-				
-				bitStreamPushExact(bs, cmStart3, numBits3+1);	//Adds in a zero
-			}
-			else
-			{
-				//bitStreamPush(bs, 1, 1);//	- implied in next statement
-		
-				bitStreamPushOne(bs, cur3/M+1);
-				
-				bitStreamPushExact(bs, cur3 - M * (cur3/M), R);
-			}
-			
-			if (cmStart4 >= 0 && cmStart4 <= mask4 && numBits4*M < cur4 + R*M)
-			{
-				//bitStreamPush(bs, 0, 1);//	- implied in next statement
-				
-				bitStreamPushExact(bs, cmStart4, numBits4+1);	//Adds in a zero
-			}
-			else
-			{
-				//bitStreamPush(bs, 1, 1);//	- implied in next statement
-		
-				bitStreamPushOne(bs, cur4/M+1);
-				
-				bitStreamPushExact(bs, cur4 - M * (cur4/M), R);
-			}
-#endif
-			
-		}
+//#ifdef __APPLE_ALTIVEC__
+//		vector short *vb = (vector short*)b;
+//		vector unsigned char *vd = (vector unsigned char*)d;
+//		
+//		for (x=nc; x<16; x++)
+//		{
+//			int bx = d[x-nc] - d[x];
+//			bx = bx * 2;
+//			if (bx < 0)
+//				bx = -bx-1;
+//
+//			b[x] = bx;
+//		}
+//		
+//		vector short n1 = {-1,-1,-1,-1,-1,-1,-1,-1};
+//		vector short one = {1,1,1,1,1,1,1,1};
+//		vector short zero = {0,0,0,0,0,0,0,0};
+//		vector unsigned char pmuteH = {	0x00, 0x10, 0x00, 0x11,
+//										0x00, 0x12, 0x00, 0x13,
+//										0x00, 0x14, 0x00, 0x15,
+//										0x00, 0x16, 0x00, 0x17};
+//		vector unsigned char pmuteL = {	0x00, 0x18, 0x00, 0x19,
+//										0x00, 0x1A, 0x00, 0x1B,
+//										0x00, 0x1C, 0x00, 0x1D,
+//										0x00, 0x1E, 0x00, 0x1F};
+//		for (x=1; x<lamt/16; x++)
+//		{
+//			vector unsigned char left = vec_sld(vd[x-1], vd[x], 16-3);
+//			
+//			vector short bx = vec_sub(vec_perm(zero,left,pmuteH), vec_perm(zero,vd[x],pmuteH));
+//			bx = vec_sl(bx, one);
+//			
+//			vector short mask = vec_cmplt(bx, zero);
+//			
+//			vector short mn1 = vec_sub(vec_abs(bx), n1);
+//			
+//			vb[x*2+0] = vec_sel(bx, mn1, mask);
+//			
+//			bx = vec_sub(vec_perm(zero,left,pmuteL), vec_perm(zero,vd[x],pmuteL));
+//			bx = vec_sl(bx, one);
+//			
+//			mask = vec_cmplt(bx, zero);
+//			
+//			mn1 = vec_sub(vec_sub(zero,bx), n1);
+//			
+//			vb[x*2+1] = vec_sel(bx, mn1, mask);
+//		}
+//#else
+//		for (x=nc; x<lamt; x++)
+//		{
+//			int bx = d[x-nc] - d[x];
+//			bx = bx * 2;
+//			if (bx < 0)
+//				bx = -bx-1;
+//
+//			b[x] = bx;
+//		}
+//#endif
+//
+//		x = nc;
+//#ifdef __APPLE_ALTIVEC__
+//		for (; x<8; x++)
+//		{
+//			int up = bp[x];
+//			int left = b[x-nc];
+//			int bx = b[x];
+//			
+//			const int cur = bx;
+//			
+//			if (left < up)
+//			{
+//				int a = left;
+//				left = up;
+//				up = a;
+//				goto bscontinue_alti;
+//			}
+//			else if (left == up)
+//			{
+//				if (cur == left)
+//					bitStreamPushExact(bs, 0, 1);
+//				else
+//				{
+//					bitStreamPushOne(bs, cur/M+1);
+//					
+//					bitStreamPushExact(bs, cur - M * (cur/M), R);
+//				}
+//			}
+//			else
+//			{
+//				int d;
+//bscontinue_alti:
+//				d = left - up;
+//				
+//				int numBits = __builtin_clz(d);		// # of leading 0 bits...
+//				unsigned int mask = 0xFFFFFFFF >> (numBits);
+//				
+//				int mid = (left+up) /2;		//Div 2
+//				int start = mid - (mask /2);
+//			
+//				int cmStart = cur-start;
+//				
+//				numBits = 32 - numBits;
+//				
+//				if (cmStart >= 0 && cmStart <= mask && numBits*M < cur + R*M)
+//				{
+//					//bitStreamPush(bs, 0, 1);//	- implied in next statement
+//					
+//					bitStreamPushExact(bs, cmStart, numBits+1);	//Adds in a zero
+//				}
+//				else
+//				{
+//					//bitStreamPush(bs, 1, 1);//	- implied in next statement
+//			
+//					bitStreamPushOne(bs, cur/M+1);
+//					
+//					bitStreamPushExact(bs, cur - M * (cur/M), R);
+//				}
+//			}
+//			
+//		}
+//
+//		//vector short *vb = (vector short*)b;
+//		vector short *vbp = (vector short*)bp;
+//		const vector short maskBit0 = (vector short){1,1,1,1,1,1,1,1};
+//		int i = 0;
+//		for (; x<lamt-7; x+=8)
+//		{
+//			i++;
+//			vector short vbx = vb[i];
+//			
+//			short *pbx = (short*)&vbx;
+//			
+//			vector short vup = vbp[i];
+//			
+//			vector short vleft = vec_sld(vb[i-1], vb[i], 10);	//16 - 6 (HARDCODED)
+//			
+//			vector short mask = vec_cmplt(vleft, vup);
+//			
+//			vector short vup2 = vec_sel(vup, vleft, mask);
+//			
+//			vector short vleft2 = vec_sel(vleft, vup, mask);
+//			
+//			vector short vd = vec_sub(vleft2, vup2);
+//			
+//			vector short masked0;
+//			vector short ze0 = vec_cmplt(vd, altivecShortConstant(1));
+//			
+//			vector short ze1 = vec_cmplt(vd, altivecShortConstant(2));
+//			
+//			vector short masked2;
+//			vector short ze2 = vec_cmplt(vd, altivecShortConstant(4));
+//			
+//			vector short ze3 = vec_cmplt(vd, altivecShortConstant(8));
+//			
+//			vector short masked4;
+//			vector short ze4 = vec_cmplt(vd, altivecShortConstant(16));
+//			
+//			vector short ze5 = vec_cmplt(vd, altivecShortConstant(32));
+//			
+//			vector short masked6;
+//			vector short ze6 = vec_cmplt(vd, altivecShortConstant(64));
+//			
+//			vector short ze7 = vec_cmplt(vd, altivecShortConstant(128));
+//			
+//			vector short ze8 = vec_cmplt(vd, altivecShortConstant(256));
+//			
+//			masked0 = vec_add(vec_and(ze0, maskBit0), vec_and(ze1, maskBit0));
+//			masked2 = vec_add(vec_and(ze2, maskBit0), vec_and(ze3, maskBit0));
+//			masked4 = vec_add(vec_and(ze4, maskBit0), vec_and(ze5, maskBit0));
+//			masked6 = vec_add(vec_and(ze6, maskBit0), vec_and(ze7, maskBit0));
+//			
+//			masked0 = vec_add(masked0, masked2);
+//			masked4 = vec_add(masked4, masked6);
+//			
+//			masked0 = vec_add(masked0, masked4);
+//			
+//			vector short numBits = vec_add(vec_and(ze8, maskBit0),
+//									vec_add(masked0,altivecShortConstant(16-9)));
+//			
+//			vector unsigned short bitmask = (vector unsigned short)
+//									{0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF,0xFFFF, 0xFFFF};
+//									
+//			bitmask = vec_sr(bitmask, numBits);
+//			
+//			vector short mid = vec_sr(vec_add(vleft,vup),altivecShortConstant(1));
+//			
+//			vector short start = vec_sub(mid,vec_sr(bitmask, altivecShortConstant(1)));
+//			
+//			mask = vec_cmpeq(vleft, vup);
+//			
+//			start = vec_sel(start, mid, mask);
+//			
+//			bitmask = vec_sel(bitmask, altivecShortConstant(0), mask);
+//			
+//			vector short vcmStart = vec_sub(vbx, start);
+//			
+//			numBits = vec_sub(altivecShortConstant(16), numBits);
+//			
+//			
+//			// (a >= b && a <= c)
+//			// !(a < b || a > c)
+//			vector short cmp1 = vec_cmplt(vcmStart, altivecShortConstant(0));
+//			vector short cmp2 = vec_cmpgt(vcmStart, bitmask);
+//			
+//			vector short cmp3left = vec_sl(numBits, altivecShortConstant(4));
+//			vector short cmp3right = vec_add(vbx,altivecShortConstant(R*M));
+//			
+//			vector short cmp3 = vec_cmplt(cmp3left, cmp3right);
+//			
+//			cmp1 = vec_and(cmp3,vec_nor(cmp1, cmp2));
+//			
+//			
+//			numBits = vec_add(numBits, altivecShortConstant(1));
+//			vector short golumBits = altivecShortConstant(R);
+//			
+//			vector short vbxShift4Right = vec_sr(vbx, altivecShortConstant(4));
+//			vector short golumnValue = vec_sub(vbx,
+//							vec_sl(vbxShift4Right,
+//												altivecShortConstant(4)));
+//			
+//			//Now order the bits...
+//			vector short bits = vec_sel(golumBits, numBits, cmp1);
+//			vector short ones = vec_sel(vec_sub(altivecShortConstant(31),
+//											vec_add(vbxShift4Right, altivecShortConstant(1))),
+//										altivecShortConstant(31), cmp1);
+//			vector short values = vec_sel(golumnValue, vcmStart, cmp1);
+//			
+//			//Create two int vectors to store the 1's....
+//			u128i numOnesLeft, numOnesRight;
+//			numOnesLeft.v = vec_unpackh(ones);
+//			numOnesRight.v = vec_unpackl(ones);
+//			
+//			//Setup the masks...
+//			u128i oneMaskLeft, oneMaskRight;
+//			oneMaskLeft.v = vec_sr(altivecIntConstant(0x7FFFFFFF), numOnesLeft.v);
+//			oneMaskRight.v = vec_sr(altivecIntConstant(0x7FFFFFFF), numOnesRight.v);
+//			
+//			//Values - into ints...
+//			u128i valuesLeft, valuesRight;
+//			valuesLeft.v = vec_unpackh(values);
+//			valuesRight.v = vec_unpackl(values);
+//			
+//			//bits - into ints
+//			u128i bitsLeft, bitsRight;
+//			bitsLeft.v = vec_unpackh(bits);
+//			bitsRight.v = vec_unpackl(bits);
+//			
+//			bitStreamPushQuadExact(bs, oneMaskLeft, numOnesLeft);
+//			bitStreamPushQuadExact(bs, valuesLeft, bitsLeft);
+//			bitStreamPushQuadExact(bs, oneMaskRight, numOnesRight);
+//			bitStreamPushQuadExact(bs, valuesRight, bitsRight);
+//			
+//			//Now write out these vectors...
+//			
+////			//Build the 4 vectors consisting of value and number of bits...
+////			vector int iValueA, iValueB, iValueC, iValueD;
+////			vector int iBitA, iBitB, iBitC, iBitD;
+////			
+////			
+////			iValueA = vec_mergeh(oneMaskLeft, valuesLeft);
+////			iValueB = vec_mergel(oneMaskLeft, valuesLeft);
+////			
+////			iValueC = vec_mergeh(oneMaskRight, valuesRight);
+////			iValueD = vec_mergel(oneMaskRight, valuesRight);
+////			
+////			
+////			iBitA = vec_mergeh(numOnesLeft, bitsLeft);
+////			iBitB = vec_mergel(numOnesLeft, bitsLeft);
+////			
+////			iBitC = vec_mergeh(numOnesRight, bitsRight);
+////			iBitD = vec_mergel(numOnesRight, bitsRight);
+////			
+////			//Create 4 shift; each 32-curbit, so we can shift the bits
+////			//left...
+////			vector int iMask = {0,0xFFFFFFFF,0,0xFFFFFFFF};
+////			vector int shiftA = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitA));
+////			vector int shiftB = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitB));
+////			vector int shiftC = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitC));
+////			vector int shiftD = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitD));
+////			
+////			//Apply the shifts...
+////			iValueA = vec_sl(iValueA, shiftA);
+////			iValueB = vec_sl(iValueB, shiftB);
+////			iValueC = vec_sl(iValueC, shiftC);
+////			iValueD = vec_sl(iValueD, shiftD);
+//			
+//			//Step 2 - shift left and right 2 elements...
+//			
+//			
+////			short *cmp = (short*)&cmp1;
+////			short *cmStart = (short*)&vcmStart;
+////			short *vNumBits = (short*)&numBits;
+////			
+////			int j;
+////			for (j=0; j<8; j++)
+////			{
+////				
+////				if (cmp[j])
+////				{
+////					//bitStreamPush(bs, 0, 1);//	- implied in next statement
+////					
+////					bitStreamPushExact(bs, cmStart[j], vNumBits[j]);	//Adds in a zero
+////				}
+////				else
+////				{
+////					//bitStreamPush(bs, 1, 1);//	- implied in next statement
+////			
+////					bitStreamPushOne(bs, pbx[j]/M+1);
+////					
+////					bitStreamPushExact(bs, pbx[j] - M * (pbx[j]/M), R);
+////				}
+////			}
+//#else
+//		for (; x<lamt-3; x+=4)
+//		{
+//			int bx1 = d[x-nc] - d[x];
+//			int bx2 = d[x-nc+1] - d[x+1];
+//			int bx3 = d[x-nc+2] - d[x+2];
+//			int bx4 = d[x-nc+3] - d[x+3];
+//			
+//			bx1 = bx1 * 2;
+//			if (bx1 < 0)
+//				bx1 = -bx1-1;
+//			
+//			bx2 = bx2 * 2;
+//			if (bx2 < 0)
+//				bx2 = -bx2-1;
+//				
+//			bx3 = bx3 * 2;
+//			if (bx3 < 0)
+//				bx3 = -bx3-1;
+//			
+//			bx4 = bx4 * 2;
+//			if (bx4 < 0)
+//				bx4 = -bx4-1;
+//
+//			b[x] = bx1;
+//			b[x+1] = bx2;
+//			
+//			b[x+2] = bx3;
+//			b[x+3] = bx4;
+//			
+//			int up1 = bp[x];
+//			int up2 = bp[x+1];
+//			
+//			int left1 = b[x-nc];
+//			int left2 = b[x-nc+1];
+//			
+//			int up3 = bp[x+2];
+//			int up4 = bp[x+3];
+//			
+//			int left3 = b[x-nc+2];
+//			int left4 = b[x-nc+3];
+//			
+//			const int cur1 = bx1;
+//			const int cur2 = bx2;
+//			const int cur3 = bx3;
+//			const int cur4 = bx4;
+//			
+//			if (left1 < up1)
+//			{
+//				int a = left1;
+//				left1 = up1;
+//				up1 = a;
+//			}
+//			
+//			if (left2 < up2)
+//			{
+//				int a = left2;
+//				left2 = up2;
+//				up2 = a;
+//			}
+//			
+//			if (left3 < up3)
+//			{
+//				int a = left3;
+//				left3 = up3;
+//				up3 = a;
+//			}
+//			
+//			if (left4 < up4)
+//			{
+//				int a = left4;
+//				left4 = up4;
+//				up4 = a;
+//			}
+//			
+//			int d1 = left1 - up1;
+//			int d2 = left2 - up2;
+//			int d3 = left3 - up3;
+//			int d4 = left4 - up4;
+//			
+//			int numBits1 = __builtin_clz(d1);
+//			int numBits2 = __builtin_clz(d2);
+//			int numBits3 = __builtin_clz(d3);
+//			int numBits4 = __builtin_clz(d4);
+//			
+//			unsigned int mask1 = 0xFFFFFFFF >> numBits1;
+//			unsigned int mask2 = 0xFFFFFFFF >> numBits2;
+//			unsigned int mask3 = 0xFFFFFFFF >> numBits3;
+//			unsigned int mask4 = 0xFFFFFFFF >> numBits4;
+//			
+//			int mid1 = (left1+up1) /2;
+//			int mid2 = (left2+up2) /2;
+//			int mid3 = (left3+up3) /2;
+//			int mid4 = (left4+up4) /2;
+//			
+//			int start1 = mid1 - (mask1 /2);
+//			int start2 = mid2 - (mask2 /2);
+//			int start3 = mid3 - (mask3 /2);
+//			int start4 = mid4 - (mask4 /2);
+//		
+//			
+//			if (left1 == up1)
+//			{
+//				numBits1 = 32;
+//				start1 = mid1;
+//				mask1 = 0;
+//			}
+//			
+//			if (left2 == up2)
+//			{
+//				numBits2 = 32;
+//				start2 = mid2;
+//				mask2 = 0;
+//			}
+//			
+//			if (left3 == up3)
+//			{
+//				numBits3 = 32;
+//				start3 = mid3;
+//				mask3 = 0;
+//			}
+//			
+//			if (left4 == up4)
+//			{
+//				numBits4 = 32;
+//				start4 = mid4;
+//				mask4 = 0;
+//			}
+//			
+//			
+//			int cmStart1 = cur1-start1;
+//			int cmStart2 = cur2-start2;
+//			int cmStart3 = cur3-start3;
+//			int cmStart4 = cur4-start4;
+//			
+//			numBits1 = 32 - numBits1;
+//			numBits2 = 32 - numBits2;
+//			numBits3 = 32 - numBits3;
+//			numBits4 = 32 - numBits4;
+//			
+//			if (cmStart1 >= 0 && cmStart1 <= mask1 && numBits1*M < cur1 + R*M)
+//			{
+//				//bitStreamPush(bs, 0, 1);//	- implied in next statement
+//				
+//				bitStreamPushExact(bs, cmStart1, numBits1+1);	//Adds in a zero
+//			}
+//			else
+//			{
+//				//bitStreamPush(bs, 1, 1);//	- implied in next statement
+//		
+//				bitStreamPushOne(bs, cur1/M+1);
+//				
+//				bitStreamPushExact(bs, cur1 - M * (cur1/M), R);
+//			}
+//			
+//			if (cmStart2 >= 0 && cmStart2 <= mask2 && numBits2*M < cur2 + R*M)
+//			{
+//				//bitStreamPush(bs, 0, 1);//	- implied in next statement
+//				
+//				bitStreamPushExact(bs, cmStart2, numBits2+1);	//Adds in a zero
+//			}
+//			else
+//			{
+//				//bitStreamPush(bs, 1, 1);//	- implied in next statement
+//		
+//				bitStreamPushOne(bs, cur2/M+1);
+//				
+//				bitStreamPushExact(bs, cur2 - M * (cur2/M), R);
+//			}
+//			
+//			if (cmStart3 >= 0 && cmStart3 <= mask3 && numBits3*M < cur3 + R*M)
+//			{
+//				//bitStreamPush(bs, 0, 1);//	- implied in next statement
+//				
+//				bitStreamPushExact(bs, cmStart3, numBits3+1);	//Adds in a zero
+//			}
+//			else
+//			{
+//				//bitStreamPush(bs, 1, 1);//	- implied in next statement
+//		
+//				bitStreamPushOne(bs, cur3/M+1);
+//				
+//				bitStreamPushExact(bs, cur3 - M * (cur3/M), R);
+//			}
+//			
+//			if (cmStart4 >= 0 && cmStart4 <= mask4 && numBits4*M < cur4 + R*M)
+//			{
+//				//bitStreamPush(bs, 0, 1);//	- implied in next statement
+//				
+//				bitStreamPushExact(bs, cmStart4, numBits4+1);	//Adds in a zero
+//			}
+//			else
+//			{
+//				//bitStreamPush(bs, 1, 1);//	- implied in next statement
+//		
+//				bitStreamPushOne(bs, cur4/M+1);
+//				
+//				bitStreamPushExact(bs, cur4 - M * (cur4/M), R);
+//			}
+//#endif
+//			
+//		}
 		
 		for (; x<lamt; x++)
 		{
