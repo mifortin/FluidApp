@@ -303,6 +303,7 @@ void bitStreamDecodeField(BitStream *bs, field *f, void *buff, int r)
 #define R	5
 
 #define altivecShortConstant(c)	((vector short){c,c,c,c,c,c,c,c})
+#define altivecIntConstant(c)	((vector int){c,c,c,c})
 
 void bitStreamEncodeFelics(BitStream *bs, field *f, void *buff, int r)
 {
@@ -566,11 +567,11 @@ bscontinue_alti:
 			
 			// (a >= b && a <= c)
 			// !(a < b || a > c)
-			vector short cmp1 = vec_cmplt(vcmStart, (vector short){0,0,0,0,0,0,0,0});
+			vector short cmp1 = vec_cmplt(vcmStart, altivecShortConstant(0));
 			vector short cmp2 = vec_cmpgt(vcmStart, bitmask);
 			
-			vector short cmp3left = vec_sl(numBits, (vector short){4,4,4,4,4,4,4,4});
-			vector short cmp3right = vec_add(vbx,(vector short){R*M,R*M,R*M,R*M,R*M,R*M,R*M,R*M});
+			vector short cmp3left = vec_sl(numBits, altivecShortConstant(4));
+			vector short cmp3right = vec_add(vbx,altivecShortConstant(R*M));
 			
 			vector short cmp3 = vec_cmplt(cmp3left, cmp3right);
 			
@@ -578,12 +579,70 @@ bscontinue_alti:
 			
 			
 			numBits = vec_add(numBits, altivecShortConstant(1));
-//			vector short golumBits = altivecShortConstant(R);
-//			
-//			vector short golumnValue = vec_sub(vbx,
-//							vec_sl(vec_sr(vbx, altivecShortConstant(4)),
-//												altivecShortConstant(4)));
-											
+			vector short golumBits = altivecShortConstant(R);
+			
+			vector short vbxShift4Right = vec_sr(vbx, altivecShortConstant(4));
+			vector short golumnValue = vec_sub(vbx,
+							vec_sl(vbxShift4Right,
+												altivecShortConstant(4)));
+			
+			//Now order the bits...
+			vector short bits = vec_sel(golumBits, numBits, cmp1);
+			vector short ones = vec_sel(vec_sub(altivecShortConstant(31),
+											vec_add(vbxShift4Right, altivecShortConstant(1))),
+										altivecShortConstant(31), cmp1);
+			vector short values = vec_sel(golumnValue, vcmStart, cmp1);
+			
+			//Create two int vectors to store the 1's....
+			vector int numOnesLeft = vec_unpackh(ones);
+			vector int numOnesRight = vec_unpackl(ones);
+			
+			//Setup the masks...
+			vector int oneMaskLeft = vec_sr(altivecIntConstant(0x7FFFFFFF), numOnesLeft);
+			vector int oneMaskRight = vec_sr(altivecIntConstant(0x7FFFFFFF), numOnesRight);
+			
+			//Values - into ints...
+			vector int valuesLeft = vec_unpackh(values);
+			vector int valuesRight = vec_unpackl(values);
+			
+			//bits - into ints
+			vector int bitsLeft = vec_unpackh(bits);
+			vector int bitsRight = vec_unpackl(bits);
+			
+			//Build the 4 vectors consisting of value and number of bits...
+			vector int iValueA, iValueB, iValueC, iValueD;
+			vector int iBitA, iBitB, iBitC, iBitD;
+			
+			
+			iValueA = vec_mergeh(oneMaskLeft, valuesLeft);
+			iValueB = vec_mergel(oneMaskLeft, valuesLeft);
+			
+			iValueC = vec_mergeh(oneMaskRight, valuesRight);
+			iValueD = vec_mergel(oneMaskRight, valuesRight);
+			
+			
+			iBitA = vec_mergeh(numOnesLeft, bitsLeft);
+			iBitB = vec_mergel(numOnesLeft, bitsLeft);
+			
+			iBitC = vec_mergeh(numOnesRight, bitsRight);
+			iBitD = vec_mergel(numOnesRight, bitsRight);
+			
+			//Create 4 shift; each 32-curbit, so we can shift the bits
+			//left...
+			vector int iMask = {0,0xFFFFFFFF,0,0xFFFFFFFF};
+			vector int shiftA = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitA));
+			vector int shiftB = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitB));
+			vector int shiftC = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitC));
+			vector int shiftD = vec_and(iMask, vec_sub(altivecIntConstant(32), iBitD));
+			
+			//Apply the shifts...
+			iValueA = vec_sl(iValueA, shiftA);
+			iValueB = vec_sl(iValueB, shiftB);
+			iValueC = vec_sl(iValueC, shiftC);
+			iValueD = vec_sl(iValueD, shiftD);
+			
+			//Step 2 - shift left and right 2 elements...
+			
 			
 			short *cmp = (short*)&cmp1;
 			short *cmStart = (short*)&vcmStart;
