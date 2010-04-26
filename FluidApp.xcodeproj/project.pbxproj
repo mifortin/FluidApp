@@ -235,6 +235,7 @@
 		4CF2E8D71118A3B300AE2CD6 /* fluid_messenger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF2E8D61118A3B300AE2CD6 /* fluid_messenger.c */; };
 		4CF2E8D81118A3B300AE2CD6 /* fluid_messenger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF2E8D61118A3B300AE2CD6 /* fluid_messenger.c */; };
 		4CF2E8D91118A3B300AE2CD6 /* fluid_messenger.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF2E8D61118A3B300AE2CD6 /* fluid_messenger.c */; };
+		4CF797A61157DFE300508F1A /* field_pvt.c in Sources */ = {isa = PBXBuildFile; fileRef = 27A18B920F66F3FF0023F24B /* field_pvt.c */; };
 		4CF825050FEB30E3003AEE44 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825030FEB30E3003AEE44 /* netInStream.c */; };
 		4CF825060FEB30E3003AEE44 /* netOutStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825040FEB30E3003AEE44 /* netOutStream.c */; };
 		4CF825070FEB30E3003AEE44 /* netInStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF825030FEB30E3003AEE44 /* netInStream.c */; };
@@ -1037,6 +1038,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CF797A61157DFE300508F1A /* field_pvt.c in Sources */,
 				4C1BA6770FBC6D7200A74684 /* FluidZip_main.m in Sources */,
 				4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */,
 				4C1BA69A0FBC709800A74684 /* FluidZip_Window.m in Sources */,
@@ -1331,6 +1333,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
+				GCC_ALTIVEC_EXTENSIONS = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
@@ -1354,10 +1357,16 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ALTIVEC_EXTENSIONS = YES;
+				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_FAST_MATH = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_STRICT_ALIASING = YES;
+				GCC_VERSION = "";
 				INFOPLIST_FILE = "FluidZip-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
@@ -1366,8 +1375,8 @@
 					"-framework",
 					AppKit,
 				);
-				PREBINDING = NO;
 				PRODUCT_NAME = FluidZip;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 				ZERO_LINK = NO;
 			};
 			name = Release;

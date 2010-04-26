@@ -5,12 +5,32 @@
 
 #import "FluidZip_Delegate.h"
 
+#include "bitstream.h"
 
 @implementation FluidZip_Delegate
 
 - (void)awakeFromNib
 {
 	r_windows = [[NSMutableArray alloc] initWithCapacity:10];
+	
+	BitStream *tmp = bitStreamCreate(256);
+	
+	int i;
+	//for (i=0; i<20; i++)
+	{
+		bitStreamPush(tmp, 2375, 12);
+		bitStreamPush(tmp, 375, 10);
+	}
+	
+	bitStreamReset(tmp);
+	
+	//for (i=0; i<20; i++)
+	{
+		printf("2375 = %i\n",  bitStreamRead(tmp, 12));
+		printf("375 = %i\n",  bitStreamRead(tmp, 10));
+	}
+	
+	x_free(tmp);
 }
 
 - (void)dealloc
@@ -537,42 +557,51 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	int *ice = indices;
 	
 	unsigned char *yuv = malloc(w*h*3);
+	int *de = malloc(sizeof(int)*w*h*3);
 	
 	int totId = 0, totDa = 0;
 	
 	int diff[9] = {0};
+	
+	int counts[4][512] = {0};
+	int golumb = 0;
+	int felics = 0;
 	
 	for (y=0; y<h; y++)
 	{
 		
 		for (x=0; x<w; x++)
 		{
+//			s[0+x*bpp+y*bpp*w] = s[0+x*bpp+y*bpp*w] & 0xFC;
+//			s[1+x*bpp+y*bpp*w] = s[1+x*bpp+y*bpp*w] & 0xFC;
+//			s[2+x*bpp+y*bpp*w] = s[2+x*bpp+y*bpp*w] & 0xFC;
+		
 			unsigned char Y = 
 					clamp
 						(	0.299f*(float)s[0+x*bpp+y*bpp*w]
 						+	0.587f*(float)s[1+x*bpp+y*bpp*w]
-						+	0.144f*(float)s[2+x*bpp+y*bpp*w]);
+						+	0.144f*(float)s[2+x*bpp+y*bpp*w] + 0.5f);
 			unsigned char Pb =  
 					clamp
 						(	-0.14713*0.5f/0.436f*s[0+x*bpp+y*bpp*w]
 						-	0.28886*0.5f/0.436f*s[1+x*bpp+y*bpp*w]
 						+	0.436*0.5f/0.436f*s[2+x*bpp+y*bpp*w]
-						+	128.0f);
+						+	128.5f);
 			unsigned char Pr = 
 					clamp
 						(	0.601f*0.5f/0.436f*s[0+x*bpp+y*bpp*w]
 						-	0.51499f*0.5f/0.436f*s[1+x*bpp+y*bpp*w]
 						-	0.10001f*0.5f/0.436f*s[2+x*bpp+y*bpp*w]
-						+	128.0f);
+						+	128.5f);
 			
 //			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
 //			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
 //											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
 //			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
 
-			yuv[x*3+y*w*3+0] = Y;
-			yuv[x*3+y*w*3+1] = Pb;
-			yuv[x*3+y*w*3+2] = Pr;
+			yuv[x*3+y*w*3+0] = (Y & 0xFF) >> 0;
+			yuv[x*3+y*w*3+1] = (Pb & 0xFF) >> 0;
+			yuv[x*3+y*w*3+2] = (Pr & 0xFF) >> 0;
 			
 //			d[0+x*bpp + y*bpp*w] = 0;
 //			d[1+x*bpp + y*bpp*w] = Pb;
@@ -591,6 +620,102 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 				deriv[3+x*6] = yuv[(x+1)*3+0] - yuv[(x-1)*3+0];
 				deriv[4+x*6] = yuv[(x+1)*3+1] - yuv[(x-1)*3+1];
 				deriv[5+x*6] = yuv[(x+1)*3+2] - yuv[(x-1)*3+2];
+				
+				int dx = yuv[x*3+y*w*3+0] - yuv[(x-1)*3+y*w*3+0];
+				int dy = yuv[x*3+y*w*3+1] - yuv[(x-1)*3+y*w*3+1];
+				int dz = yuv[x*3+y*w*3+2] - yuv[(x-1)*3+y*w*3+2];
+				
+				if (dx < 0)
+					dx = -dx*2 -1;
+				else
+					dx = dx*2;
+				
+				if (dy < 0)
+					dy = -dy*2 -1;
+				else
+					dy = dy*2;
+				
+				if (dz < 0)
+					dz = -dz*2 -1;
+				else
+					dz = dz*2;
+				
+				counts[0][dx]++;
+				counts[1][dy]++;
+				counts[2][dz]++;
+				
+				if (dx < 0 || dy < 0 || dz < 0)
+					printf("ERROR\n");
+				
+				
+			
+				golumb += dx/16 + 5;
+				golumb += dy/16 + 5;
+				golumb += dz/16 + 5;
+				
+				de[x*3+y*w*3+0] = dx;
+				de[x*3+y*w*3+1] = dy;
+				de[x*3+y*w*3+2] = dz;
+				
+				if (x <= 2 && y == 0)
+				{
+					felics += dx/16+5;
+					felics += dy/16+5;
+					felics += dz/16+5;
+				}
+				else if (x == 1)
+				{
+					felics += dx/16+5;
+					felics += dy/16+5;
+					felics += dz/16+5;
+				}
+				else
+				{
+					int c;
+					for (c=0; c<3; c++)
+					{
+						int left = de[(x-1)*3+y*w*3+c];
+						int up = de[x*3+(y-1)*w*3+c];
+						int cur = de[x*3+y*w*3+c];
+						
+						if (left < up)
+						{
+							int a = left;
+							left = up;
+							up = a;
+						}
+						
+						int d = left - up;
+						
+						int numBits = 1;
+						int mask = 1;
+						while (d > mask)
+						{
+							numBits++;
+							mask = mask << 1;
+							mask |=1;
+						}
+						
+						int mid = (left+up)/2;
+						int start = mid -= mask/2;
+						
+						if (left == up)
+						{
+							start = left;
+							mask = 0;
+							numBits = 0;
+						}
+						
+						if (cur >= start && cur <= start+mask)
+						{
+							felics += 1 + numBits;
+						}
+						else
+						{
+							felics += 1 + cur/16+5;
+						}
+					}
+				}
 			}
 			else
 			{
@@ -646,6 +771,25 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 			c[0] + c[1] + c[2], c[3] + c[4] + c[5]);
 	printf(" IDs:%i\n DA:%i\n", totId, totDa);
 	
+	//Display the counts;
+	for (y=0; y<3; y++)
+	{
+		int totC = 0;
+		for (x=0; x<512; x++)
+		{
+			printf("%3i ", counts[y][x]);
+			totC += counts[y][x];
+			
+			int A = counts[y][x]/16;
+			//int R = counts[y][x]%16;
+		}
+		printf(" %i/%i", counts[y][0+255], totC);
+		printf("\n");
+	}
+	
+	printf("GOLUM: %i = %i%%\n", golumb, 100*(golumb/8)/(w*h*3));
+	printf("FELICS: %i = %i%%\n", felics, 100*(felics/8)/(w*h*3));
+	
 	for (x=0; x<9; x++)
 		printf("DIFF %i: %i\n",x, diff[x]);
 	
@@ -673,9 +817,9 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	}
 	
 	short *scv = (short*)curv;
-	//int sbpp = bpp;
-	int sbpp = 3;
-	s = yuv;
+	int sbpp = bpp;
+	//int sbpp = 3;
+	//s = yuv;
 	
 	for (y=0; y<h; y++)
 	{
@@ -717,14 +861,14 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		
 		int maxVal = 0;
 		
-		int isNumb = scv[1] & bit;
+		int isNumb = scv[0] & bit;
 		int count = 0;
 		
 		int curBit = 0;
 		
 		for (x=0; x<w*h; x++)
 		{
-			if ((scv[x*bpp+1] & bit) == isNumb)
+			if ((scv[x*bpp+0] & bit) == isNumb)
 				count ++;
 			else
 			{
@@ -740,7 +884,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 				
 				curBit += 1;
 				
-				isNumb = scv[x*bpp+1] &bit;
+				isNumb = scv[x*bpp+0] &bit;
 				count = 1;
 			}
 		}
@@ -1050,6 +1194,41 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 		printf("DONE: %f %%\n", 100.0f*(float)y/(float)h);
 	}*/
 	
+	field *f = fieldCreateChar(w,h,bpp);
+	unsigned char *fd = fieldCharData(f);
+	memcpy(fd, yuv, w*h*bpp);
+	
+	BitStream *bs = bitStreamCreate(w*h*bpp*2+h*8*bpp);
+	
+	double d1 = x_time();
+	for (y=0; y<h; y++)
+		bitStreamEncodeFelics(bs, f, curv, y);
+	printf("FELICS ENCODE SIZE %i = %f\n", bitStreamSize(bs), x_time() - d1);
+	
+	bitStreamReset(bs);
+	
+	d1 = x_time();
+	for (y=0; y<h; y++)
+		bitStreamDecodeFelics(bs, f, curv, y);
+	printf("FELICS DECODE SIZE %i = %f\n", bitStreamSize(bs), x_time() - d1);
+	
+//	bitStreamClear(bs);
+//	d1 = x_time();
+//	for (y=0; y<h; y++)
+//		bitStreamEncodeField(bs, f, curv, y);
+//	printf("ENCODE SIZE %i = %f\n", bitStreamSize(bs), x_time() - d1);
+//	
+//	bitStreamReset(bs);
+//	
+//	d1 = x_time();
+//	for (y=0; y<h; y++)
+//		bitStreamDecodeField(bs, f, curv, y);
+	printf("DECODE SIZE %i = %f\n", bitStreamSize(bs), x_time() - d1);
+	printf("ORIGINAL SIZE %i\n", w*h*bpp/4);
+	printf("GAIN: %i\n", 100* bitStreamSize(bs)/ (w*h*bpp/4));
+	
+	memcpy(d, fd, w*h*bpp);
+	
 	int minError = 0;
 	int maxError = 0;
 	for (y=0; y<h; y++)
@@ -1075,22 +1254,23 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	}
 	
 	printf("ERROR BOUNDS: %i %i\n", minError, maxError);
+	printf("sizeof(long int) = %i\n", (int)sizeof(long int));
 	
-//	for (y=0; y<h; y++)
-//	{
-//		
-//		for (x=1; x<w-1; x++)
-//		{
-//			unsigned char Y = d[x*3+y*w*3+0];
-//			unsigned char Pb = d[x*3+y*w*3+1];
-//			unsigned char Pr = d[x*3+y*w*3+2];
-//			
-//			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f);
-//			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
-//											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f);
-//			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f);
-//		}
-//	}
+	for (y=0; y<h; y++)
+	{
+		
+		for (x=1; x<w; x++)
+		{
+			unsigned char Y = d[x*3+y*w*3+0];
+			unsigned char Pb = d[x*3+y*w*3+1];
+			unsigned char Pr = d[x*3+y*w*3+2];
+			
+			d[0+x*bpp + y*bpp*w] = clamp(Y + ((float)Pr-128.0f)*1.13983f*0.615f/0.5f + 0.5f);
+			d[1+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*(-0.39465f)*0.436f/0.5f
+											+((float)Pr-128.0f)*(-0.58060f)*0.436f/0.5f + 0.5f);
+			d[2+x*bpp + y*bpp*w] = clamp(Y + ((float)Pb-128.0f)*2.03211f*0.436f/0.5f + 0.5f);
+		}
+	}
 	
 	[NSBundle loadNibNamed:@"FluidZip_Window" owner:self];
 	[r_windows addObject:i_window];
@@ -1106,6 +1286,7 @@ void compressRow(int w, int s, int *tmp, unsigned char *in_d,
 	free(deriv);
 	free(iData);
 	free(yuv);
+	free(de);
 //	free(cX);
 //	free(cY);
 //	free(cd);

@@ -141,6 +141,22 @@ static inline x128i x_imul(const x128i a, const x128i b)
 	return ri.v;
 }
 
+//x_cmp_lti
+#ifdef __APPLE_ALTIVEC__
+	#define x_cmp_lti(a,b)	vec_cmplt(a,b)
+#elif defined __SSE3__
+	#define x_cmp_lti(a,b)	_mm_cmplt_ps(a,b)
+#else
+	static inline x128i x_cmp_lti(const x128i a, const x128i b)
+	{
+		return	(x128i){
+				a.a < b.a ? 0xFFFFFFFF : 0x0,
+				a.b < b.b ? 0xFFFFFFFF : 0x0,
+				a.c < b.c ? 0xFFFFFFFF : 0x0,
+				a.d < b.d ? 0xFFFFFFFF : 0x0};
+	}
+#endif
+
 //x_any_lt
 static inline int x_all_lt(const x128f a, const x128f b)
 {
@@ -186,6 +202,24 @@ static inline int x_all_lt(const x128f a, const x128f b)
 				a.d>b.d?a.d:b.d		};
 	}
 #endif
+
+//x_sl
+#ifdef __APPLE_ALTIVEC__
+	#define x_sl(a,b)		vec_sl(a,(vector int){b,b,b,b})
+#elif defined __SSE3__
+	#define x_sl(a,b)		_mm_slli_epi32(a, b)
+#else
+	static inline x128i x_sl(x128i a, int b)
+	{
+		a.a = a.a << b;
+		a.b = a.b << b;
+		a.c = a.c << b;
+		a.d = a.d << b;
+		
+		return a;
+	}
+#endif
+
 
 //x_sld
 #ifdef __APPLE_ALTIVEC__
