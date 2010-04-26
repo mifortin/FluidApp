@@ -193,6 +193,7 @@ typedef struct
 #define FLUID_SIMPLEFREE		0x00000001
 #define FLUID_TIMERS			0x00000002
 #define FLUID_QUICK_VORTICTY	0x00000004
+#define FLUID_DENSITY			0x00000008
 
 #define TIME_ADVECTION		0
 #define TIME_PRESSURE		1
@@ -233,6 +234,10 @@ struct fluid
 	
 	field *r_reposX;		//Used to accelerate advection (noticeable now
 	field *r_reposY;		//							that data is in cache!)
+	
+	field *r_collision;		//Used to provide collision of some sort.
+	
+	u128f *m_tempGrad;		//Temperature gradient...
 	
 	//Used for working...
 	mpCoherence *r_coherence;
@@ -280,6 +285,9 @@ struct fluid
 	//Output size
 	int m_velWidth;
 	int m_velHeight;
+	
+	//Visual style
+	int m_outStyle;
 	
 	//GPGPU data...				//	(I/O)
 	GPUField *gpu_velX_in;

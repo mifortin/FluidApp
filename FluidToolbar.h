@@ -16,6 +16,7 @@
 	IBOutlet NSView* clientTools;
 	IBOutlet NSView* serverTools;
 	IBOutlet NSView* temperature;
+	IBOutlet NSView* visuals;
 	
 	IBOutlet NSView* headerContainer;
 	
@@ -25,8 +26,10 @@
 	IBOutlet FluidTabButton *btnClient;
 	IBOutlet FluidTabButton *btnServer;
 	IBOutlet FluidTabButton *btnTemperature;
+	IBOutlet FluidTabButton *btnVisuals;
 	
 	NSView *visibleView;
+	
 	
 	NSArray *allItems;
 }

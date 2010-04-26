@@ -6,6 +6,7 @@
 #import <Cocoa/Cocoa.h>
 #import "FluidAppServerController.h"
 #import "FluidAppClientController.h"
+#import "FluidVisualController.h"
 #include <OpenGL/gl.h>
 
 #include "mpx.h"
@@ -16,6 +17,8 @@
 {
 	IBOutlet FluidAppServerController *ib_serverController;
 	IBOutlet FluidAppClientController *ib_clientController;
+	
+	IBOutlet FluidVisualController *ib_visualController;
 	
 	fluidServer *r_network;
 	fluid *r_fluid;
@@ -75,4 +78,6 @@
 - (float)schedulerTime;
 
 - (void)addHandler:(fluidMessengerHandler)h forObject:(void*)obj;
+
+- (void)setVisual:(int)in_visual;
 @end

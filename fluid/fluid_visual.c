@@ -9,6 +9,31 @@
 #include "fluid_cpu.h"
 #include <stdlib.h>
 
+void fluid_video_temp2char(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct video *v = &mode->video;
+	
+	const int w = fieldWidth(v->f);
+	
+	const float *f = fluidFloatPointer(fieldData(v->f), y*fieldStrideY(v->f));
+	const int c = fieldComponents(v->f);
+	unsigned char *o = fieldCharData(v->o) + y*fieldStrideY(v->o);
+	
+	int x;
+	for (x=0; x<w; x++)
+	{
+		unsigned int ir = ((f[x*c+0]-f[x*c+2])*128.0f + 128.0f);
+		
+		if (ir < 0)	ir = 0;
+		if (ir > 255)	ir = 255;
+		
+		o[x*c+0] = (unsigned char)(in_f->m_tempGrad[ir].f[0]*255);
+		o[x*c+1] = (unsigned char)(in_f->m_tempGrad[ir].f[1]*255);
+		o[x*c+2] = (unsigned char)(in_f->m_tempGrad[ir].f[2]*255);
+		o[x*c+3] = (unsigned char)(in_f->m_tempGrad[ir].f[3]*255);
+	}
+}
+
 void fluid_video_dens2char(fluid *in_f, int y, pvt_fluidMode *mode)
 {
 	struct video *v = &mode->video;

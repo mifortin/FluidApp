@@ -303,6 +303,12 @@ void handler(void *o, fieldMsg *m)
 	[ib_glView setTemperatureMagnitude:[value floatValue]];
 }
 
+
+- (void)onSetVisual:(int)in_visual
+{
+	[ib_glView setVisual:in_visual];
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //	Toolbar code follows!
