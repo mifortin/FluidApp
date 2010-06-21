@@ -9,6 +9,7 @@
 #include "error.h"
 #include "net.h"
 #include "field.h"
+#include "x_simd.h"
 
 //Data organized in memory so that it's coherent for advection (all advection is
 //based on floats)
@@ -76,6 +77,19 @@ void fluidVelocityBlendIn(fluid *in_f, field *in_ch, float in_s);
 //Select accelerator
 void fluidEnableCPU(fluid *in_f);
 void fluidEnableCL(fluid *in_f);
+
+//Enable/Disable density code (we don't need it on slower platforms)
+void fluidEnableDensity(fluid *in_f);
+void fluidDisableDensity(fluid *in_f);
+
+//Temperature modulator...
+void fluidSetTemperatureGradient(fluid *in_f, u128f *gradient);
+
+//Select video output style
+#define FLUID_OUT_DENSITY		0
+#define FLUID_OUT_TEMPERATURE	1
+#define FLUID_OUT_VELOCITY		2
+void fluidSetOutStyle(fluid *in_f, int vs);
 
 
 //FluidServer creates the appropriate data-structures to send/receive data

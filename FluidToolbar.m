@@ -17,7 +17,8 @@
 	[btnClient makeRightMost];
 	
 	allItems = [NSArray arrayWithObjects:btnBasic, btnDiffusion, btnQuality,
-										btnClient, btnServer, btnTemperature, nil];
+										btnClient, btnServer, btnTemperature,
+										btnVisuals, nil];
 	[allItems retain];
 }
 
@@ -57,6 +58,8 @@
 				visibleView = serverTools;
 			else if (in_btn == btnTemperature)
 				visibleView = temperature;
+			else if (in_btn == btnVisuals)
+				visibleView = visuals;
 			else
 				visibleView = nil;
 			
@@ -68,7 +71,7 @@
 	}
 	[headerContainer setNeedsDisplay:YES];
 	
-	NSLog(@"PRESSED");
+	//NSLog(@"PRESSED");
 }
 
 @end

@@ -107,6 +107,9 @@ void fluidTaskCorrectorRepos(fluid *f)
 
 void fluidTaskAdvectDensity(fluid *f)
 {
+	if ((f->flags & FLUID_DENSITY) == 0)
+		return;
+	
 	int curFn = f->m_usedFunctions;
 	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
 	
@@ -157,7 +160,7 @@ void fluidTaskPressure(fluid *f, int in_iterations, field *in_density)
 	int curFn = f->m_usedFunctions;
 	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
 	
-	if (in_density != NULL)
+	if (in_density != NULL && ((f->flags & FLUID_DENSITY) != 0))
 	{
 		f->m_fns[curFn].mode.pressure.velX = f->r_velocityX;
 		f->m_fns[curFn].mode.pressure.velY = f->r_velocityY;
@@ -318,10 +321,16 @@ void fluidTaskDampen(fluid *f, field *dst, float amt)
 
 void fluidTaskVideoDensity2Char(fluid *f)
 {	
+	if ((f->flags & FLUID_DENSITY) == 0)
+		return;
+	
 	int curFn = f->m_usedFunctions;
 	errorAssert(curFn < MAX_FNS, error_memory, "Too many different tasks!");
 	
-	f->m_fns[curFn].fn = fluid_video_dens2char;
+	if (f->m_outStyle == FLUID_OUT_TEMPERATURE)
+		f->m_fns[curFn].fn = fluid_video_temp2char;
+	else
+		f->m_fns[curFn].fn = fluid_video_dens2char;
 	f->m_fns[curFn].mode.video.f = f->r_density;
 	f->m_fns[curFn].mode.video.o = f->r_vidOutput;
 	f->m_fns[curFn].times = NULL;
@@ -517,6 +526,9 @@ void fluidAdvectionForwardGenRepos(fluid *f)
 
 void fluidTaskTemperature(fluid *f)
 {
+	if ((f->flags & FLUID_DENSITY) == 0)
+		return;
+
 	if (fabsf(f->m_gravity) < 0.001f && fabsf(f->m_heatSpeed) < 0.001f)
 		return;
 

@@ -403,6 +403,9 @@ void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 	//Jason Lewis - open source project / lettering / Mr. Softie
 	x_try
 	{
+		//Setup gradient...
+		fluidSetTemperatureGradient(r_fluid, [ib_visualController temperatureGradient]);
+	
 		//Extract the densities if needed...
 		if (src_rad > 0.2f)
 		{
@@ -620,6 +623,12 @@ void FluidAppGLNetworkDelegate(void *obj, fluidServer *s, int msg)
 - (void)addHandler:(fluidMessengerHandler)h forObject:(void*)obj
 {
 	fluidMessengerAddHandler(r_messenger, h, obj);
+}
+
+
+- (void)setVisual:(int)in_visual
+{
+	fluidSetOutStyle(r_fluid, in_visual);
 }
 
 @end

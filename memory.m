@@ -6,6 +6,7 @@
 #include "memory.h"
 
 #ifndef CELL
+#ifndef ITOUCH
 
 #import <Cocoa/Cocoa.h>
 
@@ -27,4 +28,5 @@ FILE *x_fopen(const char *in_szFile, const char *in_mode)
 	return ret;
 }
 
+#endif
 #endif

@@ -42,6 +42,8 @@ void fluidFree(void *in_o)
 	
 	if (o->r_vidOutput)		x_free(o->r_vidOutput);
 	
+	if (o->r_collision)		x_free(o->r_collision);
+	
 	if (o->gpu_velX_in)		x_free(o->gpu_velX_in);
 	if (o->gpu_velY_in)		x_free(o->gpu_velY_in);
 	
@@ -82,6 +84,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_density = fieldCreate(in_width, in_height, 4);
 	toRet->r_density_swap = fieldCreate(in_width, in_height, 4);
 	toRet->r_vidOutput = fieldCreateChar(in_width, in_height, 4);
+	toRet->r_collision = fieldCreate(in_width, in_height, 1);
 	printf("   - Created CPU Buffers\n");
 	
 	//GPU Buffers
@@ -139,7 +142,9 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->m_pressureAccuracy = 20;
 	toRet->m_viscosityAccuracy = 20;
 	
-	toRet->flags = 0;
+	toRet->m_outStyle = FLUID_OUT_DENSITY;
+	
+	toRet->flags = FLUID_DENSITY;
 	
 	int i;
 	for (i=0; i<TIME_TOTAL; i++)
@@ -240,6 +245,15 @@ void fluidDisableTimers(fluid *f)
 	f->flags = (f->flags & (~FLUID_TIMERS));
 }
 
+void fluidEnableDensity(fluid *f)
+{
+	f->flags = (f->flags | FLUID_DENSITY);
+}
+
+void fluidDisableDensity(fluid *f)
+{
+	f->flags = (f->flags & (~FLUID_DENSITY));
+}
 
 field *fluidDensity(fluid *in_f)
 {
@@ -317,3 +331,14 @@ int fluidHeight(fluid *in_f)
 {
 	return fieldHeight(in_f->r_density);
 }
+
+void fluidSetOutStyle(fluid *in_f, int vs)
+{
+	in_f->m_outStyle = vs;
+}
+
+void fluidSetTemperatureGradient(fluid *in_f, u128f *gradient)
+{
+	in_f->m_tempGrad = gradient;
+}
+

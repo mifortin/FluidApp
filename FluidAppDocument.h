@@ -58,4 +58,6 @@
 - (IBAction)onChangeGravityMagnitude:(id)value;
 - (IBAction)onChangeTemperatureMag:(id)value;
 
+- (void)onSetVisual:(int)in_visual;
+
 @end
