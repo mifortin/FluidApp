@@ -232,6 +232,8 @@ struct fluid
 	field *r_tmpVelX;		//Temporary velocity X (advection work as Stam)
 	field *r_tmpVelY;		//Temporary velocity Y (advection work as Stam)
 	
+	//field *r_tmpVel;		//Temporary for scatter/gather
+	
 	field *r_reposX;		//Used to accelerate advection (noticeable now
 	field *r_reposY;		//							that data is in cache!)
 	

@@ -37,6 +37,8 @@ void fluidFree(void *in_o)
 	if (o->r_tmpVelX)		x_free(o->r_tmpVelX);
 	if (o->r_tmpVelY)		x_free(o->r_tmpVelY);
 	
+	//if (o->r_tmpVel)		x_free(o->r_tmpVel);
+	
 	if (o->r_reposX)		x_free(o->r_reposX);
 	if (o->r_reposY)		x_free(o->r_reposY);
 	
@@ -83,6 +85,7 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->r_pressure = fieldCreate(in_width, in_height, 1);
 	toRet->r_density = fieldCreate(in_width, in_height, 4);
 	toRet->r_density_swap = fieldCreate(in_width, in_height, 4);
+	//toRet->r_tmpVel = fieldCreate(in_width, in_height, 4);
 	toRet->r_vidOutput = fieldCreateChar(in_width, in_height, 4);
 	toRet->r_collision = fieldCreate(in_width, in_height, 1);
 	printf("   - Created CPU Buffers\n");

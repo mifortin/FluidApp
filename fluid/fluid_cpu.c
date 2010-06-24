@@ -93,6 +93,7 @@ void fluidTaskCorrectorRepos(fluid *f)
 	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
 	
 	f->m_fns[curFn].fn = fluid_advection_mccormack_repos;
+	//f->m_fns[curFn].fn = fluid_advection_stam_repos;
 	f->m_fns[curFn].mode.mccormack_vel_repos.srcVelX = f->r_velocityX;
 	f->m_fns[curFn].mode.mccormack_vel_repos.srcVelY = f->r_velocityY;
 	f->m_fns[curFn].mode.mccormack_vel_repos.dstReposX = f->r_reposX;
@@ -152,6 +153,51 @@ void fluidTaskAdvectVelocity(fluid *f)
 	//In the future, this is true!
 	fluidSwap(field*, f->r_velocityX, f->r_tmpVelX);
 	fluidSwap(field*, f->r_velocityY, f->r_tmpVelY);
+
+//	int curFn = f->m_usedFunctions;
+//	errorAssert(curFn<MAX_FNS, error_memory, "Too many different tasks!");
+//	
+//	f->m_fns[curFn].fn = fluid_gatherVel;
+//	f->m_fns[curFn].mode.repos.reposX = f->r_velocityX;
+//	f->m_fns[curFn].mode.repos.reposY = f->r_velocityY;
+//	f->m_fns[curFn].mode.repos.dst = f->r_tmpVel;
+//	f->m_fns[curFn].times = /*NULL;//*/ f->m_times + TIME_ADVECTION;
+//	
+//	mpCTaskAdd(f->r_coherence, curFn, -ADVECT_DIST-1, ADVECT_DIST+1, 0);
+//	
+//	f->m_usedFunctions = curFn+1;
+//	
+//	
+//	
+//	
+//	curFn = f->m_usedFunctions;
+//	f->m_fns[curFn].fn = fluid_repos;
+//	f->m_fns[curFn].mode.repos.reposX = f->r_reposX;
+//	f->m_fns[curFn].mode.repos.reposY = f->r_reposY;
+//	f->m_fns[curFn].mode.repos.src = f->r_tmpVel;
+//	f->m_fns[curFn].mode.repos.dst = f->r_density_swap;
+//	f->m_fns[curFn].times = /*NULL;//*/ f->m_times + TIME_ADVECTION;
+//	
+//	mpCTaskAdd(f->r_coherence, curFn, -ADVECT_DIST-1, ADVECT_DIST+1, 0);
+//	
+//	//In the future, this is true!
+//	fluidSwap(field*, f->r_tmpVel, f->r_density_swap);
+//	f->m_usedFunctions = curFn+1;
+//	
+//	
+//	
+//	
+//	curFn = f->m_usedFunctions;
+//	f->m_fns[curFn].fn = fluid_scatterVel;
+//	f->m_fns[curFn].mode.repos.reposX = f->r_velocityX;
+//	f->m_fns[curFn].mode.repos.reposY = f->r_velocityY;
+//	f->m_fns[curFn].mode.repos.dst = f->r_tmpVel;
+//	f->m_fns[curFn].times = /*NULL;//*/ f->m_times + TIME_ADVECTION;
+//	
+//	mpCTaskAdd(f->r_coherence, curFn, -ADVECT_DIST-1, ADVECT_DIST+1, 0);
+//	
+//	f->m_usedFunctions = curFn+1;
+	
 }
 
 

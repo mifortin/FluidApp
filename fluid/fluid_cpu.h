@@ -20,9 +20,13 @@ void fluid_advection_stam_velocity(fluid *in_f, int rowID, pvt_fluidMode *mode);
 
 void fluid_advection_mccormack_repos(fluid *in_f, int rowID, pvt_fluidMode *mode);
 
+void fluid_gatherVel(fluid *in_f, int y, pvt_fluidMode *mode);
+void fluid_scatterVel(fluid *in_f, int y, pvt_fluidMode *mode);
+
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode);
 void fluid_reposVel(fluid *in_f, int y, pvt_fluidMode *mode);
 
+void fluid_advection_stam_repos(fluid *in_f, const int y, pvt_fluidMode *mode);
 void fluid_genPressure(fluid *in_f, int y, pvt_fluidMode *mode);
 
 void fluid_genPressure_red(fluid *in_f, int y, pvt_fluidMode *mode);
