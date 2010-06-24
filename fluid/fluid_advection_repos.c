@@ -123,7 +123,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mo
 //	const x128f vYM = {y-1, y-1, y-1, y-1};
 //	const x128f vYP = {y+1, y+1, y+1, y+1};
 	
-	const x128f vNHalf = {-0.5f,-0.5f,-0.5f,-0.5f};
+	const x128f vHalf = {0.5f,0.5f,0.5f,0.5f};
 	const x128f v4 = {4.0f, 4.0f, 4.0f, 4.0f};
 	const x128f vN1 = {-1.0f, -1.0f, -1.0f, -1.0f};
 	
@@ -161,8 +161,8 @@ void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mo
 //		
 //		
 //		x128f sum2 = x_add(x_add(x_add(x1,x2),x3),x_add(x_add(y1,y2),y3));
-//		
-//		//Clamp the values...
+		
+		//Clamp the values...
 //		x1 = x_sub(x_simd_one, x1);
 //		x2 = x_sub(x_simd_one, x2);
 //		x3 = x_sub(x_simd_one, x3);
@@ -176,8 +176,10 @@ void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mo
 		x128f fSrcVelY = x_clamp(fVelY.v, vMin, vMax);
 		
 		//Go forward
-		x128f fwdX = x_clamp(x_add(fSrcVelX, vX), x_simd_zero, vW);
-		x128f fwdY = x_clamp(x_add(fSrcVelY, vY), x_simd_zero, vH);
+		x128f fwdX = x_clamp(x_add(vX, fSrcVelX), x_simd_zero, vW);
+		x128f fwdY = x_clamp(x_add(vY, fSrcVelY), x_simd_zero, vH);
+//		x128f fwdX = x_clamp(x_add(fSrcVelX, vX), x_simd_zero, vW);
+//		x128f fwdY = x_clamp(x_add(fSrcVelY, vY), x_simd_zero, vH);
 		
 		//Back as integer
 		x128i nBackX = x_ftoi(fwdX);
@@ -381,16 +383,18 @@ void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mo
 		
 		//This velocity (computed the other way) will give spatial error
 		u128f errX, errY;
-		errX.v = x_sub(x_add(x_clamp(x_mul(x_mul(vN1, timestep), fwdVelX.v), vMin, vMax), fwdX), vX);
-		errY.v = x_sub(x_add(x_clamp(x_mul(x_mul(vN1, timestep), fwdVelY.v), vMin, vMax), fwdY), vY);
+		//errX.v = x_sub(x_add(x_clamp(x_mul(x_mul(vN1, timestep), fwdVelX.v), vMin, vMax), fwdX), vX);
+		//errY.v = x_sub(x_add(x_clamp(x_mul(x_mul(vN1, timestep), fwdVelY.v), vMin, vMax), fwdY), vY);
+		errX.v = x_clamp(x_mul(timestep, fwdVelX.v), vMin, vMax);
+		errY.v = x_clamp(x_mul(timestep, fwdVelY.v), vMin, vMax);
 	
 		
 		//Most of the error is from velocity advection (so we assume)
 		//	This is a cheap way of computing error!
-		x128f backX = x_add(x_clamp(x_madd(vNHalf,errX.v,x_mul(fVelX.v,vN1)),vMin,vMax), vX);
+		x128f backX = x_add(x_clamp(x_madd(vHalf,errX.v,x_mul(fVelX.v,vN1)),vMin,vMax), vX);
 		vDstReposX[x] = x_clamp(backX,x_simd_zero, vW);
 		
-		x128f backY = x_add(x_clamp(x_madd(vNHalf,errY.v,x_mul(fVelY.v,vN1)),vMin,vMax), vY);
+		x128f backY = x_add(x_clamp(x_madd(vHalf,errY.v,x_mul(fVelY.v,vN1)),vMin,vMax), vY);
 		vDstReposY[x] = x_clamp(backY,x_simd_zero, vH);
 		
 		vX = x_add(vX, v4);
