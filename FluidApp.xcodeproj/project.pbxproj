@@ -37,6 +37,7 @@
 		4C1BA6810FBC6EA300A74684 /* FluidZip_Delegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */; };
 		4C1BA69A0FBC709800A74684 /* FluidZip_Window.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C1BA6990FBC709800A74684 /* FluidZip_Window.m */; };
 		4C1BA6B70FBC720800A74684 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		4C1C94E211D41C1D003AC3B4 /* mp_coherence_gcd.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C1C94E111D41C1C003AC3B4 /* mp_coherence_gcd.c */; };
 		4C30F9490FD853FA00B2B86D /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
 		4C30F94A0FD853FA00B2B86D /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
 		4C30F94B0FD853FA00B2B86D /* mp_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C30F9480FD853FA00B2B86D /* mp_queue.c */; };
@@ -320,6 +321,8 @@
 		4C1BA6800FBC6EA300A74684 /* FluidZip_Delegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Delegate.m; sourceTree = "<group>"; };
 		4C1BA6980FBC709800A74684 /* FluidZip_Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FluidZip_Window.h; sourceTree = "<group>"; };
 		4C1BA6990FBC709800A74684 /* FluidZip_Window.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FluidZip_Window.m; sourceTree = "<group>"; };
+		4C1C94AC11D4185E003AC3B4 /* SnowLeopardBuild.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = SnowLeopardBuild.xcconfig; sourceTree = "<group>"; };
+		4C1C94E111D41C1C003AC3B4 /* mp_coherence_gcd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_coherence_gcd.c; sourceTree = "<group>"; };
 		4C30F9480FD853FA00B2B86D /* mp_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_queue.c; sourceTree = "<group>"; };
 		4C30F9530FD86C3500B2B86D /* mp_x.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mp_x.c; sourceTree = "<group>"; };
 		4C414FEF0FF1941C002B8CD1 /* transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = transform.h; sourceTree = "<group>"; };
@@ -585,6 +588,7 @@
 				4C1BA66A0FBC6D0E00A74684 /* FluidZip */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				4C94581510EE7CB300D482E6 /* Cocoa.framework */,
+				4C1C94AC11D4185E003AC3B4 /* SnowLeopardBuild.xcconfig */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -697,6 +701,7 @@
 				4C76D4EC0FDC2F8A00FED6DB /* mp_taskWorld.c */,
 				4C54726A1003A3EF0069EB93 /* mp_coherence.c */,
 				4C6E8EF6111B32D000431481 /* mp_stack.c */,
+				4C1C94E111D41C1C003AC3B4 /* mp_coherence_gcd.c */,
 			);
 			name = mp;
 			sourceTree = "<group>";
@@ -1129,6 +1134,7 @@
 				4C8D79EF11792D35004CC2D0 /* FluidDialogView.m in Sources */,
 				4C8DE602117BC21F00DBEE43 /* FluidColorChooser.m in Sources */,
 				4C892A6111845FFD0031C6A8 /* FluidGradient.m in Sources */,
+				4C1C94E211D41C1D003AC3B4 /* mp_coherence_gcd.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1383,6 +1389,7 @@
 		};
 		4C43708D104DDD7F0069E6D9 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C1C94AC11D4185E003AC3B4 /* SnowLeopardBuild.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
 				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
@@ -1396,7 +1403,10 @@
 				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = MP_OPENCL;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					USE_GRANDCENTRAL,
+					MP_OPENCL,
+				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "Info copy.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -1410,6 +1420,7 @@
 		};
 		4C43708E104DDD7F0069E6D9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C1C94AC11D4185E003AC3B4 /* SnowLeopardBuild.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
 				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
