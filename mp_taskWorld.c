@@ -33,7 +33,9 @@ typedef struct mpTaskWorld mpTaskWorld;
 struct mpTaskWorld
 {
 #ifdef USE_GRANDCENTRAL
+#warning "Using Grand Central Dispatch for threads"
 #else
+#warning "Using built-in task scheduler"
 	int m_workers;				//Number of workers that we have...
 
 	mpQueue *r_sendQueue;		//Queue to send data...
