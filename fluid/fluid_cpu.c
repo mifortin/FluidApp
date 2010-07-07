@@ -726,7 +726,7 @@ void fluidTaskTemperature(fluid *f)
 //	5.0 FPS on PPC x4 using new program		(13% improvement)
 
 //Called every frame to advance the fluid simulation...
-void fluidAdvance_cpu(fluid *in_f)
+void fluidAdvanceASync(fluid *in_f)
 {
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
@@ -762,32 +762,47 @@ void fluidAdvance_cpu(fluid *in_f)
 	fluidTaskVideoDensity2Char(in_f);
 	
 	//We just need to run the tasks that have already been setup...
-	int spawned;
 	if (in_f->flags & FLUID_TIMERS)
 	{
 		int i;
 		for (i=0; i<TIME_TOTAL; i++)
 			in_f->m_times[i] = 0;
 #ifndef USE_GRANDCENTRAL
-		spawned = mpTaskFlood(fluidTimedMP, in_f, MP_TASK_CPU);
+		in_f->spawned = mpTaskFlood(fluidTimedMP, in_f, MP_TASK_CPU);
 #endif
 	}
 #ifndef USE_GRANDCENTRAL
 	else
-		spawned = mpTaskFlood(fluidMP, in_f, MP_TASK_CPU);
-	
-	int i;
-	for (i=0; i<spawned; i++)
-		mpQueuePop(in_f->r_blocker);
+		in_f->spawned = mpTaskFlood(fluidMP, in_f, MP_TASK_CPU);
 #endif
-
+	
 #ifdef USE_GRANDCENTRAL
 	mpCTaskLaunch(in_f->r_coherence);
 #endif
+}
+
+void fluidAdvanceSync(fluid *in_f)
+{
+#ifndef USE_GRANDCENTRAL
+	int i;
+	for (i=0; i<in_f->spawned; i++)
+		mpQueuePop(in_f->r_blocker);
+#else
+	mpCTaskWait(in_f->r_coherence);
+#endif
+
 	
 	//Clear the scheduler (for the next pass)
 	mpCReset(in_f->r_coherence);
 	in_f->m_usedFunctions = 0;
 	
 	//fluidSwap(field*, in_f->r_density, in_f->r_density_swap);
+}
+
+void fluidAdvance_cpu(fluid *in_f)
+{
+	
+	fluidAdvanceASync(in_f);
+	fluidAdvanceSync(in_f);
+	
 }

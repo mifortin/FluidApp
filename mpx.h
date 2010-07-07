@@ -154,6 +154,7 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache);
 void mpCTaskAdd(mpCoherence *o, void*x,int in_fn, int in_depStart,
 				void(*onExecuteTask)(void*x,int tid, int fn));
 void mpCTaskLaunch(mpCoherence *o);
+void mpCTaskWait(mpCoherence *o);		//For async work...
 #else
 void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 								int in_depLeft);

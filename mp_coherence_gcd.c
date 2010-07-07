@@ -144,6 +144,11 @@ void mpCTaskLaunch(mpCoherence *o)
 	{
 		dispatch_group_async_f(o->m_data[0].m_group, o->m_data[0].m_queue, &o->m_data[0], mpCDispatchFn);
 	}
+}
+
+void mpCTaskWait(mpCoherence *o)
+{
+	int x;
 	for (x=0; x<o->num_tasks; x++)
 		dispatch_group_wait(o->m_data[x].m_group, DISPATCH_TIME_FOREVER);
 }

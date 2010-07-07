@@ -11,8 +11,8 @@
 #include <xmmintrin.h>
 #endif
 
-#define SIMW	1280
-#define SIMH	720
+#define SIMW	1920
+#define SIMH	1920
 
 @implementation FluidAppGL
 
