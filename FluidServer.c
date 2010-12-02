@@ -38,7 +38,13 @@ int main(int argc, char *argv[])
 {
 	struct sigaction s;
 	memset(&s, 0, sizeof(s));
-	s.sa_mask = SIGPIPE;
+	
+	sigset_t ss;
+	
+	sigemptyset(&ss);
+	sigaddset(&ss, SIGPIPE);
+	
+	s.sa_mask = ss;//SIGPIPE;
 	s.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &s, NULL);
 	
