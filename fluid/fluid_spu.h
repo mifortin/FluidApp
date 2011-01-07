@@ -54,4 +54,7 @@ typedef struct {
 	//	'p'	= pressure
 	unsigned char cmd;
 	
-} fluid_context __attribute__ ((aligned(128)));
+	//Padding...
+	unsigned char pad[40];
+	
+} fluid_context __attribute__ ((aligned(16)));

@@ -13,6 +13,10 @@
 #include <math.h>
 #include "memory.h"
 
+#ifdef CELL
+#include "fluid_spu.h"
+#endif
+
 pvt_fluidMode make_advection_stam_velocity(field *srcVelX, field *srcVelY,
 										   field *dstVelX, field *dstVelY,
 										   float timestep)
@@ -551,6 +555,138 @@ void fluidTaskTemperature(fluid *f)
 	f->m_usedFunctions = curFn+1;
 }
 
+#ifdef CELL
+//Called on each processor to do a specified amount of work.
+void fluidMP(void *in_o, spe_context_ptr_t spe)
+{
+	fluid *o = (fluid*)in_o;
+	mpCoherence *c = o->r_coherence;
+	
+	x_try
+	{
+		int tid, fn, tsk;
+		mpCTaskObtain(c, &tid, &fn, &tsk);
+		//printf("Obtained first task %i %i %i\n",tid,fn,tsk);
+		while (tid != -1)
+		{
+			//Do we have an equivalent function?
+			if (o->m_fns[fn].fn == fluid_genPressure)
+			{
+				//Get the data onto the SPU...
+				fluid_context c __attribute__ ((aligned(16)));
+				//printf("%i\n", sizeof(c));
+				memset(&c, 0, sizeof(fluid_context));
+				c.width = fieldWidth(o->r_velocityX);
+				
+				if (tsk == 0 || tsk == fieldHeight(o->r_velocityX) - 1)
+				{
+					o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
+				}
+				else
+				{
+					c.commands[0] = COMMAND_STALL;
+					c.commands[1] = COMMAND_STALL;
+					c.commands[2] = COMMAND_STALL;
+					c.commands[3] = COMMAND_STALL;
+					c.commands[4] = COMMAND_STALL;
+					c.commands[5] = COMMAND_STALL;
+					c.args[0] = 0;
+					c.args[1] = 1;
+					c.args[2] = 2;
+					c.args[3] = 3;
+					c.args[4] = 4;
+					c.args[5] = 5;
+					
+					c.addresses[0] = fieldData(o->m_fns[fn].mode.pressure.pressure);
+					c.addresses[1] = c.addresses[0] - c.width;
+					c.addresses[2] = c.addresses[0] + c.width;
+					
+					c.addresses[3] = fieldData(o->m_fns[fn].mode.pressure.velX);
+					
+					c.addresses[4] = fieldData(o->m_fns[fn].mode.pressure.velY) - c.width;
+					c.addresses[5] = fieldData(o->m_fns[fn].mode.pressure.velY) + c.width;
+					
+					c.width /= 4;
+					
+					c.cmd = CMD_PRESSURE;
+					
+					unsigned int entry = SPE_DEFAULT_ENTRY;
+					spe_context_run(spe, &entry, 0, &c, NULL, NULL);
+					
+					//Get the data out of the SPU...
+					c.commands[0] = COMMAND_WRITE;
+					c.commands[1] = COMMAND_WRITE;
+					c.commands[2] = COMMAND_WRITE;
+					c.commands[3] = COMMAND_WRITE;
+					c.commands[4] = COMMAND_WRITE;
+					c.commands[5] = COMMAND_WRITE;
+					
+					c.cmd = CMD_NOOP;
+					
+					entry = SPE_DEFAULT_ENTRY;
+					spe_context_run(spe, &entry, 0, &c, NULL, NULL);
+				}
+			}
+			else
+			{
+				//Execute the desired function from the list of functions...
+				o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
+				
+				//printf("Obtained task %i %i %i\n",tid,fn,tsk);
+			}
+			//Fetch another function!
+			mpCTaskComplete(c, tid, fn, tsk,
+							&tid, &fn, &tsk);
+		}
+	}
+	x_catch(e)
+	{
+		errorListAdd(e);
+	}
+	x_finally
+	{
+		mpQueuePush(o->r_blocker, NULL);
+	}
+}
+
+//Version of fluidMP for debugging (eg. it captures timing information)
+void fluidTimedMP(void *in_o, spe_context_ptr_t spe)
+{
+	//double t1 = x_time();
+	fluid *o = (fluid*)in_o;
+	mpCoherence *c = o->r_coherence;
+	
+	int tid, fn, tsk;
+	
+	double curTime = x_time();
+	mpCTaskObtain(c, &tid, &fn, &tsk);
+	while (tid != -1)
+	{
+		//Execute the desired function from the list of functions...
+		o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
+		
+		double nextTime = x_time();
+		if (o->m_fns[fn].times != NULL)
+		{
+			AtomicAdd32Barrier(*o->m_fns[fn].times, (int)((nextTime-curTime + 0.00000005)*1000000));
+		}
+
+		curTime = nextTime;
+		
+		//Fetch another function!
+		mpCTaskComplete(c, tid, fn, tsk,
+						&tid, &fn, &tsk);
+		
+		nextTime = x_time();
+		AtomicAdd32Barrier(o->m_times[TIME_TASKSCHED], (int)((nextTime-curTime + 0.00000005)*1000000));
+		curTime = nextTime;
+	}
+	
+	//printf("Overhead: %f\n", x_time() - t1);
+	
+	mpQueuePush(o->r_blocker, NULL);
+}
+#else
 
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o)
@@ -622,6 +758,7 @@ void fluidTimedMP(void *in_o)
 	
 	mpQueuePush(o->r_blocker, NULL);
 }
+#endif
 
 //NOTE for 512x512 with 40 iterations for fairness:
 //	4.5 FPS on Intel using old program	(0% improvment)

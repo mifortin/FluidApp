@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 			totalTime += (t2-t1);
 			t1 = t2;
 			
-			if (totalTime > 60.0f)
+			if (totalTime > 10.0f)
 			{
 				printf("FPS: %f\n", (float)frames / totalTime);
 				

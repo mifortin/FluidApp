@@ -6,6 +6,10 @@
 #ifndef MP_H
 #define MP_H
 
+#ifdef CELL
+#include <libspe2.h>
+#endif
+
 #include "error.h"
 #include "memory.h"
 #include <pthread.h>
@@ -186,7 +190,11 @@ int mpSupportsGPU();				//Returns # of supported GPU cores (if any)
 
 //Function for a task... (obj points to something passed in on launch that
 //can be retained)
+#ifdef CELL
+typedef void(*mpTaskFn)(void *in_obj, spe_context_ptr_t ctx);
+#else
 typedef void(*mpTaskFn)(void *in_obj);
+#endif
 
 //Will the target task run on the CPU or the GPU?	Depending, we'll launch
 //on a separate thread.  This does not take into account multiple GPUs yet...

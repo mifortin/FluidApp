@@ -14,6 +14,8 @@
 
 #ifdef CELL
 #include <libspe2.h>
+
+extern spe_program_handle_t fluid_spu;
 #endif
 
 #define MESSAGE_QUIT		100
@@ -59,15 +61,6 @@ struct mpTaskWorld
 //	pthread_t *cl_threads;
 //#endif
 
-#ifdef CELL
-	int ps3_workers;			//Number of spawned worker threads for Cell
-	pthread_t *ps3_threads;		//All the threads for PS3 - 1 per SPU
-	mpTaskWorldCommunication *ps3_comms;
-	
-	mpQueue	*ps3_send;			//Send commands to an SPE
-	mpQueue *ps3_recv;			//Receive data from an SPE
-#endif
-
 };
 
 static mpTaskWorld *g_mpTaskWorld = NULL;
@@ -76,7 +69,21 @@ static mpTaskWorld *g_mpTaskWorld = NULL;
 void *mpTaskEngine(void *in_o)
 {
 	//Task engine just loops until it receives the desired signal.
+	#ifdef CELL
+	spe_context_ptr_t speContext = NULL;
+	#endif
 	x_try
+		#ifdef CELL
+		speContext = spe_context_create(0, NULL);
+		
+		errorAssert(speContext != NULL, error_flags, "Failed creating SPE context!");
+		printf("Created SPE Context\n");
+		
+		errorAssert(spe_program_load(speContext, &fluid_spu) == 0, error_flags,
+					"Failed uploading SPE application");
+		printf("Uploaded SPE application\n");
+		#endif
+		
 		while (1)
 		{
 			mpTaskWorldCommunication *cur = mpQueuePop(in_o);
@@ -86,7 +93,11 @@ void *mpTaskEngine(void *in_o)
 					return NULL;
 					
 				case MESSAGE_ACTION:
+					#ifdef CELL
+					cur->fn(cur->data, speContext);
+					#else
 					cur->fn(cur->data);
+					#endif
 					break;
 			}
 			
@@ -95,6 +106,11 @@ void *mpTaskEngine(void *in_o)
 	x_catch(err)
 		printf("mpTaskEngine failed: %s\n", errorMsg(err));
 	x_finally
+	{
+		#ifdef CELL
+		if (speContext)	spe_context_destroy(speContext);
+		#endif
+	}
 	
 	return NULL;
 }
@@ -167,28 +183,6 @@ void mpFree(void *in_o)
 	x_free(g_mpTaskWorld->r_sendQueue);
 	x_free(g_mpTaskWorld->r_receiveQueue);
 	free(g_mpTaskWorld->r_comms);
-
-#ifdef CELL
-	if (g_mpTaskWorld->ps3_workers > 0)
-	{
-		for (i=0; i<g_mpTaskWorld->ps3_workers; i++)
-		{
-			mpTaskWorldCommunication *cur = mpQueuePop(g_mpTaskWorld->ps3_recv);
-			cur->message = MESSAGE_QUIT;
-			mpQueuePush(g_mpTaskWorld->ps3_send, cur);
-		}
-		
-		for (i=0; i<g_mpTaskWorld->ps3_workers; i++)
-		{
-			x_pthread_join(g_mpTaskWorld->ps3_threads[i]);
-		}
-		
-		free (g_mpTaskWorld->ps3_comms);
-		free (g_mpTaskWorld->ps3_threads);
-		x_free(g_mpTaskWorld->ps3_send);
-		x_free(g_mpTaskWorld->ps3_recv);
-	}
-#endif
 	
 //#ifdef MP_OPENCL
 //	if (g_mpTaskWorld->cl_workers > 0)
@@ -217,6 +211,15 @@ void mpFree(void *in_o)
 
 void mpInit(int in_workers)
 {
+
+#ifdef CELL
+	int numSPEs = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
+	printf("Number of SPEs: %i\n", numSPEs);
+	
+	if (in_workers > numSPEs)
+		in_workers = numSPEs;
+#endif
+
 	errorAssert(g_mpTaskWorld == NULL, error_create, "mpInit called twice!");
 	errorAssert(in_workers > 0, error_flags, "Need at least one worker");
 
@@ -242,23 +245,6 @@ void mpInit(int in_workers)
 		x_pthread_create(&g_mpTaskWorld->rr_threads[i], NULL, mpTaskEngine,
 							g_mpTaskWorld->r_sendQueue);
 	}
-
-#ifdef CELL
-	int numSPEs = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
-	printf("Number of SPEs: %i\n", numSPEs);
-		g_mpTaskWorld->ps3_workers = 0;
-	if (numSPEs > 0)
-	{
-		g_mpTaskWorld->ps3_send = mpQueueCreate(numSPEs*4);
-		g_mpTaskWorld->ps3_recv = mpQueueCreate(numSPEs*4);
-		
-		g_mpTaskWorld->ps3_threads = malloc128(sizeof(pthread_t)*numSPEs);
-		g_mpTaskWorld->ps3_comms = malloc128(sizeof(mpTaskWorldCommunication)
-										*numSPEs*4);
-		
-		g_mpTaskWorld->ps3_workers = numSPEs;
-	}
-#endif
 	
 //#ifdef MP_OPENCL
 //	cl_uint numGPU = 0;

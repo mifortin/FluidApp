@@ -20,7 +20,7 @@ union bufferData
 
 union bufferData dat[FLUID_BUFFERS][MAX_WIDTH/4] __attribute__ ((aligned (128)));
 
-fluid_context context;
+fluid_context context __attribute__ ((aligned(16)));
 
 //Notes on shifting (implemented using spu_shuffle)
 //
@@ -326,12 +326,18 @@ void dma_end()
 int main(unsigned long long spu_id __attribute__ ((unused)), unsigned long long argv)
 {
 	//Load up basic data...
+	//printf("SPU %i entering main function (%i %i)\n", spu_id, (int)argv, sizeof(context));
+	
 	int tag = 1;
 	mfc_get((void*)&context, (unsigned int)argv, sizeof(context), tag, 0,0);
 	mfc_write_tag_mask(1 << tag);
 	mfc_read_tag_status_all();
 	
+	//printf("SPU here running command %i\n", context.cmd);
+	
 	dma_start();
+	
+	//printf("SPU completed DMA\n");
 
 	switch (context.cmd)
 	{
