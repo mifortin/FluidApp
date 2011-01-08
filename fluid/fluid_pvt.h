@@ -245,6 +245,10 @@ struct fluid
 	//Used to stall the system until an iteration completes
 	mpQueue		*r_blocker;
 	
+#ifdef CELL
+	atomic_int32	m_task;		//Need 1 int to track tasks on CELL!
+#endif
+	
 	//The type of data we hold
 	int accelerator;
 	

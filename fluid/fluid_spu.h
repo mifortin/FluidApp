@@ -4,10 +4,10 @@
  */
 
 //Number of buffers that can be uploaded to a given core at any time
-#define FLUID_BUFFERS	33
+#define FLUID_BUFFERS	120
 
 //Maximum width of a piece of data within a buffer...
-#define MAX_WIDTH		1920
+#define MAX_WIDTH		512
 
 #define COMMAND_NOTHING		' '			//Do nothing with memory
 #define COMMAND_DELAY		'd'			//Read while doing work
@@ -17,44 +17,41 @@
 #define CMD_NOOP			0x00		//Just want to do some DMA requests
 
 #define CMD_PRESSURE		0x01		//Middle pressure-case
-#define CMD_PRESSURE_B		0x02		//Border-condition pressure
 #define CMD_PRESSURE_APPLY	0x04		//Applies the pressure
 
 #define CMD_VISCOSITY		0x0A		//Normal viscosity
-#define CMD_VISCOSITY_B		0x0B		//viscosity border-condition
 
 
 
 typedef struct {
 	//Addresses of data to load...
-	void *addresses[FLUID_BUFFERS];
+	void *velocityX;
+	void *velocityY;
+	void *colour;
+	void *pressure;
 	
 	//Arguments to the function
 	float timestep;
 	float alpha, beta;
 	
-	//Width (in 4-4-byte floats)
+	//Width (in elements)
 	int width;
 	
-	//What to do with these buffers...
-	//	0xAABBBBBB
-	//
-	//	A =	00 - nothing
-	//		01 - load (no pause!)	- priority 2	(Stalls if DMA not done at end)
-	//		02 - load (paused!)		- priority 1
-	//		03 - write-out			- 
-	//
-	//	B =	Map arg N of command to a given buffer
-	char commands[FLUID_BUFFERS];
+	//Start and length of data reading
+	int start;
+	int end;
 	
-	//Arguments (in order) passed to function...
-	char args[FLUID_BUFFERS];
+	//maximum size...
+	int height;
+	
+	//Reversed?!?
+	int reverse;
 	
 	//Which command to run?
 	//	'p'	= pressure
-	unsigned char cmd;
+	unsigned int cmd;
 	
 	//Padding...
-	unsigned char pad[40];
+	unsigned char pad[128-52];
 	
-} fluid_context __attribute__ ((aligned(16)));
+} fluid_context __attribute__ ((aligned(128)));

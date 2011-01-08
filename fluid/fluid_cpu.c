@@ -556,6 +556,7 @@ void fluidTaskTemperature(fluid *f)
 }
 
 #ifdef CELL
+#define MAX 39
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o, spe_context_ptr_t spe)
 {
@@ -564,80 +565,124 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 	
 	x_try
 	{
-		int tid, fn, tsk;
-		mpCTaskObtain(c, &tid, &fn, &tsk);
-		//printf("Obtained first task %i %i %i\n",tid,fn,tsk);
-		while (tid != -1)
+		//Number of tasks per iteration...
+		int numTasks = (fieldHeight(o->r_pressure)+(MAX-2))/(MAX-1);
+		
+		fluid_context context __attribute__ ((aligned(128)));
+		
+		while (1)
 		{
-			//Do we have an equivalent function?
-			if (o->m_fns[fn].fn == fluid_genPressure)
+			int task = AtomicAdd32Barrier(o->m_task, 1)-1;
+			
+			//This is our task...
+			int taskNumb = task % numTasks;
+			int taskType = task / numTasks;
+			
+			memset(&context, 0, sizeof(context));
+			
+			
+			context.height = fieldHeight(o->r_pressure);
+			context.width = fieldWidth(o->r_pressure);
+			
+			//printf("TASK START: %i\n", task);
+			context.start = taskNumb*(MAX-1)-MAX/2;
+			
+			context.reverse = 1;
+			
+			switch (taskType)
 			{
-				//Get the data onto the SPU...
-				fluid_context c __attribute__ ((aligned(16)));
-				//printf("%i\n", sizeof(c));
-				memset(&c, 0, sizeof(fluid_context));
-				c.width = fieldWidth(o->r_velocityX);
+			
+			//Pressure (this is 20 iterations)
+			case 0:
+			case 2:
+			case 4:
+			case 6:
+				context.reverse = 0;
+			case 1:
+			case 3:
+			case 5:
+			case 7:
+				context.pressure = fieldData(o->r_pressure);
+				context.velocityX = fieldData(o->r_velocityX);
+				context.velocityY = fieldData(o->r_velocityY);
 				
-				if (tsk == 0 || tsk == fieldHeight(o->r_velocityX) - 1)
-				{
-					o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
-				}
-				else
-				{
-					c.commands[0] = COMMAND_STALL;
-					c.commands[1] = COMMAND_STALL;
-					c.commands[2] = COMMAND_STALL;
-					c.commands[3] = COMMAND_STALL;
-					c.commands[4] = COMMAND_STALL;
-					c.commands[5] = COMMAND_STALL;
-					c.args[0] = 0;
-					c.args[1] = 1;
-					c.args[2] = 2;
-					c.args[3] = 3;
-					c.args[4] = 4;
-					c.args[5] = 5;
-					
-					c.addresses[0] = fieldData(o->m_fns[fn].mode.pressure.pressure);
-					c.addresses[1] = c.addresses[0] - c.width;
-					c.addresses[2] = c.addresses[0] + c.width;
-					
-					c.addresses[3] = fieldData(o->m_fns[fn].mode.pressure.velX);
-					
-					c.addresses[4] = fieldData(o->m_fns[fn].mode.pressure.velY) - c.width;
-					c.addresses[5] = fieldData(o->m_fns[fn].mode.pressure.velY) + c.width;
-					
-					c.width /= 4;
-					
-					c.cmd = CMD_PRESSURE;
-					
-					unsigned int entry = SPE_DEFAULT_ENTRY;
-					spe_context_run(spe, &entry, 0, &c, NULL, NULL);
-					
-					//Get the data out of the SPU...
-					c.commands[0] = COMMAND_WRITE;
-					c.commands[1] = COMMAND_WRITE;
-					c.commands[2] = COMMAND_WRITE;
-					c.commands[3] = COMMAND_WRITE;
-					c.commands[4] = COMMAND_WRITE;
-					c.commands[5] = COMMAND_WRITE;
-					
-					c.cmd = CMD_NOOP;
-					
-					entry = SPE_DEFAULT_ENTRY;
-					spe_context_run(spe, &entry, 0, &c, NULL, NULL);
-				}
+				context.cmd = CMD_PRESSURE;
+				break;
+			
+			case 8:
+			case 10:
+			case 12:
+			case 14:
+				context.reverse = 0;
+			case 9:
+			case 11:
+			case 13:
+			case 15:
+				context.pressure = fieldData(o->r_pressure);
+				context.velocityX = fieldData(o->r_velocityX);
+				context.velocityY = fieldData(o->r_velocityY);
+				
+				context.cmd = CMD_VISCOSITY;
+				break;
+			
+			default:
+				mpQueuePush(o->r_blocker, NULL);
+				return;
+			
 			}
-			else
+			
+			unsigned int entry = SPE_DEFAULT_ENTRY;
+			
+			if (context.reverse)
 			{
-				//Execute the desired function from the list of functions...
-				o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
-				
-				//printf("Obtained task %i %i %i\n",tid,fn,tsk);
+				context.start += MAX/2;
 			}
-			//Fetch another function!
-			mpCTaskComplete(c, tid, fn, tsk,
-							&tid, &fn, &tsk);
+			
+			if (context.start < context.height)
+				spe_context_run(spe, &entry, 0, &context, NULL, NULL);
+			
 		}
+//		c.commands[0] = COMMAND_STALL;
+//		c.commands[1] = COMMAND_STALL;
+//		c.commands[2] = COMMAND_STALL;
+//		c.commands[3] = COMMAND_STALL;
+//		c.commands[4] = COMMAND_STALL;
+//		c.commands[5] = COMMAND_STALL;
+//		c.args[0] = 0;
+//		c.args[1] = 1;
+//		c.args[2] = 2;
+//		c.args[3] = 3;
+//		c.args[4] = 4;
+//		c.args[5] = 5;
+//		
+//		c.addresses[0] = fieldData(o->m_fns[fn].mode.pressure.pressure);
+//		c.addresses[1] = c.addresses[0] - c.width;
+//		c.addresses[2] = c.addresses[0] + c.width;
+//		
+//		c.addresses[3] = fieldData(o->m_fns[fn].mode.pressure.velX);
+//		
+//		c.addresses[4] = fieldData(o->m_fns[fn].mode.pressure.velY) - c.width;
+//		c.addresses[5] = fieldData(o->m_fns[fn].mode.pressure.velY) + c.width;
+//		
+//		c.width /= 4;
+//		
+//		c.cmd = CMD_PRESSURE;
+//		
+//		unsigned int entry = SPE_DEFAULT_ENTRY;
+//		spe_context_run(spe, &entry, 0, &c, NULL, NULL);
+//		
+//		//Get the data out of the SPU...
+//		c.commands[0] = COMMAND_WRITE;
+//		c.commands[1] = COMMAND_WRITE;
+//		c.commands[2] = COMMAND_WRITE;
+//		c.commands[3] = COMMAND_WRITE;
+//		c.commands[4] = COMMAND_WRITE;
+//		c.commands[5] = COMMAND_WRITE;
+//		
+//		c.cmd = CMD_NOOP;
+//		
+//		entry = SPE_DEFAULT_ENTRY;
+//		spe_context_run(spe, &entry, 0, &c, NULL, NULL);
 	}
 	x_catch(e)
 	{
@@ -652,37 +697,7 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 //Version of fluidMP for debugging (eg. it captures timing information)
 void fluidTimedMP(void *in_o, spe_context_ptr_t spe)
 {
-	//double t1 = x_time();
 	fluid *o = (fluid*)in_o;
-	mpCoherence *c = o->r_coherence;
-	
-	int tid, fn, tsk;
-	
-	double curTime = x_time();
-	mpCTaskObtain(c, &tid, &fn, &tsk);
-	while (tid != -1)
-	{
-		//Execute the desired function from the list of functions...
-		o->m_fns[fn].fn(o, tsk, &o->m_fns[fn].mode);
-		
-		double nextTime = x_time();
-		if (o->m_fns[fn].times != NULL)
-		{
-			AtomicAdd32Barrier(*o->m_fns[fn].times, (int)((nextTime-curTime + 0.00000005)*1000000));
-		}
-
-		curTime = nextTime;
-		
-		//Fetch another function!
-		mpCTaskComplete(c, tid, fn, tsk,
-						&tid, &fn, &tsk);
-		
-		nextTime = x_time();
-		AtomicAdd32Barrier(o->m_times[TIME_TASKSCHED], (int)((nextTime-curTime + 0.00000005)*1000000));
-		curTime = nextTime;
-	}
-	
-	//printf("Overhead: %f\n", x_time() - t1);
 	
 	mpQueuePush(o->r_blocker, NULL);
 }
@@ -772,6 +787,16 @@ void fluidTimedMP(void *in_o)
 //Called every frame to advance the fluid simulation...
 void fluidAdvance_cpu(fluid *in_f)
 {
+#ifdef CELL
+	in_f->m_task = 0;
+	
+	int spawned = mpTaskFlood(fluidMP, in_f, MP_TASK_CPU);
+	
+	int i;
+	for (i=0; i<spawned; i++)
+		mpQueuePop(in_f->r_blocker);
+	
+#else
 	//Add in the basic fluid simulation as it was before - except with SIMPLE
 	//boundary conditions
 	fluidTaskVorticity(in_f);
@@ -826,4 +851,5 @@ void fluidAdvance_cpu(fluid *in_f)
 	in_f->m_usedFunctions = 0;
 	
 	//fluidSwap(field*, in_f->r_density, in_f->r_density_swap);
+#endif
 }
