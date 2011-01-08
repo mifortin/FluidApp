@@ -11,6 +11,61 @@
 #include <math.h>
 #include <string.h>
 
+
+void fluid_gatherVel(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct repos *data = &mode->repos;
+	
+	int sY = fieldStrideY(data->reposX);
+	float *reposX = (float*)fluidFloatPointer(fieldData(data->reposX), y*sY);
+	float *reposY = (float*)fluidFloatPointer(fieldData(data->reposY), y*sY);
+	
+	float *dst = fieldData(data->dst);
+	
+	int w = fieldWidth(data->reposX);
+	
+	int dY = fieldStrideY(data->dst);
+	int constDstOffset = y*dY;
+	u128f *fDst = (u128f*)fluidFloatPointer(dst, constDstOffset);
+	
+	int i;
+	for (i=0; i<w; i++)
+	{
+		fDst[i].f[0] = reposX[i];
+		fDst[i].f[1] = reposY[i];
+	}
+}
+
+
+void fluid_scatterVel(fluid *in_f, int y, pvt_fluidMode *mode)
+{
+	struct repos *data = &mode->repos;
+	
+	int sY = fieldStrideY(data->reposX);
+	float *reposX = (float*)fluidFloatPointer(fieldData(data->reposX), y*sY);
+	float *reposY = (float*)fluidFloatPointer(fieldData(data->reposY), y*sY);
+	
+	float *dst = fieldData(data->dst);
+	
+	int w = fieldWidth(data->reposX);
+	
+	int dY = fieldStrideY(data->dst);
+	int constDstOffset = y*dY;
+	u128f *fDst = (u128f*)fluidFloatPointer(dst, constDstOffset);
+	
+	int i;
+	for (i=0; i<w; i++)
+	{
+		reposX[i] = fDst[i].f[0];
+	}
+	
+	for (i=0; i<w; i++)
+	{
+		reposY[i] = fDst[i].f[1];
+	}
+}
+
+
 //Simple repositioning of the data
 void fluid_repos(fluid *in_f, int y, pvt_fluidMode *mode)
 {

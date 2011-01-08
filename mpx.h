@@ -154,9 +154,14 @@ mpCoherence *mpCCreate(int in_data, int in_tasks, int in_cache);
 //		Note: This can be safely called while tasks are executing,
 //				however calling this function at the same time on two
 //				different threads is not safe.
+#ifdef USE_GRANDCENTRAL
+void mpCTaskAdd(mpCoherence *o, void*x,int in_fn, int in_depStart,
+				void(*onExecuteTask)(void*x,int tid, int fn));
+void mpCTaskLaunch(mpCoherence *o);
+void mpCTaskWait(mpCoherence *o);		//For async work...
+#else
 void mpCTaskAdd(mpCoherence *o, int in_fn, int in_depStart, int in_depEnd,
 								int in_depLeft);
-
 //This is so that the CBE task manager can snoop and commence DMA transfers
 //within the proc to get data ready for the next round.  On regular PCs,
 //these are run within a flooded task world.
@@ -168,6 +173,9 @@ void mpCTaskObtain(mpCoherence *o, int *out_tid, int *out_fn, int *out_tsk);
 //	Tells of our completed task and gets the next one!
 void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 									 int *out_tid, int *out_fn, int *out_tsk);
+#endif
+
+
 //Resets the task scheduler (so we can re-add tasks and execute them happily!)
 //	Not thread safe - all tasks must be completed before calling
 void mpCReset(mpCoherence *o);

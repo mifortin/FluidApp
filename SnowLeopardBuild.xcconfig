@@ -1,0 +1,9 @@
+//
+//  SnowLeopardBuild.xcconfig
+//  FluidApp
+//
+
+
+ARCHS = x86_64 i386
+
+GCC_PREPROCESSOR_DEFINITIONS = USE_GRANDCENTRAL MP_OPENCL

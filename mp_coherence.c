@@ -3,6 +3,8 @@
  *  FluidApp
  */
 
+#ifndef USE_GRANDCENTRAL
+
 #include "mpx.h"
 #include "memory.h"
 #include "error.h"
@@ -961,5 +963,7 @@ void mpCTaskComplete(mpCoherence *o, int in_tid, int in_fn, int in_tsk,
 	//	   in_tid, in_fn, in_tsk,
 	//	   *out_tid, *out_fn, *out_tsk);
 }
+
+#endif
 
 #endif

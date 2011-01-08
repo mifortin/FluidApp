@@ -125,7 +125,7 @@ reconnect:
 		else
 		{
 			struct fieldServerJitLatency latency;
-			netClientGetBinary(c, &latency, sizeof(latency), 90);
+			netClientGetBinary(c, &latency, sizeof(latency), 10);
 			
 			if (latency.id == htonl('JMLP')
 				|| latency.id == 'JMLP')

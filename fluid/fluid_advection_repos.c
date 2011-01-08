@@ -9,6 +9,72 @@
 #include "fluid_cpu.h"
 #include <stdio.h>
 
+//Simply generate positions for advection...
+void fluid_advection_stam_repos(fluid *in_f, const int y, pvt_fluidMode *mode)
+{
+	struct mccormack_vel_repos *data = &mode->mccormack_vel_repos;
+	
+	int x;										//Simple looping var
+	int w = fieldWidth(data->srcVelX);			//Width of the data
+	int h = fieldHeight(data->srcVelX);
+	int sY = fieldStrideY(data->srcVelY);
+	x128f timestep = {-data->timestep,-data->timestep,-data->timestep,-data->timestep};
+	
+
+	
+	const float *srcVelX		= fieldData(data->srcVelX);
+	const float *srcVelY		= fieldData(data->srcVelY);
+	
+	float *dstReposX		= fieldData(data->dstReposX);
+	float *dstReposY		= fieldData(data->dstReposY);
+	
+	
+	const int curxy = y*sY;
+	
+	const int w2 = w/4;
+	//printf("%i %i\n", w2, w);
+	
+	x128f vMin = {-ADVECT_DIST, -ADVECT_DIST, -ADVECT_DIST, -ADVECT_DIST};
+	x128f vMax = {ADVECT_DIST, ADVECT_DIST, ADVECT_DIST, ADVECT_DIST};
+	
+	const x128f *vSrcVelX = (x128f*)fluidFloatPointer(srcVelX, curxy);
+	const x128f *vSrcVelY = (x128f*)fluidFloatPointer(srcVelY, curxy);
+	
+	x128f *vDstReposX = (x128f*)fluidFloatPointer(dstReposX, curxy);
+	x128f *vDstReposY = (x128f*)fluidFloatPointer(dstReposY, curxy);
+	
+	x128f vX = {0.0f, 1.0f, 2.0f, 3.0f};
+	const x128f vY = {y, y, y, y};
+	
+	const x128f v4 = {4.0f, 4.0f, 4.0f, 4.0f};
+	
+	const x128f vW = {w-1.01f,w-1.01f,w-1.01f,w-1.01f};
+	const x128f vH = {h-1.01f,h-1.01f,h-1.01f,h-1.01f};
+	
+
+	for (x=0; x<w2; x++)
+	{
+		//Basic...
+		u128f fVelX, fVelY;
+		fVelX.v = x_mul(timestep, vSrcVelX[x]);
+		fVelY.v = x_mul(timestep, vSrcVelY[x]);
+		
+		//Advect forward in time...
+		x128f fSrcVelX = x_clamp(fVelX.v, vMin, vMax);
+		x128f fSrcVelY = x_clamp(fVelY.v, vMin, vMax);
+		
+		//Go forward
+		x128f fwdX = x_clamp(x_add(fSrcVelX, vX), x_simd_zero, vW);
+		x128f fwdY = x_clamp(x_add(fSrcVelY, vY), x_simd_zero, vH);
+		
+		vDstReposX[x] = fwdX;
+		
+		vDstReposY[x] = fwdY;
+		
+		vX = x_add(vX, v4);
+	}
+}
+
 //Basic corrector part of predictor-corrector.
 void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mode)
 {
@@ -43,11 +109,11 @@ void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mo
 	const x128f *vSrcVelX = (x128f*)fluidFloatPointer(srcVelX, curxy);
 	const x128f *vSrcVelY = (x128f*)fluidFloatPointer(srcVelY, curxy);
 	
-	const x128f *vSrcVelXM = (x128f*)fluidFloatPointer(srcVelX, curxy-sY);
-	const x128f *vSrcVelYM = (x128f*)fluidFloatPointer(srcVelY, curxy-sY);
-	
-	const x128f *vSrcVelXP = (x128f*)fluidFloatPointer(srcVelX, curxy+sY);
-	const x128f *vSrcVelYP = (x128f*)fluidFloatPointer(srcVelY, curxy+sY);
+//	const x128f *vSrcVelXM = (x128f*)fluidFloatPointer(srcVelX, curxy-sY);
+//	const x128f *vSrcVelYM = (x128f*)fluidFloatPointer(srcVelY, curxy-sY);
+//	
+//	const x128f *vSrcVelXP = (x128f*)fluidFloatPointer(srcVelX, curxy+sY);
+//	const x128f *vSrcVelYP = (x128f*)fluidFloatPointer(srcVelY, curxy+sY);
 	
 	x128f *vDstReposX = (x128f*)fluidFloatPointer(dstReposX, curxy);
 	x128f *vDstReposY = (x128f*)fluidFloatPointer(dstReposY, curxy);
@@ -270,7 +336,7 @@ void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mo
 //			fwdVelY.v = x_madd(x_mul(x3,y3), Y33, fwdVelY.v);
 //		}
 //		else
-		{
+//		{
 			
 			//Compute scaling factor
 			scaleX.v = x_sub(fwdX, x_itof(nBackX));
@@ -303,15 +369,15 @@ void fluid_advection_mccormack_repos(fluid *in_f, const int y, pvt_fluidMode *mo
 				bOO = fluidFloatPointer(srcVelY, d4.i[i])[0];
 				fwdVelY.f[i] = fluidLinearInterpolation(scaleX.f[i], scaleY.f[i],bZZ, bOZ, bZO, bOO);
 			}
-		}
-
-		__builtin_prefetch(vSrcVelX+x+4);
-		__builtin_prefetch(vSrcVelXM+x+4);
-		__builtin_prefetch(vSrcVelXP+x+4);
-
-		__builtin_prefetch(vSrcVelY+x+4);
-		__builtin_prefetch(vSrcVelYM+x+4);
-		__builtin_prefetch(vSrcVelYP+x+4);
+//		}
+//
+//		__builtin_prefetch(vSrcVelX+x+4);
+//		__builtin_prefetch(vSrcVelXM+x+4);
+//		__builtin_prefetch(vSrcVelXP+x+4);
+//
+//		__builtin_prefetch(vSrcVelY+x+4);
+//		__builtin_prefetch(vSrcVelYM+x+4);
+//		__builtin_prefetch(vSrcVelYP+x+4);
 		
 		//Compute the velocity at that point...
 		

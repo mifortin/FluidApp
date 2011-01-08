@@ -34,6 +34,10 @@ typedef struct
 typedef struct mpTaskWorld mpTaskWorld;
 struct mpTaskWorld
 {
+#ifdef USE_GRANDCENTRAL
+#warning "Using Grand Central Dispatch for threads"
+#else
+#warning "Using built-in task scheduler"
 	int m_workers;				//Number of workers that we have...
 
 	mpQueue *r_sendQueue;		//Queue to send data...
@@ -42,6 +46,7 @@ struct mpTaskWorld
 	
 	//All the pthreads...
 	pthread_t *rr_threads;		//All that threading...
+#endif
 	
 //#ifdef MP_OPENCL
 //	cl_context r_context;		//OpenCL context
@@ -66,6 +71,7 @@ struct mpTaskWorld
 static mpTaskWorld *g_mpTaskWorld = NULL;
 
 //Task engine
+#ifndef USE_GRANDCENTRAL
 void *mpTaskEngine(void *in_o)
 {
 	//Task engine just loops until it receives the desired signal.
@@ -114,6 +120,7 @@ void *mpTaskEngine(void *in_o)
 	
 	return NULL;
 }
+#endif
 
 //#ifdef MP_OPENCL
 //void *mpOpenCLTaskEngine(void *in_o)
@@ -164,7 +171,8 @@ void mpFree(void *in_o)
 {
 	//Only one instance, so this is easy!
 	errorAssert(g_mpTaskWorld == in_o, error_specify, "Hmm, there's a bug here");
-	
+
+#ifndef USE_GRANDCENTRAL	
 	//Wait for all of the task engines to complete....
 	int i;
 	for (i=0; i<g_mpTaskWorld->m_workers; i++)
@@ -183,6 +191,8 @@ void mpFree(void *in_o)
 	x_free(g_mpTaskWorld->r_sendQueue);
 	x_free(g_mpTaskWorld->r_receiveQueue);
 	free(g_mpTaskWorld->r_comms);
+#endif
+
 	
 //#ifdef MP_OPENCL
 //	if (g_mpTaskWorld->cl_workers > 0)
@@ -225,6 +235,7 @@ void mpInit(int in_workers)
 
 	g_mpTaskWorld = x_malloc(sizeof(mpTaskWorld), mpFree);
 	
+#ifndef USE_GRANDCENTRAL
 	g_mpTaskWorld->m_workers = in_workers;
 	g_mpTaskWorld->r_sendQueue = mpQueueCreate(in_workers * 4);
 	g_mpTaskWorld->r_receiveQueue = mpQueueCreate(in_workers * 4);
@@ -245,6 +256,9 @@ void mpInit(int in_workers)
 		x_pthread_create(&g_mpTaskWorld->rr_threads[i], NULL, mpTaskEngine,
 							g_mpTaskWorld->r_sendQueue);
 	}
+
+#endif
+
 	
 //#ifdef MP_OPENCL
 //	cl_uint numGPU = 0;
@@ -333,7 +347,7 @@ int mpSupportsGPU()
 
 void mpTaskLaunch(mpTaskFn in_task, void *in_obj, int target)
 {
-	
+#ifndef USE_GRANDCENTRAL
 	mpTaskWorldCommunication *cur = mpQueuePop(g_mpTaskWorld->r_receiveQueue);
 	cur->message = MESSAGE_ACTION;
 	cur->fn = in_task;
@@ -348,11 +362,15 @@ void mpTaskLaunch(mpTaskFn in_task, void *in_obj, int target)
 	}
 	else
 		mpQueuePush(g_mpTaskWorld->r_sendQueue, cur);
+#endif
 }
 
 
 int mpTaskFlood(mpTaskFn in_task, void *in_obj, int target)
 {
+#ifdef USE_GRANDCENTRAL
+	return -1;
+#else
 	int i;
 	
 	int itr;
@@ -372,4 +390,5 @@ int mpTaskFlood(mpTaskFn in_task, void *in_obj, int target)
 	}
 	
 	return g_mpTaskWorld->m_workers;
+#endif
 }

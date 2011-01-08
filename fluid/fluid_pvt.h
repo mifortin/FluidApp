@@ -90,7 +90,7 @@ struct viscosity
 struct vorticity
 {
 	field *z;			//Direction...
-						// (note that other components become 0)
+	// (note that other components become 0)
 	
 	field *velX;		//Used to compute curl, and apply vorticity...
 	field *velY;
@@ -277,6 +277,8 @@ struct fluid
 	
 	//Number of used functions
 	int m_usedFunctions;
+	
+	int spawned;
 	
 	//Temporary buffers used as needed (we want to minimize memory footprint
 	//to maximize cache usage)

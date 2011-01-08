@@ -19,6 +19,9 @@ fluid *fluidCreate(int in_width, int in_height);
 
 void fluidAdvance(fluid *in_f);
 
+void fluidAdvanceASync(fluid *in_f);
+void fluidAdvanceSync(fluid *in_f);
+
 int fluidWidth(fluid *in_f);
 int fluidHeight(fluid *in_f);
 
@@ -140,7 +143,7 @@ fluidMessenger *fluidMessengerCreate(fluid *in_f, fluidServer *in_s);
 int fluidMessengerHandleMessage(fluidMessenger *fm, fieldMsg *msg);
 
 void fluidMessengerAddHandler(fluidMessenger *fm, fluidMessengerHandler h,
-								void *ptr);
+							  void *ptr);
 
 #endif
 
