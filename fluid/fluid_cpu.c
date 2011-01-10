@@ -719,7 +719,9 @@ void fluidTaskTemperature(fluid *f)
 }
 
 #ifdef CELL
-#define MAX 39
+#define TSK 40
+#define MAX 9
+#define CPE ((MAX-1)*TSK)
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o, spe_context_ptr_t spe)
 {
@@ -729,9 +731,11 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 	x_try
 	{
 		//Number of tasks per iteration...
-		int numTasks = (fieldHeight(o->r_pressure)+(MAX-2))/(MAX-1);
+		int numTasks = (fieldHeight(o->r_pressure)+(CPE-1))/(CPE);
 		
 		fluid_context context __attribute__ ((aligned(128)));
+		
+		int nextCommand = CMD_NOOP;
 		
 		while (1)
 		{
@@ -748,9 +752,10 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 			context.width = fieldWidth(o->r_pressure);
 			
 			//printf("TASK START: %i\n", task);
-			context.start = taskNumb*(MAX-1)-MAX/2;
+			context.start = taskNumb*(CPE-1)-CPE/2;
 			
 			context.reverse = 1;
+			context.count = TSK;
 			
 			switch (taskType)
 			{
@@ -769,7 +774,8 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 				context.velocityX = fieldData(o->r_velocityX);
 				context.velocityY = fieldData(o->r_velocityY);
 				
-				context.cmd = CMD_PRESSURE;
+				context.cmd = nextCommand;
+				nextCommand = CMD_PRESSURE;
 				break;
 			
 			case 8:
@@ -785,7 +791,8 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 				context.velocityX = fieldData(o->r_velocityX);
 				context.velocityY = fieldData(o->r_velocityY);
 				
-				context.cmd = CMD_VISCOSITY;
+				context.cmd = nextCommand;
+				nextCommand = CMD_VISCOSITY;
 				break;
 			
 			default:
@@ -801,8 +808,13 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 				context.start += MAX/2;
 			}
 			
+			
 			if (context.start < context.height)
-				spe_context_run(spe, &entry, 0, &context, NULL, NULL);
+				nextCommand = CMD_NOOP;
+			
+			context.cmd_next = nextCommand;
+			
+			spe_context_run(spe, &entry, 0, &context, NULL, NULL);
 			
 		}
 //		c.commands[0] = COMMAND_STALL;
@@ -1011,6 +1023,8 @@ void fluidAdvanceASync(fluid *in_f)
 #ifdef USE_GRANDCENTRAL
 	mpCTaskLaunch(in_f->r_coherence);
 #endif
+
+#endif //CELL
 }
 
 void fluidAdvanceSync(fluid *in_f)
@@ -1029,7 +1043,6 @@ void fluidAdvanceSync(fluid *in_f)
 	in_f->m_usedFunctions = 0;
 	
 	//fluidSwap(field*, in_f->r_density, in_f->r_density_swap);
-#endif
 }
 
 void fluidAdvance_cpu(fluid *in_f)

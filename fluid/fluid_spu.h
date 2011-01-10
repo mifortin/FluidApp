@@ -4,10 +4,10 @@
  */
 
 //Number of buffers that can be uploaded to a given core at any time
-#define FLUID_BUFFERS	120
+#define FLUID_BUFFERS	60
 
 //Maximum width of a piece of data within a buffer...
-#define MAX_WIDTH		512
+#define MAX_WIDTH		1024
 
 #define COMMAND_NOTHING		' '			//Do nothing with memory
 #define COMMAND_DELAY		'd'			//Read while doing work
@@ -39,7 +39,7 @@ typedef struct {
 	
 	//Start and length of data reading
 	int start;
-	int end;
+	int count;
 	
 	//maximum size...
 	int height;
@@ -50,8 +50,9 @@ typedef struct {
 	//Which command to run?
 	//	'p'	= pressure
 	unsigned int cmd;
+	unsigned int cmd_next;
 	
 	//Padding...
-	unsigned char pad[128-52];
+	unsigned char pad[128-56];
 	
 } fluid_context __attribute__ ((aligned(128)));
