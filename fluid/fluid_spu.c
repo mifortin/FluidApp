@@ -6,7 +6,9 @@
 #include <spu_mfcio.h>
 #include "fluid_spu.h"
 
-#define MAX 9
+//Number of buffers that can be uploaded to a given core at any time
+#define FLUID_BUFFERS	60
+#define MAX 15
 
 //Buffers (for working...)
 union bufferItem
@@ -25,7 +27,7 @@ static int onoff = 0;
 typedef struct bufferData { union bufferItem d[MAX_WIDTH/4]; } bufferData;
 typedef struct bufferMap  {	union bufferItem* d;} bufferMap;
 
-bufferMap  dat[FLUID_BUFFERS];
+bufferMap  dat[512];
 
 bufferData realData[FLUID_BUFFERS] __attribute__ ((aligned (128)));
 
@@ -42,9 +44,8 @@ fluid_context context __attribute__ ((aligned(16)));
 //		First - fill in the DMA info...
 struct {
 	char *ptr;		//Source pointer (assumed packed)
-	char *dst;		//Destination	 (assumed packed)
 	int buffLen;	//Width (in bytes)
-} DMA[3];
+} DMA[4];
 
 
 //Second - init a series of operations to load up some data...
@@ -55,12 +56,12 @@ static void dmaLoad(int in_row, int m_row, int l)		//Internal row / extenral row
 	
 	//printf("DMA LOAD %i into %i (%i)\n", m_row, in_row,DMA[0].buffLen);
 	
-	for (i=0; i < 3; i++)
+	for (i=0; i < 4; i++)
 	{
 		if (!DMA[i].ptr)
 			continue;
 		
-		mfc_get((void*)dat[i+in_row*3].d,
+		mfc_get((void*)dat[i+in_row*4].d,
 				(unsigned int)(DMA[i].ptr + DMA[i].buffLen*m_row),
 				DMA[i].buffLen*l, tag, 0, 0);
 	}
@@ -69,6 +70,7 @@ static void dmaLoad(int in_row, int m_row, int l)		//Internal row / extenral row
 //Third - ensure the data is read in...
 static void dmaComplete()
 {
+	//printf("DMA COMPLETE\n");
 	int tag = 1;
 	mfc_write_tag_mask(1 << tag);
 	mfc_read_tag_status_all();
@@ -82,13 +84,21 @@ static void dmaStore(int in_row, int m_row, int l)
 	
 	//printf("DMA STORE %i from %i (%i) length %i\n", m_row, in_row,DMA[0].buffLen, l);
 	
-	for (i=0; i < 3; i++)
+	for (i=0; i < 4; i++)
 	{
-		if (!DMA[i].dst)
+		if (i == 2)
+		{
+			char *ptr = context.output1;
+			mfc_put((void*)dat[i+in_row*4].d,
+					(unsigned int)(ptr + DMA[i].buffLen*m_row),
+					DMA[i].buffLen*l, tag, 0, 0);
+		}
+	
+		if (!DMA[i].ptr)
 			continue;
 		
-		mfc_put((void*)dat[i+in_row*3].d,
-				(unsigned int)(DMA[i].dst + DMA[i].buffLen*m_row),
+		mfc_put((void*)dat[i+in_row*4].d,
+				(unsigned int)(DMA[i].ptr + DMA[i].buffLen*m_row),
 				DMA[i].buffLen*l, tag, 0, 0);
 	}
 	
@@ -320,6 +330,76 @@ static void genPressure(const int w,
 }
 
 
+static void advectField(const int w,
+							vector float timestep,
+							vector float *vFieldP,
+							vector float *vField,
+							vector float *vFieldN,
+							const vector float *vVelX,
+							const vector float *vVelY)
+{
+	vector unsigned int leftMask = {0x00000000,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF};
+	vector unsigned int rightMask = {0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0x00000000};
+	
+	vector float sl = spu_shuffle(vField[0], vField[1], shLeft);
+	vector float sr = spu_shuffle(zero, vField[0], shRight);
+	
+	vector float tmpX = spu_sub(sl, sr);
+	tmpX = spu_and(tmpX, (vector float)leftMask);
+	
+	vector float tmpY = spu_sub(vFieldN[0], vFieldP[0]);
+	tmpY = spu_and(tmpY, (vector float)leftMask);
+	
+	vector float two = {0.5f,0.5f,0.5f,0.5f};
+	vector float ts = spu_mul(two, timestep);
+	
+	vField[0] = spu_sub(vField[0],
+					spu_mul(ts,
+						spu_add(
+							spu_mul(tmpX, vVelX[0]),
+							spu_mul(tmpY, vVelY[0])
+							)
+						)
+					);
+	
+	int x;
+	for (x=1; x<w-1; x++)
+	{
+		sl = spu_shuffle(vField[x], vField[x+1], shLeft);
+		sr = spu_shuffle(vField[x-1], vField[x], shRight);
+		
+		tmpX = spu_sub(sl, sr);
+		tmpY = spu_sub(vFieldN[x], vFieldP[x]);
+		
+		vField[x] = spu_sub(vField[x],
+					spu_mul(ts,
+						spu_add(
+							spu_mul(tmpX, vVelX[x]),
+							spu_mul(tmpY, vVelY[x])
+							)
+						)
+					);
+	}
+	
+	sl = spu_shuffle(vField[x], zero, shLeft);
+	sr = spu_shuffle(vField[x-1], vField[x], shRight);
+	
+	tmpX = spu_sub(sl, sr);
+	tmpX = spu_and(tmpX, (vector float)rightMask);
+	tmpY = spu_sub(vFieldN[x], vFieldP[x]);
+	tmpY = spu_and(tmpY, (vector float)rightMask);
+	
+	vField[x] = spu_sub(vField[x],
+					spu_mul(ts,
+						spu_add(
+							spu_mul(tmpX, vVelX[x]),
+							spu_mul(tmpY, vVelY[x])
+							)
+						)
+					);
+}
+
+
 static void pressureApply(const int w,
 							vector float *vVelX,
 							vector float *vVelY,
@@ -365,147 +445,160 @@ static void pressureApply(const int w,
 }
 
 
-static void processorBorder(int edge, int inside)
+static void processBorder(int edge, int inside, int itr)
 {
-	if (context.cmd == CMD_PRESSURE)
-		genPressureBorder(context.width/4, &dat[edge].d[0].vf, &dat[inside].d[0].vf);
-	else if (context.cmd == CMD_VISCOSITY)
-		genViscosityBorder(context.width/4, &dat[edge].d[0].vf, &dat[edge].d[1].vf,
-											&dat[inside].d[0].vf, &dat[inside].d[1].vf);
+	switch(itr)
+	{
+	case 0:
+	case 1:
+	case 2:
+		genPressureBorder(context.width/4, &dat[4*edge+3].d[0].vf, &dat[4*inside+3].d[0].vf);
+		break;
+		
+	case 12:
+	case 13:
+	case 14:
+		genViscosityBorder(context.width/4, &dat[4*edge].d[0].vf, &dat[4*edge+1].d[1].vf,
+											&dat[4*inside].d[0].vf, &dat[4*inside+1].d[1].vf);
+		break;
+	}
 }
 
-static void processRow(int r)
+
+static void addSources(int w, float *src, float *dstX, float *dstY)
 {
-	if (context.cmd == CMD_PRESSURE)
+	int i;
+	for (i=0; i<w; i++)
+	{
+		dstX[i] += src[i/2+0];
+		dstY[i] += src[i/2+1];
+	}
+}
+
+
+static void processRow(int r, int itr)
+{
+	switch(itr)
+	{
+	case 0:
+	case 1:
+	case 2:
 		genPressure(	context.width/4,
-						&dat[3*r].d[0].vf,
-						&dat[3*(r+1)].d[0].vf,
-						&dat[3*(r-1)].d[0].vf,
-						&dat[3*r+1].d[0].vf,
-						&dat[3*(r+1)+2].d[0].vf,
-						&dat[3*(r-1)+2].d[0].vf);
-	else if (context.cmd == CMD_VISCOSITY)
+						&dat[4*r+3].d[0].vf,
+						&dat[4*(r+1)+3].d[0].vf,
+						&dat[4*(r-1)+3].d[0].vf,
+						&dat[4*r+0].d[0].vf,
+						&dat[4*(r+1)+1].d[0].vf,
+						&dat[4*(r-1)+1].d[0].vf);
+		break;
+	
+	case 3:
+		pressureApply(	context.width/4,
+						&dat[4*r+0].d[0].vf,
+						&dat[4*r+1].d[0].vf,
+						&dat[4*r+2].d[0].vf,
+						&dat[4*(r+1)+3].d[0].vf,
+						&dat[4*(r-1)+3].d[0].vf);
+		break;
+	
+	case 8:
+		advectField(	context.width/4,
+						(vector float){context.timestep,context.timestep,context.timestep,context.timestep},
+						&dat[4*(r-1)+3].d[0].vf,
+						&dat[4*r+3].d[0].vf,
+						&dat[4*(r+1)+3].d[0].vf,
+						&dat[4*r+0].d[0].vf,
+						&dat[4*r+1].d[0].vf);
+						
+		break;
+	
+	case 9:
+		advectField(	context.width/4,
+						(vector float){context.timestep,context.timestep,context.timestep,context.timestep},
+						&dat[4*(r-1)+0].d[0].vf,
+						&dat[4*r+0].d[0].vf,
+						&dat[4*(r+1)+0].d[0].vf,
+						&dat[4*r+0].d[0].vf,
+						&dat[4*r+1].d[0].vf);
+						
+		break;
+	
+	case 10:
+		advectField(	context.width/4,
+						(vector float){context.timestep,context.timestep,context.timestep,context.timestep},
+						&dat[4*(r-1)+1].d[0].vf,
+						&dat[4*r+1].d[0].vf,
+						&dat[4*(r+1)+1].d[0].vf,
+						&dat[4*r+0].d[0].vf,
+						&dat[4*r+1].d[0].vf);
+						
+		break;
+		
+	case 11:
+		addSources(		context.width,
+						dat[4*r+2].d[0].f,
+						dat[4*r+0].d[0].f,
+						dat[4*r+1].d[0].f);
+						
+		break;
+	
+	case 12:
+	case 13:
+	case 14:
 		genViscosity(	context.width/4,
 						(vector float){context.alpha,context.alpha,context.alpha,context.alpha},
 						(vector float){context.beta,context.beta,context.beta,context.beta},
-						&dat[r].d[0].vf, &dat[r].d[1].vf,
-						&dat[r+1].d[0].vf, &dat[r+1].d[1].vf,
-						&dat[r-1].d[0].vf, &dat[r-1].d[1].vf);
+						&dat[4*r].d[0].vf, &dat[4*r+1].d[1].vf,
+						&dat[4*(r+1)].d[0].vf, &dat[4*(r+1)+1].d[1].vf,
+						&dat[4*(r-1)].d[0].vf, &dat[4*(r-1)+1].d[1].vf);
+		break;
+	}
 }
 
 
 void forward()
 {
-	int i;
-	int cLeft = 1;
-	int cEnd = MAX-2;
+	int l;
 	
-	int storeStart = -1;
-	int storeEnd = -1;
+	dmaLoad(0, context.start, 1);
+	dmaLoad(1, context.start+1, 1);
 	
-	while (cLeft <= cEnd)
+	for (l=0; l<context.count + MAX; l++)
 	{
-		//Loops over	1...9
-		//				2...8
-		//				3...7
-		//				4...6
-		//				  5
-		for (i=cLeft; i<=cEnd; i++)
-		{				
-			if (i+context.start < 0)
-				continue;
-			
-			//OK!  we got a row!
-			if (i+context.start > 0 && i+context.start < context.height-1)
-			{
-				processRow(i);
-			}
-			else if (i+context.start == 0)
-			{
-				processorBorder(i, i+1);
-			}
-			else if (i+context.start == context.height-1)
-			{
-				processorBorder(i, i-1);
-			}
-		}
-		
-		//Write what we need back out to main memory... (for 16 mem ops, 25 ops!)
-		if (cLeft + context.start >= 0 && cLeft + context.start < context.height)
+		if (l+2 < context.count && l+2+context.start < context.height)
 		{
-			if (storeStart == -1)
-				storeStart = cLeft;
-			
-			storeEnd = cLeft;
-			
-			if (storeEnd - storeStart >= 3)
-			{
-				dmaStore(cLeft, cLeft + context.start,1+storeEnd-storeStart);
-				
-				storeEnd = -1;
-				storeStart = -1;
-			}
+			dmaLoad(l+2, context.start+l+2, 1);
 		}
-		
-		cLeft++;
-		cEnd--;
-	}
 	
-	if (storeStart != -1)
-		dmaStore(storeStart, storeStart + context.start, 1+storeEnd-storeStart);
-
-//Don't need, catch on next round...	
-//	dmaComplete();
-}
-
-
-//In reverse, we store rather than load a lot of data...
-void reverse()
-{
-	int i;
-	int cLeft = MAX/2;
-	int cEnd = MAX/2;
-	
-	while (cLeft >= 1)
-	{	
-		//Loops over	1...9
-		//				2...8
-		//				3...7
-		//				4...6
-		//				  5
-		for (i=cLeft; i<=cEnd; i++)
+		int block;
+		for (block = 0; block < MAX; block++)
 		{
-			//printf("SPU: %i [%i,%i]\n", i, cLeft, cEnd);
-				
-			if (i+context.start < 0)
-				continue;
-			
-			//OK!  we got a row!
-			if (i+context.start > 0 && i+context.start < context.height-1)
+			if (l-block + context.start == 0)
 			{
-				processRow(i);
+				processBorder(0,1,block);
 			}
-			else if (i+context.start == 0)
+			else if (l-block+context.start == context.height-1)
 			{
-				processorBorder(i, i+1);
+				processBorder(l-block,l-block-1,block);
 			}
-			else if (i+context.start == context.height-1)
+			else if (l-block > 0 && l-block+context.start < context.height-1)
 			{
-				processorBorder(i, i-1);
-			}
-			
-			if (cLeft == 1
-				&& i+context.start >= 0
-				&& i+context.start < context.height)
-			{				
-				if (i < MAX)
-					dmaStore(i, i+context.start,1);
+				processRow(l-block, block);
 			}
 		}
 		
-		cLeft--;
-		cEnd++;
+		dmaComplete();
+		if (l-MAX+1 >= 0 && l-MAX+1+context.start < context.height)
+		{
+			if (l-MAX+1 == 0 && context.start == 0)
+				dmaStore(l-MAX+1, context.start+l-MAX+1, 1);
+			else if (l-MAX+1+ context.start == context.height-1)
+				dmaStore(l-MAX+1, context.start+l-MAX+1, 1);
+			else if (l-MAX+1 > 0 && l-MAX+1 < context.count-1)
+				dmaStore(l-MAX+1, context.start+l-MAX+1, 1);
+		}
 	}
+	dmaComplete();
 }
 
 
@@ -522,117 +615,25 @@ int main(unsigned long long spu_id __attribute__ ((unused)), unsigned long long 
 	//printf("SPU now waiting for instructions\n");
 	
 	int i;
+	
+	for (i=0; i<512; i++)
+	{
+		dat[i].d = realData[i%(FLUID_BUFFERS)].d;
+	}
+	
 	mfc_write_tag_mask(1 << tag);
 	mfc_read_tag_status_all();
 	
-	//printf("SPU here running command %i\n", context.cmd);
+	DMA[0].ptr = context.velocityX;
+	DMA[0].buffLen = context.width*4;
+	DMA[1].ptr = context.velocityY;
+	DMA[1].buffLen = context.width*4;
+	DMA[2].ptr = context.input1;
+	DMA[2].buffLen = context.width*4;
+	DMA[3].ptr = context.pressure;
+	DMA[3].buffLen = context.width*4;
 	
-	//printf("SPU completed DMA\n");
-
-	//printf("SPU CONTEXT WIDTH: %i\n", context.width);
-	//printf("SPU CONTEXT HEIGHT: %i\n", context.height);
-
-	int c;
-	for (c=0; c<context.count; c++)
-	{
-		//Silly DMA stuff
-		for (i=0; i<3; i++)
-		{
-			DMA[i].ptr = 0;
-			DMA[i].dst = 0;
-		}
-		
-		switch (context.cmd_next)
-		{
-		case CMD_PRESSURE:
-			DMA[0].ptr = context.pressure;
-			DMA[0].dst = context.pressure;
-			DMA[0].buffLen = context.width*4;
-			
-			DMA[1].ptr = context.velocityX;
-			DMA[1].buffLen = context.width*4;
-			
-			DMA[2].ptr = context.velocityY;
-			DMA[2].buffLen = context.width*4;
-			break;
-			
-		case CMD_PRESSURE_APPLY:
-			break;
-			
-		case CMD_VISCOSITY:
-			DMA[0].ptr = context.velocityX;
-			DMA[0].dst = context.velocityX;
-			DMA[0].buffLen = context.width*4;
-			
-			DMA[1].ptr = context.velocityY;
-			DMA[1].dst = context.velocityY;
-			DMA[1].buffLen = context.width*4;
-			break;
-		}
-		
-		//Prepare the DMA streams... (next frame!)
-		int left = 0;
-		int right = MAX-1;
-		
-		if (left + context.start < 0)
-		{
-			left = left - context.start;
-		}
-		
-		if (right + context.start >= context.height)
-		{
-			right = context.height - context.start - 1;
-		}
-		
-		int dmaSize = right-left+1;
-		while (dmaSize > 0)
-		{
-			int dmaDo = 32;
-			if (dmaSize > dmaDo)
-			{
-				dmaSize -= dmaDo;
-			}
-			else
-			{
-				dmaSize = 0;
-			}
-			
-			dmaLoad(left, left+context.start,dmaSize);
-			
-			left += dmaSize;
-		}
-		
-		//Done?
-		if (context.cmd == CMD_NOOP)
-			return 0;
-		
-		//Remap our data...  (what we loaded to work on previously is what we'll use
-		//now)
-		onoff = 1-onoff;
-		if (onoff)
-		{
-			for (i=0; i<FLUID_BUFFERS; i++)
-				dat[i].d = realData[i].d;
-		}
-		else
-		{
-			for (i=0; i<FLUID_BUFFERS; i++)
-				dat[i].d = realData[(i+6)%MAX].d;
-		}
-
-		//Now, let us start...
-		if (context.reverse)
-			reverse();
-		else
-			forward();
-		
-		context.start += MAX-1;
-		
-		if (context.start >= context.height)
-			return 0;
-		
-		dmaComplete();
-	}
-
+	forward();
+	
 	return 0;
 }

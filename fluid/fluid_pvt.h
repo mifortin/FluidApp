@@ -247,6 +247,8 @@ struct fluid
 	
 #ifdef CELL
 	atomic_int32	m_task;		//Need 1 int to track tasks on CELL!
+	field		*m_blendIn;
+	field		*m_blendOut;
 #endif
 	
 	//The type of data we hold

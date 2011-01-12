@@ -3,9 +3,6 @@
  *  
  */
 
-//Number of buffers that can be uploaded to a given core at any time
-#define FLUID_BUFFERS	60
-
 //Maximum width of a piece of data within a buffer...
 #define MAX_WIDTH		1024
 
@@ -27,7 +24,8 @@ typedef struct {
 	//Addresses of data to load...
 	void *velocityX;
 	void *velocityY;
-	void *colour;
+	void *input1;
+	void *output1;
 	void *pressure;
 	
 	//Arguments to the function
@@ -44,15 +42,7 @@ typedef struct {
 	//maximum size...
 	int height;
 	
-	//Reversed?!?
-	int reverse;
-	
-	//Which command to run?
-	//	'p'	= pressure
-	unsigned int cmd;
-	unsigned int cmd_next;
-	
 	//Padding...
-	unsigned char pad[128-56];
+	unsigned char pad[64-48];
 	
 } fluid_context __attribute__ ((aligned(128)));

@@ -533,6 +533,19 @@ void fluidVideoBlendIn(fluid *f, field *in_ch, float in_s)
 }
 
 
+#ifdef CELL
+void fluidVelocityBlendIn(fluid *f, field *in_ch, float in_s)
+{
+	f->m_blendIn = in_ch;
+}
+
+void fluidVideoVelocityOut(fluid *f, field *in_dest)
+{
+	f->m_blendOut = in_dest;
+}
+
+#else
+
 void fluidVelocityBlendIn(fluid *f, field *in_ch, float in_s)
 {
 	int curFn = f->m_usedFunctions;
@@ -583,6 +596,8 @@ void fluidVideoVelocityOut(fluid *f, field *in_dest)
 	
 	f->m_usedFunctions = curFn+1;
 }
+
+#endif
 
 
 void fluidAdvectionForwardDens(fluid *f)
@@ -719,7 +734,7 @@ void fluidTaskTemperature(fluid *f)
 }
 
 #ifdef CELL
-#define TSK 40
+#define TSK 10
 #define MAX 9
 #define CPE ((MAX-1)*TSK)
 //Called on each processor to do a specified amount of work.
@@ -731,7 +746,7 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 	x_try
 	{
 		//Number of tasks per iteration...
-		int numTasks = (fieldHeight(o->r_pressure)+(CPE-1))/(CPE);
+		int numTasks = fieldHeight(o->r_pressure)/TSK;
 		
 		fluid_context context __attribute__ ((aligned(128)));
 		
@@ -741,123 +756,40 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 		{
 			int task = AtomicAdd32Barrier(o->m_task, 1)-1;
 			
-			//This is our task...
-			int taskNumb = task % numTasks;
-			int taskType = task / numTasks;
+			if (task > TSK)
+			{
+				mpQueuePush(o->r_blocker, NULL);
+				return;
+			}
 			
 			memset(&context, 0, sizeof(context));
 			
+			//This is our task...
+			context.start = numTasks * task-1;
+			if (context.start < 0)	context.start = 0;
+			
+			if (context.start == 0)
+				context.count = numTasks+1;
+			else
+				context.count = numTasks+2;
+			context.alpha = 1.0f / o->m_viscosity * o->m_timestep/(float)4;
+			context.beta = 1.0f / (1.0f / o->m_viscosity * o->m_timestep/(float)4  + 4.0f);
 			
 			context.height = fieldHeight(o->r_pressure);
 			context.width = fieldWidth(o->r_pressure);
 			
-			//printf("TASK START: %i\n", task);
-			context.start = taskNumb*(CPE-1)-CPE/2;
-			
-			context.reverse = 1;
-			context.count = TSK;
-			
-			switch (taskType)
-			{
-			
-			//Pressure (this is 20 iterations)
-			case 0:
-			case 2:
-			case 4:
-			case 6:
-				context.reverse = 0;
-			case 1:
-			case 3:
-			case 5:
-			case 7:
-				context.pressure = fieldData(o->r_pressure);
-				context.velocityX = fieldData(o->r_velocityX);
-				context.velocityY = fieldData(o->r_velocityY);
-				
-				context.cmd = nextCommand;
-				nextCommand = CMD_PRESSURE;
-				break;
-			
-			case 8:
-			case 10:
-			case 12:
-			case 14:
-				context.reverse = 0;
-			case 9:
-			case 11:
-			case 13:
-			case 15:
-				context.pressure = fieldData(o->r_pressure);
-				context.velocityX = fieldData(o->r_velocityX);
-				context.velocityY = fieldData(o->r_velocityY);
-				
-				context.cmd = nextCommand;
-				nextCommand = CMD_VISCOSITY;
-				break;
-			
-			default:
-				mpQueuePush(o->r_blocker, NULL);
-				return;
-			
-			}
+			context.pressure = fieldData(o->r_pressure);
+			context.input1 = fieldData(o->m_blendIn);
+			context.output1 = fieldData(o->m_blendOut);
+			context.velocityX = fieldData(o->r_velocityX);
+			context.velocityY = fieldData(o->r_velocityY);
 			
 			unsigned int entry = SPE_DEFAULT_ENTRY;
 			
-			if (context.reverse)
-			{
-				context.start += MAX/2;
-			}
-			
-			
-			if (context.start < context.height)
-				nextCommand = CMD_NOOP;
-			
-			context.cmd_next = nextCommand;
 			
 			spe_context_run(spe, &entry, 0, &context, NULL, NULL);
 			
 		}
-//		c.commands[0] = COMMAND_STALL;
-//		c.commands[1] = COMMAND_STALL;
-//		c.commands[2] = COMMAND_STALL;
-//		c.commands[3] = COMMAND_STALL;
-//		c.commands[4] = COMMAND_STALL;
-//		c.commands[5] = COMMAND_STALL;
-//		c.args[0] = 0;
-//		c.args[1] = 1;
-//		c.args[2] = 2;
-//		c.args[3] = 3;
-//		c.args[4] = 4;
-//		c.args[5] = 5;
-//		
-//		c.addresses[0] = fieldData(o->m_fns[fn].mode.pressure.pressure);
-//		c.addresses[1] = c.addresses[0] - c.width;
-//		c.addresses[2] = c.addresses[0] + c.width;
-//		
-//		c.addresses[3] = fieldData(o->m_fns[fn].mode.pressure.velX);
-//		
-//		c.addresses[4] = fieldData(o->m_fns[fn].mode.pressure.velY) - c.width;
-//		c.addresses[5] = fieldData(o->m_fns[fn].mode.pressure.velY) + c.width;
-//		
-//		c.width /= 4;
-//		
-//		c.cmd = CMD_PRESSURE;
-//		
-//		unsigned int entry = SPE_DEFAULT_ENTRY;
-//		spe_context_run(spe, &entry, 0, &c, NULL, NULL);
-//		
-//		//Get the data out of the SPU...
-//		c.commands[0] = COMMAND_WRITE;
-//		c.commands[1] = COMMAND_WRITE;
-//		c.commands[2] = COMMAND_WRITE;
-//		c.commands[3] = COMMAND_WRITE;
-//		c.commands[4] = COMMAND_WRITE;
-//		c.commands[5] = COMMAND_WRITE;
-//		
-//		c.cmd = CMD_NOOP;
-//		
-//		entry = SPE_DEFAULT_ENTRY;
-//		spe_context_run(spe, &entry, 0, &c, NULL, NULL);
 	}
 	x_catch(e)
 	{
