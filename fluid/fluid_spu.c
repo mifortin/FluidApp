@@ -8,7 +8,7 @@
 
 //Number of buffers that can be uploaded to a given core at any time
 #define FLUID_BUFFERS	60
-#define MAX 15
+#define MAX 12
 
 //Buffers (for working...)
 union bufferItem
@@ -54,7 +54,8 @@ static void dmaLoad(int in_row, int m_row, int l)		//Internal row / extenral row
 	int tag = 1;
 	int i;	
 	
-	//printf("DMA LOAD %i into %i (%i)\n", m_row, in_row,DMA[0].buffLen);
+	//printf("DMA LOAD %i into %i (%i) [%x]\n",
+	//		m_row, in_row,DMA[0].buffLen, DMA[0].ptr + DMA[0].buffLen*m_row);
 	
 	for (i=0; i < 4; i++)
 	{
@@ -82,24 +83,31 @@ static void dmaStore(int in_row, int m_row, int l)
 	int tag = 1;
 	int i;	
 	
-	//printf("DMA STORE %i from %i (%i) length %i\n", m_row, in_row,DMA[0].buffLen, l);
+	//printf("DMA STORE %i from %i (%i) length %i [%x]\n",
+	//		m_row, in_row,DMA[0].buffLen, l, DMA[0].ptr + DMA[0].buffLen*m_row);
 	
 	for (i=0; i < 4; i++)
 	{
 		if (i == 2)
 		{
 			char *ptr = context.output1;
+			
+			if (ptr == 0)	continue;
+			
 			mfc_put((void*)dat[i+in_row*4].d,
 					(unsigned int)(ptr + DMA[i].buffLen*m_row),
 					DMA[i].buffLen*l, tag, 0, 0);
-		}
-	
-		if (!DMA[i].ptr)
 			continue;
-		
-		mfc_put((void*)dat[i+in_row*4].d,
-				(unsigned int)(DMA[i].ptr + DMA[i].buffLen*m_row),
-				DMA[i].buffLen*l, tag, 0, 0);
+		}
+		else
+		{
+			if (!DMA[i].ptr)
+				continue;
+			
+			mfc_put((void*)dat[i+in_row*4].d,
+					(unsigned int)(DMA[i].ptr + DMA[i].buffLen*m_row),
+					DMA[i].buffLen*l, tag, 0, 0);
+		}
 	}
 	
 	//printf("OK!\n");
@@ -455,9 +463,9 @@ static void processBorder(int edge, int inside, int itr)
 		genPressureBorder(context.width/4, &dat[4*edge+3].d[0].vf, &dat[4*inside+3].d[0].vf);
 		break;
 		
-	case 12:
-	case 13:
-	case 14:
+	case 9:
+	case 10:
+	case 11:
 		genViscosityBorder(context.width/4, &dat[4*edge].d[0].vf, &dat[4*edge+1].d[1].vf,
 											&dat[4*inside].d[0].vf, &dat[4*inside+1].d[1].vf);
 		break;
@@ -465,13 +473,25 @@ static void processBorder(int edge, int inside, int itr)
 }
 
 
-static void addSources(int w, float *src, float *dstX, float *dstY)
+static void addSources(int w, float *src, float *dstX, float *dstY, float *pressure)
 {
 	int i;
-	for (i=0; i<w; i++)
+	if (context.input1)
 	{
-		dstX[i] += src[i/2+0];
-		dstY[i] += src[i/2+1];
+		for (i=0; i<w; i++)
+		{
+			dstX[i] = 0.99f*dstX[i] + 0.01f*src[2*(i/2)+0];
+			dstY[i] = 0.99f*dstY[i] + 0.01f*src[2*(i/2)+1];
+		}
+	}
+	
+	if (context.output1)
+	{
+		for (i=0; i<w/2; i++)
+		{
+			src[2*i+0] = dstX[2*i];
+			src[2*i+1] = dstY[2*i];
+		}
 	}
 }
 
@@ -501,7 +521,7 @@ static void processRow(int r, int itr)
 						&dat[4*(r-1)+3].d[0].vf);
 		break;
 	
-	case 8:
+	case 5:
 		advectField(	context.width/4,
 						(vector float){context.timestep,context.timestep,context.timestep,context.timestep},
 						&dat[4*(r-1)+3].d[0].vf,
@@ -512,7 +532,7 @@ static void processRow(int r, int itr)
 						
 		break;
 	
-	case 9:
+	case 6:
 		advectField(	context.width/4,
 						(vector float){context.timestep,context.timestep,context.timestep,context.timestep},
 						&dat[4*(r-1)+0].d[0].vf,
@@ -523,7 +543,7 @@ static void processRow(int r, int itr)
 						
 		break;
 	
-	case 10:
+	case 7:
 		advectField(	context.width/4,
 						(vector float){context.timestep,context.timestep,context.timestep,context.timestep},
 						&dat[4*(r-1)+1].d[0].vf,
@@ -534,17 +554,19 @@ static void processRow(int r, int itr)
 						
 		break;
 		
-	case 11:
+	case 8:
+		//printf("processRow %i %i\n", r, itr);
 		addSources(		context.width,
 						dat[4*r+2].d[0].f,
 						dat[4*r+0].d[0].f,
-						dat[4*r+1].d[0].f);
+						dat[4*r+1].d[0].f,
+						dat[4*r+3].d[0].f);
 						
 		break;
 	
-	case 12:
-	case 13:
-	case 14:
+	case 9:
+	case 10:
+	case 11:
 		genViscosity(	context.width/4,
 						(vector float){context.alpha,context.alpha,context.alpha,context.alpha},
 						(vector float){context.beta,context.beta,context.beta,context.beta},
@@ -558,6 +580,7 @@ static void processRow(int r, int itr)
 
 void forward()
 {
+	//printf("[%i, %i]\n", context.start, context.start+context.count);
 	int l;
 	
 	dmaLoad(0, context.start, 1);

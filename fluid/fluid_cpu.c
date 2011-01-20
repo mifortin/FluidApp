@@ -541,6 +541,7 @@ void fluidVelocityBlendIn(fluid *f, field *in_ch, float in_s)
 
 void fluidVideoVelocityOut(fluid *f, field *in_dest)
 {
+	fieldResize(in_dest, f->m_velWidth/2, f->m_velHeight);
 	f->m_blendOut = in_dest;
 }
 
@@ -779,13 +780,20 @@ void fluidMP(void *in_o, spe_context_ptr_t spe)
 			context.width = fieldWidth(o->r_pressure);
 			
 			context.pressure = fieldData(o->r_pressure);
-			context.input1 = fieldData(o->m_blendIn);
-			context.output1 = fieldData(o->m_blendOut);
+			
+			if (o->m_blendIn)
+				context.input1 = fieldData(o->m_blendIn);
+			
+			if (o->m_blendOut)
+				context.output1 = fieldData(o->m_blendOut);
+			
 			context.velocityX = fieldData(o->r_velocityX);
 			context.velocityY = fieldData(o->r_velocityY);
 			
 			unsigned int entry = SPE_DEFAULT_ENTRY;
 			
+//			if (o->m_blendIn && o->m_blendIn == o->m_blendOut)
+//				printf("Could it be?!\n");
 			
 			spe_context_run(spe, &entry, 0, &context, NULL, NULL);
 			

@@ -101,6 +101,11 @@ fluid *fluidCreate(int in_width, int in_height)
 	toRet->gpu_pressure = GPUFieldCreate(in_width, in_height, 1);
 	printf("   - Created GPU Buffers\n");
 	
+	#ifdef CELL
+	toRet->m_blendIn = 0;
+	toRet->m_blendOut = 0;
+	#endif
+	
 	int k;
 	toRet->gpu_curBuffer = 0;
 	for (k=0; k<GPU_BUFFERS; k++)
