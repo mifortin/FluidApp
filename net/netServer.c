@@ -200,7 +200,7 @@ netServer *netServerCreate(char *port, int flags, void *in_d,
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = (flags&NETS_UDP)?SOCK_DGRAM:SOCK_STREAM;
-	hints.ai_protocol = (flags&NETS_UDP)?IPPROTO_UDP:IPPROTO_TCP;
+	//hints.ai_protocol = (flags&NETS_UDP)?IPPROTO_UDP:IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 	
 	if (getaddrinfo(NULL, port, &hints, &servinfo) != 0)

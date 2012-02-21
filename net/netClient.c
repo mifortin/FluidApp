@@ -13,12 +13,15 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 #include <unistd.h>
 
 #include <stdio.h>
 
 #include "memory.h"
+
+#include <errno.h>
 
 
 void netClientSendBinary(netClient *client, const void *base, int cnt)
@@ -135,7 +138,7 @@ netClient *netClientCreate(const char *address, char *port, int flags)
 	struct addrinfo *servinfo;
 	
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = (flags&NETS_UDP)?SOCK_DGRAM:SOCK_STREAM;
 	hints.ai_protocol = (flags&NETS_UDP)?IPPROTO_UDP:IPPROTO_TCP;
 	
@@ -153,15 +156,30 @@ netClient *netClientCreate(const char *address, char *port, int flags)
 		errorRaise(error_create, "Client unable to create socket");
 	}
 	
-	if (connect(mySocket, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
+	if (flags & NETS_TCP)
 	{
-		freeaddrinfo(servinfo);
-		close(mySocket);
-		errorRaise(error_net, "Client unable to connect to remote server");
+		char flag = 1;
+		setsockopt(mySocket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag));
+		
+		flag = 1;
+		setsockopt(mySocket, IPPROTO_TCP, TCP_KEEPALIVE, &flag, sizeof(flag));
 	}
 	
-	freeaddrinfo(servinfo);
+	struct addrinfo *p = servinfo;
+	for (;p != NULL; p = p->ai_next)
+	{
+		if (connect(mySocket, p->ai_addr, p->ai_addrlen) != -1)
+		{
+			freeaddrinfo(servinfo);
+			return netClientFromSocket(mySocket);
+		}
+	}
 	
-	return netClientFromSocket(mySocket);
+	
+	freeaddrinfo(servinfo);
+	close(mySocket);
+	errorRaise(error_net, "Client unable to connect to remote server");
+	
+	return NULL;
 }
 
