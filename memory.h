@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "error.h"
+#include <stdint.h>
+#include "Timer.h"
 
 #ifdef CELL
 typedef unsigned int uint32_t;
@@ -76,8 +78,8 @@ void x_raise(error *e);
 sigjmp_buf *x_setupBuff(sigjmp_buf *in_newBuff);
 error *x_raisedError();
 
-//Since I use this function so often; it shall be dumped here
-double x_time();
+//! Get the unix time
+uint64_t unixTime();
 
 //Opens a standard file...
 FILE *x_fopen(const char *in_szFile, const char *in_mode);

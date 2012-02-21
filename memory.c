@@ -72,6 +72,8 @@ void x_init()
 {
 	pthread_key_create(&g_except_key, NULL);
 	pthread_key_create(&g_error_key, NULL);
+	
+	signal(SIGPIPE, SIG_IGN);				//Ignore SIGPIPE...
 }
 
 
@@ -110,12 +112,9 @@ error *x_raisedError()
 	return pthread_getspecific(g_error_key);
 }
 
-double x_time()
+uint64_t unixTime()
 {
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	
-	return (double)t.tv_sec + ((double)t.tv_usec) / 1000000.0;
+    return time(0);
 }
 
 #ifdef CELL
