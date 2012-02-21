@@ -113,7 +113,10 @@ int fieldInt(fieldMsg *in_fm, int in_fld)
 
 float fieldFloat(fieldMsg *in_fm, int in_fld)
 {
-	return in_fm->links[in_fld]->data.fData;
+	float f;
+	int *i = (int*)&f;
+	*i = in_fm->links[in_fld]->data.iData;
+	return f;
 }
 
 void fieldMsgClear(fieldMsg *in_fm)
@@ -132,7 +135,7 @@ void fieldMsgAddInt(fieldMsg *in_fm, int in_data)
 	in_fm->links[in_fm->header.numAtoms]
 				= (struct fieldMsgLink*)(in_fm->data + in_fm->header.sizeInBytes);
 	
-	in_fm->data[in_fm->header.sizeInBytes] = 'i';
+	in_fm->links[in_fm->header.numAtoms]->type = 'i';
 	in_fm->links[in_fm->header.numAtoms]->data.iData = in_data;
 	
 	in_fm->header.numAtoms = in_fm->header.numAtoms + 1;
@@ -150,8 +153,10 @@ void fieldMsgAddFloat(fieldMsg *in_fm, float in_data)
 	in_fm->links[in_fm->header.numAtoms]
 				= (struct fieldMsgLink*)(in_fm->data + in_fm->header.sizeInBytes);
 	
-	in_fm->data[in_fm->header.sizeInBytes] = 'f';
-	in_fm->links[in_fm->header.numAtoms]->data.fData = in_data;
+	in_fm->links[in_fm->header.numAtoms]->type = 'f';
+	
+	int *i = (int*)&in_data;
+	in_fm->links[in_fm->header.numAtoms]->data.iData = *i;
 	
 	in_fm->header.numAtoms = in_fm->header.numAtoms + 1;
 	in_fm->header.sizeInBytes = in_fm->header.sizeInBytes + 5;
@@ -177,4 +182,26 @@ void fieldMsgAddChar(fieldMsg *in_fm, const char *in_ch)
 
 void fieldMsgSend(fieldMsg *in_fm, netClient *in_client)
 {
+	int i;
+	for (i=0; i<fieldMsgCount(in_fm); i++)
+	{
+		if (isFieldInt(in_fm, i) || isFieldFloat(in_fm, i))
+			in_fm->links[i]->data.iData = htonl(in_fm->links[i]->data.iData);
+	}
+	
+	in_fm->header.sizeInBytes += sizeof(in_fm->header);
+	in_fm->header.numAtoms = in_fm->header.numAtoms-1;
+	
+	int size = in_fm->header.sizeInBytes;
+	in_fm->header.numAtoms = htonl(in_fm->header.numAtoms);
+	in_fm->header.sizeInBytes = htonl(in_fm->header.sizeInBytes);
+	
+
+	struct fieldServerJitHeader head =	{htonl('JMMP'), in_fm->header.sizeInBytes};
+	
+	netClientSendBinary(in_client, &head, sizeof(head));
+
+	
+	netClientSendBinary(in_client, &(in_fm->header), sizeof(in_fm->header));
+	netClientSendBinary(in_client, &(in_fm->data), size);
 }

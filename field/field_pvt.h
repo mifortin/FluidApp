@@ -110,6 +110,15 @@ struct fieldClient
 	
 	int port;				//Port to connect to...
 	char szHost[256];		//Host to connect to...
+	
+	//!Field messages to send
+	fieldMsg *m_messages[64];
+	
+	//!Number of queued up messages
+	int m_nMessages;
+	
+	//! Mutex for messages
+	pthread_mutex_t	m_msgMutex;
 };
 
 

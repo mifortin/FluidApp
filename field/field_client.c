@@ -62,6 +62,13 @@ reconnect:
 
 	restart:
 		pthread_mutex_lock(&fc->mtx);
+		if (fc->allSent == -1)
+		{
+			pthread_mutex_unlock(&fc->mtx);
+			if (fc->client)			x_free(fc->client);
+			return NULL;
+		}
+		
 		fc->allSent = 0;
 		x_pthread_cond_wait(&fc->cnd, &fc->mtx);
 		int as  = fc->allSent;
@@ -73,9 +80,31 @@ reconnect:
 			return NULL;
 		}
 		
+		if (fc->allSent != 1)
+		{
+			printf("Continuing, but all sent not 1!\n");
+			pthread_mutex_unlock(&fc->mtx);
+			goto restart;
+		}
+		
 		fc->allSent = 2;
 		
 		pthread_mutex_unlock(&fc->mtx);
+		
+		
+		//Send the mutex!
+		pthread_mutex_lock(&fc->m_msgMutex);
+		
+		int i;
+		for (i=0; i<fc->m_nMessages; i++)
+		{
+			fieldMsgSend(fc->m_messages[i], fc->client);
+			x_free(fc->m_messages[i]);
+		}
+		
+		fc->m_nMessages = 0;
+		
+		pthread_mutex_unlock(&fc->m_msgMutex);
 		
 		struct fieldServerJitMatrix mtx = {htonl('JMTX'),
 											htonl(sizeof(mtx)),
@@ -93,7 +122,7 @@ reconnect:
 							*fieldComponents(fc->fld_sending)*sizeOfData;
 		
 		mtx.dataSize = htonl(dataSize);
-		mtx.time = x_time()*1000;
+		mtx.time = unixTime();
 		
 		int x;
 		for (x=0; x<32;x++)
@@ -130,10 +159,10 @@ reconnect:
 			if (latency.id == htonl('JMLP')
 				|| latency.id == 'JMLP')
 			{
-				//printf("LATENCY INFO:\n");
-				//printf(" - send: %f\n", latency.client_time);
-				//printf(" - receive: %f\n", latency.parsed_header);
-				//printf(" - complete: %f\n", latency.parsed_done);
+//				printf("LATENCY INFO:\n");
+//				printf(" - send: %f\n", latency.client_time);
+//				printf(" - receive: %f\n", latency.parsed_header);
+//				printf(" - complete: %f\n", latency.parsed_done);
 			}
 			else
 			{
@@ -178,14 +207,15 @@ void fieldClientOnFree(void *o)
 	
 	pthread_mutex_lock(&fc->mtx);
 	fc->allSent = -1;
-	x_pthread_cond_signal(&fc->cnd);
 	pthread_mutex_unlock(&fc->mtx);
+	x_pthread_cond_signal(&fc->cnd);
 	x_pthread_join(fc->thr);
 	
 	if (fc->fld_sending)	x_free(fc->fld_sending);
 	
 	pthread_mutex_destroy(&fc->mtx);
 	pthread_cond_destroy(&fc->cnd);
+	pthread_mutex_destroy(&fc->m_msgMutex);
 }
 
 //Connect to a given host with port.
@@ -207,7 +237,9 @@ fieldClient *fieldClientCreateFloat(int in_width, int in_height,
 	fc->dataType = FIELD_JIT_FLOAT32;
 	
 	pthread_mutex_init(&fc->mtx, NULL);
+	pthread_mutex_init(&fc->m_msgMutex, NULL);
 	x_pthread_cond_init(&fc->cnd, NULL);
+	fc->m_nMessages = 0;
 	
 	x_try
 	{
@@ -240,7 +272,9 @@ fieldClient *fieldClientCreateChar(int in_width, int in_height,
 	fc->dataType = FIELD_JIT_CHAR;
 	
 	pthread_mutex_init(&fc->mtx, NULL);
+	pthread_mutex_init(&fc->m_msgMutex, NULL);
 	x_pthread_cond_init(&fc->cnd, NULL);
+	fc->m_nMessages = 0;
 	
 	x_try
 	{
@@ -254,6 +288,24 @@ fieldClient *fieldClientCreateChar(int in_width, int in_height,
 	
 	return fc;
 }
+
+
+//Send a message
+void fieldClientSendMessage(fieldClient *fc, fieldMsg *fm)
+{
+	pthread_mutex_lock(&fc->m_msgMutex);
+	
+	if (fc->m_nMessages < 64)
+	{
+		fc->m_messages[fc->m_nMessages] = fm;
+		x_retain(fm);
+		
+		fc->m_nMessages = fc->m_nMessages + 1;
+	}
+	
+	pthread_mutex_unlock(&fc->m_msgMutex);
+}
+
 
 //Send a field
 void fieldClientSend(fieldClient *fc, field *f)
@@ -325,7 +377,7 @@ field *fieldClientLock(fieldClient *fc)
 		return NULL;
 	}
 	
-	pthread_mutex_unlock(&fc->mtx);
+	//pthread_mutex_unlock(&fc->mtx);
 	
 	return fc->fld_sending;
 }
@@ -333,7 +385,7 @@ field *fieldClientLock(fieldClient *fc)
 
 void fieldClientUnlock(fieldClient *fc)
 {
-	pthread_mutex_lock(&fc->mtx);
+	//pthread_mutex_lock(&fc->mtx);
 	if (fc->allSent == 0)			//To be safe, if I don't read my own comments
 	{
 		fc->allSent = 1;

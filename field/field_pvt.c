@@ -47,6 +47,7 @@ field *fieldFromFloatData(float *in_data, int in_width, int in_height,
 }
 
 
+
 field *fieldCreate(int in_width, int in_height, int in_components)
 {
 	int numData = in_width * in_height * in_components * sizeof(float);
@@ -112,30 +113,50 @@ field *fieldCreateChar(int in_width, int in_height, int in_components)
 }
 
 
-void fieldResize(field *in_f, int newW, int newH)
+void fieldResize_sy(field *in_f, int newW, int newH, int SY)
 {
 	if (in_f->m_flags & Field_NoRelease)
 	{
 		errorRaise(error_specify, "Must own memory to resize field");
 	}
-
-	int numData = newW * newH * in_f->m_components;
+	
 	int ds;
 	if (in_f->m_flags & Field_TypeChar)
 		ds = sizeof(char);
 	else
 		ds = sizeof(float);
 	
-	numData *= ds;
+	if (SY < newW * fieldComponents(in_f) * ds)
+	{
+		errorRaise(error_specify, "Stride must be larger than width * components * data size");
+	}
+
+	int numData = SY * newH;
 	
-	errorAssert(numData <= in_f->m_allocatedBytes, error_specify,
-				"Internal buffer not large enough for %i %i grid!",
-				newW, newH);
+	if (numData > in_f->m_allocatedBytes)
+	{
+		void *newData = malloc128(numData);
+		memcpy(newData, in_f->r_data.c, in_f->m_allocatedBytes);
+		in_f->m_allocatedBytes = numData;
+		free(in_f->r_data.c);
+		in_f->r_data.c = (unsigned char*)newData;
+	}
 	
 	in_f->m_width = newW;
 	in_f->m_height = newH;
 	
-	in_f->m_strideY = newW * in_f->m_strideX;
+	in_f->m_strideY = SY;
+}
+
+
+void fieldResize(field *in_f, int newW, int newH)
+{
+	int ds;
+	if (in_f->m_flags & Field_TypeChar)
+		ds = sizeof(char);
+	else
+		ds = sizeof(float);
+	fieldResize_sy(in_f, newW, newH, newW*ds);
 }
 
 
@@ -172,6 +193,13 @@ int fieldStrideY(field *in_f)
 {
 	return in_f->m_strideY;
 }
+
+
+void fieldSetCharData(field *in_f, unsigned char*in_data)
+{
+	in_f->r_data.c = in_data;
+}
+
 
 float *fieldData(field *in_f)
 {

@@ -6,6 +6,7 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+
 #include "net.h"
 #include "error.h"
 #include "mpx.h"
@@ -47,12 +48,16 @@ field *fieldCreateChar(int in_width, int in_height, int in_components);
 field *fieldFromFloatData(float *in_data, int in_width, int in_height,
 						  int in_strideX, int in_strideY, int in_components);
 
+field *fieldFromCharData(unsigned char *in_data, int in_width, int in_height,
+                         int in_strideX, int in_strideY, int in_components);
+
 int fieldWidth(field *in_f);
 int fieldHeight(field *in_f);
 int fieldComponents(field *in_f);
 
 //Resize the field
 void fieldResize(field *in_f, int newW, int newH);
+void fieldResize_sy(field *in_f, int newW, int newH, int SY);
 
 //These two are in bytes.  (distance between each Y and each X)
 int fieldStrideX(field *in_f);
@@ -64,6 +69,9 @@ int fieldIsCharData(field *in_f);
 float *fieldData(field *in_f);
 unsigned char *fieldCharData(field *in_f);
 
+//Change the pointer (only valid for non-releasing)
+void fieldSetCharData(field *in_f, unsigned char*in_data);
+
 
 typedef struct fieldServer fieldServer;
 
@@ -73,7 +81,7 @@ fieldServer *fieldServerCreateFloat(int in_width, int in_height, int in_componen
 fieldServer *fieldServerCreateChar(int in_width, int in_height, int in_components,
 									int in_port);
 
-//Tell when we use/unuse a field-server
+//Tell when we use/unuse a field-server (returns NULL if can't do anything)
 field *fieldServerLock(fieldServer *fs);
 void fieldServerUnlock(fieldServer *fs);
 
@@ -100,6 +108,9 @@ fieldClient *fieldClientCreateFloat(int in_width, int in_height, int in_componen
 fieldClient *fieldClientCreateChar(int in_width, int in_height, int in_components,
 									const char *szHost, int in_port);
 
+//! Send a message back to Max
+void fieldClientSendMessage(fieldClient *fc, fieldMsg *fm);
+
 //Send a field
 void fieldClientSend(fieldClient *fc, field *f);
 
@@ -121,4 +132,5 @@ void fieldClientSetDelegate(fieldClient *fc, fieldClientDelegate *d);
 #define fieldPointer(base, x, y, sx, sy)	\
 			fieldPointerFromOffset(base,fieldComputeOffsetFromStride(x,y,sx,sy))
 
+	
 #endif

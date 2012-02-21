@@ -102,9 +102,22 @@ nextPacket:
 			sizeOfData = 4;
 		else
 			sizeOfData = 1;
+		
+		pthread_mutex_lock(&r->mtx);
+		while (r->needSwap == 1)
+		{
+			x_pthread_cond_wait(&r->cnd, &r->mtx);
+			
+			if (r->server == NULL)
+			{
+				pthread_mutex_unlock(&r->mtx);
+				return 0;
+			}
+		}
+		pthread_mutex_unlock(&r->mtx);
 
 		//Attempt to resize the field
-		fieldResize(r->fld_net, matrixInfo.dim[0], matrixInfo.dim[1]);
+		fieldResize_sy(r->fld_net, matrixInfo.dim[0], matrixInfo.dim[1], matrixInfo.dimStride[1]);
 		
 		//Loop over and receive!!!
 		if (matrixInfo.dimCount == 2
@@ -115,22 +128,8 @@ nextPacket:
 			&& matrixInfo.dimStride[0] == fieldStrideX(r->fld_net)
 			&& matrixInfo.dimStride[1] == fieldStrideY(r->fld_net)
 			&& matrixInfo.dataSize ==
-						matrixInfo.dim[0]*matrixInfo.dim[1]*
-						matrixInfo.planeCount*sizeOfData)
+						fieldStrideY(r->fld_net) * fieldHeight(r->fld_net))
 		{
-			
-			pthread_mutex_lock(&r->mtx);
-			while (r->needSwap == 1)
-			{
-				x_pthread_cond_wait(&r->cnd, &r->mtx);
-				
-				if (r->server == NULL)
-				{
-					pthread_mutex_unlock(&r->mtx);
-					return 0;
-				}
-			}
-			pthread_mutex_unlock(&r->mtx);
 		
 			//printf(" - OPTIMAL!\n");
 			float *d = fieldData(r->fld_net);
@@ -180,13 +179,13 @@ nextPacket:
 		{
 			printf(" - Backup data fetcher = discard...\n");
 			printf(" --> Type: %u (%u)\n", matrixInfo.type, r->dataType);
-			printf(" --> Dims: %u\n", matrixInfo.dimCount);
-			printf(" --> Planes: %u\n", matrixInfo.planeCount);
-			printf(" --> Width: %u\n", matrixInfo.dim[0]);
-			printf(" --> Height: %u\n", matrixInfo.dim[1]);
-			printf(" --> StrideX: %u\n", matrixInfo.dimStride[0]);
-			printf(" --> StrideY: %u\n", matrixInfo.dimStride[1]);
-			printf(" --> dataSize: %u\n", matrixInfo.dataSize);
+			printf(" --> Dims: %u (%u)\n", matrixInfo.dimCount, 2);
+			printf(" --> Planes: %u (%u)\n", matrixInfo.planeCount, fieldComponents(r->fld_net));
+			printf(" --> Width: %u (%u)\n", matrixInfo.dim[0], fieldWidth(r->fld_net));
+			printf(" --> Height: %u (%u)\n", matrixInfo.dim[1], fieldHeight(r->fld_net));
+			printf(" --> StrideX: %u (%u)\n", matrixInfo.dimStride[0], fieldStrideX(r->fld_net));
+			printf(" --> StrideY: %u (%u)\n", matrixInfo.dimStride[1], fieldStrideY(r->fld_net));
+			printf(" --> dataSize: %u (%u)\n", matrixInfo.dataSize, fieldStrideY(r->fld_net) * fieldHeight(r->fld_net));
 		}
 		
 	}
@@ -256,6 +255,8 @@ void fieldServerFinishInit(fieldServer *r, int in_port)
 	r->msg_loop[6] = fieldMsgCreate();
 	r->msg_loop[7] = fieldMsgCreate();
 	
+	r->needSwap = -1;
+	
 	r->server = netServerCreate(szPort, NETS_TCP | NETS_SINGLE_CLIENT, r, fieldServerOnConnect);
 }
 
@@ -303,7 +304,15 @@ field *fieldServerLock(fieldServer *fs)
 	if (fs == NULL)
 		return NULL;
 	
-	return fs->fld_local;
+	field *r;
+	
+	pthread_mutex_lock(&fs->mtx);
+	
+	r = (fs->needSwap == 1) ? fs->fld_net : NULL;
+	
+	pthread_mutex_unlock(&fs->mtx);
+	
+	return r;
 }
 
 void fieldServerUnlock(fieldServer *fs)
