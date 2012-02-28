@@ -816,7 +816,7 @@ void fluidTimedMP(void *in_o, spe_context_ptr_t spe)
 	
 	mpQueuePush(o->r_blocker, NULL);
 }
-#else
+#elif !defined USE_GRANDCENTRAL
 
 //Called on each processor to do a specified amount of work.
 void fluidMP(void *in_o)

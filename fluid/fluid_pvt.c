@@ -91,34 +91,34 @@ fluid *fluidCreate(int in_width, int in_height)
 	printf("   - Created CPU Buffers\n");
 	
 	//GPU Buffers
-	toRet->gpu_velX_in = GPUFieldCreate(in_width, in_height, 1);
-	toRet->gpu_velY_in = GPUFieldCreate(in_width, in_height, 1);
-	toRet->gpu_velocityX = GPUFieldCreate(in_width, in_height, 1);
-	toRet->gpu_velocityY = GPUFieldCreate(in_width, in_height, 1);
-	toRet->gpu_dens_in = GPUFieldCreate(in_width, in_height, 4);
-	toRet->gpu_density = GPUFieldCreate(in_width, in_height, 4);
-	toRet->gpu_dens_tmp = GPUFieldCreate(in_width, in_height, 4);
-	toRet->gpu_pressure = GPUFieldCreate(in_width, in_height, 1);
-	printf("   - Created GPU Buffers\n");
+//	toRet->gpu_velX_in = GPUFieldCreate(in_width, in_height, 1);
+//	toRet->gpu_velY_in = GPUFieldCreate(in_width, in_height, 1);
+//	toRet->gpu_velocityX = GPUFieldCreate(in_width, in_height, 1);
+//	toRet->gpu_velocityY = GPUFieldCreate(in_width, in_height, 1);
+//	toRet->gpu_dens_in = GPUFieldCreate(in_width, in_height, 4);
+//	toRet->gpu_density = GPUFieldCreate(in_width, in_height, 4);
+//	toRet->gpu_dens_tmp = GPUFieldCreate(in_width, in_height, 4);
+//	toRet->gpu_pressure = GPUFieldCreate(in_width, in_height, 1);
+//	printf("   - Created GPU Buffers\n");
 	
 	#ifdef CELL
 	toRet->m_blendIn = 0;
 	toRet->m_blendOut = 0;
 	#endif
 	
-	int k;
-	toRet->gpu_curBuffer = 0;
-	for (k=0; k<GPU_BUFFERS; k++)
-	{
-		toRet->gpu_tmp1[k] = GPUFieldCreate(in_width, in_height, 1);
-	}
+//	int k;
+//	toRet->gpu_curBuffer = 0;
+//	for (k=0; k<GPU_BUFFERS; k++)
+//	{
+//		toRet->gpu_tmp1[k] = GPUFieldCreate(in_width, in_height, 1);
+//	}
 	
 	//GPU Programs...
-	toRet->gpu_fn_viscosity = GPUProgramCreate("viscosity.cl", GPUPROGRAM_FROM_FILE);
-	toRet->gpu_fn_viscosity_xy = GPUProgramCreate("viscosity_xy.cl", GPUPROGRAM_FROM_FILE);
-	toRet->gpu_fn_pressure = GPUProgramCreate("pressure.cl", GPUPROGRAM_FROM_FILE);
-	toRet->gpu_fn_advection = GPUProgramCreate("advection.cl", GPUPROGRAM_FROM_FILE);
-	printf("   - Loaded GPU Programs\n");
+//	toRet->gpu_fn_viscosity = GPUProgramCreate("viscosity.cl", GPUPROGRAM_FROM_FILE);
+//	toRet->gpu_fn_viscosity_xy = GPUProgramCreate("viscosity_xy.cl", GPUPROGRAM_FROM_FILE);
+//	toRet->gpu_fn_pressure = GPUProgramCreate("pressure.cl", GPUPROGRAM_FROM_FILE);
+//	toRet->gpu_fn_advection = GPUProgramCreate("advection.cl", GPUPROGRAM_FROM_FILE);
+//	printf("   - Loaded GPU Programs\n");
 	
 	toRet->r_blocker = mpQueueCreate(2);
 	
