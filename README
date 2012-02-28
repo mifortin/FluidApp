@@ -1,0 +1,6 @@
+This is a dump of what I did as a grad student at the Topological Media Lab.  There are some useful bits in here:
+- field includes the ability to act like a server for jit.net.send and client for jit.net.recv (for people using Max/MSP/Jitter)
+- net provides a simple way to set up a server and receive information
+- fluid is a simple fluid simulation that uses SIMD to brute-force the problem.  It's quite fast on Intel and PowerPC.  It even beats out Naive implementations on Arm.
+- The app itself is a simple drawing-like program.
+
